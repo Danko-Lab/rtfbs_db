@@ -20,6 +20,9 @@ Sources of Position Weight Matrices (PWMs).
 * Neph: URL: ftp://ftp.ebi.ac.uk/pub/databases/ensembl/encode/supplementary/integration_data_jan2011/byDataType/footprints/jan2011/de.novo.pwm 
 	Neph S, et. al. An expansive human regulatory lexicon encoded in transcription factor footprints. Nature. 2012 Sep 6;489(7414):83-90. doi: 10.1038/nature11212.
 
+* UniProbe: http://the_brain.bwh.harvard.edu/uniprobe/
+	References: http://the_brain.bwh.harvard.edu/uniprobe/references.php
+
 Requires
 --------
 
