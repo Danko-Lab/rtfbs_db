@@ -4,11 +4,11 @@ Date: 2013-02-05
 Title: Parse TF motifs from public databases, read into R, and scan using 'rtfbs'.
 Author: Charles G. Danko <dankoc@gmail.com>
 Maintainer: Charles G. Danko <dankoc@gmail.com>
-Depends: R (>= 2.6), rphast, rtfbs, multicore, latticeExtra, cluster, seqLogo.custom, cwhmisc
+Depends: R (>= 2.6), rphast, rtfbs, multicore, latticeExtra, cluster, cwhmisc
 LinkingTo:
 Suggests:
 Description: Convenience functions to read and scan DNA sequences using Position Weight Matrices (PWMs)
 License: GPL version 3 or newer
-Collate: tfbs.R find_sites_rtfbs.R zzz.R
+Collate: seqLogo.R tfbs.R find_sites_rtfbs.R zzz.R
 biocViews: Sequencing, Analysis
 LazyLoad: yes
