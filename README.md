@@ -23,9 +23,7 @@ Sources of Position Weight Matrices (PWMs).
 Requires
 --------
 
-* rtfbs: 
-	## In R
-	install.package('rtfbs')
+* rtfbs: In R, type: "install.package('rtfbs')"
 
 * bedops:
 	* Get the latest version of the bedops binaries here: https://bedops.readthedocs.org/en/latest/
