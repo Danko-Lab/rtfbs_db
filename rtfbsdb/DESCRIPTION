@@ -1,4 +1,4 @@
-Package: rtfbs_db
+Package: rtfbsdb
 Version: 0.0.1
 Date: 2013-02-05
 Title: Parse TF motifs from public databases, read into R, and scan using 'rtfbs'.
