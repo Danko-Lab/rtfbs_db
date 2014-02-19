@@ -1,0 +1,6 @@
+useDynLib(rtfbs_db)
+import(MASS)
+export(read.motif, reverse.complement, compare.motifs, read.seqfile.from.bed)
+export(tfbs, scanDb_rtfbs)
+exportClasses("tfbs")
+exportMethods(tfbs.getDistanceMatrix, tfbs.clusterMotifs, tfbs.setUseMotifs.random, tfbs.getExpression, tfbs.drawLogo, tfbs.drawLogosForClusters)
