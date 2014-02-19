@@ -1,0 +1,11 @@
+rm tf.tsv *.pwm
+
+mkdir teal
+cat teal.txt | perl makeMatrix.pl teal
+
+mkdir orange
+cat orange.txt | perl makeMatrix.pl orange
+
+mkdir green
+cat green.txt | perl makeMatrix.pl green
+

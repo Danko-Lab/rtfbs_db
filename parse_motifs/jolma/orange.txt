@@ -1,0 +1,55 @@
+RXRG	nuclearreceptor	full	TTCTCT20NTA	AD	RRGGTCATGACCYY	2	3	dimeric	< 100 counts; removed from network representations	no						
+A	3	5	0	0	0	0	11	0	0	12	1	0	0	2		
+C	0	0	0	0	0	9	0	1	0	0	9	9	6	6		
+G	14	12	19	19	0	0	3	0	19	0	0	0	0	3		
+T	0	0	0	0	15	0	0	15	0	0	0	0	6	2		
+Bhlhb2	bHLH	DBD	TAATTC20NCG	Z	NKCACGTGMN	1	2	monomeric	replicate experiment; removed from network representations	no						
+A	1200	429	21	4055	0	16	52	5	2134	617						
+C	1117	106	4055	36	4055	0	79	0	1921	2012						
+G	1199	2036	0	30	2	4055	9	4055	23	583						
+T	540	2019	0	22	0	0	4055	28	145	843						
+E2F1	E2F	DBD	CAATT14N	U	NNNTGGCGCCANNN	2	4	monomeric	mixed model for A-stretch; removed from network representations	no						
+A	134	123	126	104	32	0	2	0	2	2	303	270	225	186		
+C	37	37	9	3	90	20	357	0	376	384	87	33	27	23		
+G	44	56	30	151	618	616	0	687	24	54	9	0	51	40		
+T	194	227	291	373	5	0	4	3	1	19	39	101	116	153		
+E2F1	E2F	DBD	CAATT14N	U	AAATGGCGCCATTT	2	4	monomeric	< 100 counts; removed from network representations	no						
+A	11	15	12	1	0	0	0	0	0	1	15	7	1	1		
+C	1	0	1	0	0	0	14	0	15	16	7	2	0	1		
+G	0	0	0	3	24	24	0	26	0	0	0	0	2	1		
+T	8	4	7	19	0	0	0	1	0	1	3	17	17	16		
+RFX5	RFX	DBD	TGGAGC30NGAT	AI	SGTTRCCATRGCAACS	2	2	dimeric	asymmetric seed for dimer (symmetric seed above also explains enrichment); removed from network representations	no						
+A	273	83	19	67	1022	7	2	1901	89	876	121	117	1947	1964	15	454
+C	1034	2	23	88	81	2022	1987	33	36	3	40	1880	2	24	2049	861
+G	814	2193	22	17	1018	40	11	54	18	1246	2095	57	62	10	9	913
+T	471	21	2199	2142	119	65	220	109	2167	0	0	353	20	4	38	279
+YY2	C2H2	full	TGAGCA20NGA	AE	CCATGCCGCCAT	2	4	dimeric	weakly enriched; removed from network representations	yes						
+A	1123	1463	6445	822	794	184	9	156	26	27	6590	8				
+C	4405	4759	625	541	230	4886	4956	38	5150	5234	11	13				
+G	1372	812	995	825	7352	58	100	10696	142	8	18	10				
+T	1166	886	1775	8247	3636	115	121	128	84	10	8	7630				
+EGR4	C2H2	DBD	TGCGCC20NCGC	Y	NNACGCCCACGCANNN	2	4	monomeric	replicate experiment; removed from network representations	no						
+A	76	60	141	0	1	2	3	1	159	1	2	0	167	48	65	33
+C	41	50	50	234	0	238	238	233	22	235	2	228	0	59	25	44
+G	34	8	0	0	272	0	0	0	2	1	265	0	28	1	7	18
+T	48	87	3	0	1	4	0	3	0	0	3	0	4	93	102	113
+NFIA	NFI	full	TACGTC20NTGC	AA	NNTGCCAANN	0	3	monomeric	model generated using exact match to seed; dimeric binding is favored heavily over this monomer; removed from network representations	yes						
+A	22969	20706	0	0	0	0	89071	89418	23752	27709						
+C	22347	14274	0	0	93597	93394	0	0	21852	14439						
+G	24321	35089	0	98253	0	0	0	0	29423	16505						
+T	22282	23019	95496	0	0	0	0	0	17410	32052						
+NFIX	NFI	full	TCAACC20NCG	AC	NNTGCCAAN	1	3	monomeric	model generated using exact match to seed; dimeric binding is favored heavily over this monomer; removed from network representations	no						
+A	7951	7832	11279	132	3	0	32864	32864	8251							
+C	8810	6134	9695	186	32864	32864	2230	1356	9039							
+G	8725	10855	5911	32864	3257	0	180	12688	9135							
+T	7378	8043	32864	2539	29	0	110	2399	6439							
+NFIX	NFI	full	TGAGAT20NAGA	W	NNTGCCAAN	1	3	monomeric	dimeric binding is favored heavily over this monomer; removed from network representations	yes						
+A	6749	6904	6464	13	0	0	24137	24137	6007							
+C	5095	3320	4674	29	24137	24137	1533	1095	5429							
+G	5573	7121	3171	24137	4728	0	106	7380	6068							
+T	6719	6792	24137	2293	0	0	295	3410	6634							
+NFIX	NFI	full	TGAGAT20NAGA	W	YTGGCANNNTGCCAA	2	3	dimeric	replicate experiment; removed from network representations	no						
+A	1923	42	4	0	2309	19925	7765	7573	7081	5460	0	0	0	15723	14042	
+C	11064	82	6	5	25844	2527	6366	4967	3580	2879	0	17892	18503	597	691	
+G	605	838	20264	19552	0	2523	2987	4577	5364	2800	27353	2	1	102	2586	
+T	10487	19205	0	0	41	4542	6529	6859	7798	25748	3110	9	2	155	2812	
