@@ -13,7 +13,7 @@
 #` @param motif_path path to the motif PWM file.
 #` @param divide_num List of parameters for all data types, for the model representing no TF binding.
 #` @return List structure representing the match score to the motif.
-find_sites_rtfbs <- function(tf_name, dnase_peaks_bed, motif_path, tmp_name= "tmp.DNAseI.peaks", return_posteriors=TRUE, ...) {
+scan_rtfbs <- function(tf_name, dnase_peaks_bed, motif_path, tmp_name= "tmp.DNAseI.peaks", return_posteriors=TRUE, ...) {
   ## Read the pwm and sequence file.
   motif <- read.motif(motif_path, header=TRUE) 
   
