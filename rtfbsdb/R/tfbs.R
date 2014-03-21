@@ -78,11 +78,25 @@ compare.motifs <- function(motif1, motif2, BG=log(c(0.25, 0.25, 0.25, 0.25))) {
 
 ## Write.seqfile.
 ## Writes a fasta file containing all sequences in a bed region.
-read.seqfile.from.bed <- function(bed, twoBitPath) {
-  write.table(paste(bed[,1],":",bed[,2],"-",bed[,3], sep=""), "tmp.seqList", row.names=FALSE, col.names=FALSE, sep="\t", quote=FALSE)
-  system(paste("twoBitToFa -seqList=tmp.seqList ",twoBitPath," tmp.fa", sep=""))
-  ms_data <- read.ms("tmp.fa")
-  unlink(c("tmp.fa", "tmp.seqList"))
+read.seqfile.from.bed <- function(bed, twoBitPath, tmpdir = getwd()) {
+  # create temporary filenames
+  tmp.seq = tempfile(tmpdir=tmpdir)
+  tmp.fa = tempfile(tmpdir=tmpdir)
+  
+  # write sequence list
+  seqList = paste(bed[,1],":", as.integer(bed[,2]), "-", as.integer(bed[,3]), sep="")
+  writeLines(seqList, tmp.seq)
+  
+  # generate fasta file
+  cmd = paste("twoBitToFa -seqList=", tmp.seq, " ", twoBitPath, " ", tmp.fa, sep="")
+  system(cmd, wait = TRUE)
+  
+  # read data
+  ms_data <- read.ms(tmp.fa)
+  
+  # clean up
+  unlink(c(tmp.seq, tmp.fa))
+  
   return(ms_data)
 }
 
