@@ -24,7 +24,9 @@ joint.gc.quantile.bins <- function(set1.ms, set2.ms, n = 4) {
   return(list(bins1 = bin1, bins2 = bin2))
 }
 
-comparative_scan_rtfbs.ms <- function(pwm, positive.ms, negative.ms, background.ms, background.mm, fdr = 0.1, threshold = NA) {
+# NOTE: empirical p-values are computed under the assumption that the negative set
+#       is not bound by the specified factor (but is accessible)
+comparative_scan_rtfbs.ms <- function(pwm, positive.ms, negative.ms, background.ms, background.mm, fdr = 0.1, threshold = NA, calc.empirical.pvalue = FALSE) {
   if (is.na(threshold)) {
     pos.sites = score.ms(positive.ms, pwm, background.mm, threshold = 0)
     neg.sites = score.ms(negative.ms, pwm, background.mm, threshold = 0)
@@ -49,6 +51,19 @@ comparative_scan_rtfbs.ms <- function(pwm, positive.ms, negative.ms, background.
     Npos = length(unique(pos.sites$seqname[pos.mask]))
     Nneg = length(unique(neg.sites$seqname[neg.mask]))
     
+    # NOTE: empirical p-values are computed under the assumption that the negative set
+    #       is not bound by the specified factor (but is accessible)
+    if (calc.empirical.pvalue) {
+      epvals = sapply(pos.sites$score[pos.mask], function(thresh) {
+        K = sum(neg.sites$score >= thresh)
+        Z = length(neg.sites$score)
+
+        (K + 1)/(Z + 1) # empirical p-value
+      })
+      
+      return(list(Nneg = Nneg, Npos = Npos, thresh = thresh, sites = pos.sites[pos.mask, ], empirical.pvalues = epvals))
+    }
+    
     return(list(Nneg = Nneg, Npos = Npos, thresh = thresh, sites = pos.sites[pos.mask, ]))
   } else {
     pos.sites = score.ms(positive.ms, pwm, background.mm, threshold = threshold)
@@ -57,11 +72,23 @@ comparative_scan_rtfbs.ms <- function(pwm, positive.ms, negative.ms, background.
     Npos = length(unique(pos.sites$seqname))
     Nneg = length(unique(neg.sites$seqname))
   
+    if (calc.empirical.pvalue) {
+      epvals = sapply(pos.sites$score, function(thresh) {
+        K = sum(neg.sites$score >= thresh)
+        Z = length(neg.sites$score)
+
+        (K + 1)/(Z + 1) # empirical p-value
+      })
+      
+      return(list(Nneg = Nneg, Npos = Npos, thresh = threshold, sites = pos.sites, empirical.pvalues = epvals))
+    }
     return(list(Nneg = Nneg, Npos = Npos, thresh = threshold, sites = pos.sites))
   }
 }
 
-comparative_scan_rtfbs <- function(pwm, positive.bed, negative.bed, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, twoBit_path= "/gbdb/hg19/hg19.2bit") {
+# NOTE: empirical p-values are computed under the assumption that the negative set
+#       is not bound by the specified factor (but is accessible)
+comparative_scan_rtfbs <- function(pwm, positive.bed, negative.bed, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, twoBit_path= "/gbdb/hg19/hg19.2bit", calc.empirical.pvalue = FALSE) {
   # read sequences
   positive.ms = read.seqfile.from.bed(positive.bed, twoBit_path)
   negative.ms = read.seqfile.from.bed(negative.bed, twoBit_path)
@@ -74,6 +101,7 @@ comparative_scan_rtfbs <- function(pwm, positive.bed, negative.bed, fdr = 0.1, t
   Npos = 0
   Nneg = 0
   thresh = NULL
+  epvals = NULL
   
   for (idx in 1:4) {
     # compute background model
@@ -87,13 +115,16 @@ comparative_scan_rtfbs <- function(pwm, positive.bed, negative.bed, fdr = 0.1, t
     bg.ms <- simulate.ms(bg.mm, background.length)
   
     # collect sequences
-    res = comparative_scan_rtfbs.ms(pwm, pos.ms.i, neg.ms.i, bg.ms, bg.mm, fdr = fdr, threshold = threshold)
+    res = comparative_scan_rtfbs.ms(pwm, pos.ms.i, neg.ms.i, bg.ms, bg.mm, fdr = fdr, threshold = threshold, calc.empirical.pvalue = calc.empirical.pvalue)
     
     if (!is.null(res)) {
       result.sites = rbind(result.sites, res$sites)
       Npos = Npos + res$Npos
       Nneg = Nneg + res$Nneg
       thresh = c(thresh, res$thresh)
+      
+      if (calc.empirical.pvalue)
+        epvals = c(epvals, res$empirical.pvalues)
     }
   }
   
@@ -105,7 +136,10 @@ comparative_scan_rtfbs <- function(pwm, positive.bed, negative.bed, fdr = 0.1, t
   bed = tfbs_to_bed(result.sites, "pwm")
   ord = order(bed[,1], bed[,2])
 
-  result = list(Npos = Npos, Nneg = Nneg, assoc.pvalue = pval, thresh = thresh, sites = bed[ord,])
+  if (calc.empirical.pvalue)
+    result = list(Npos = Npos, Nneg = Nneg, assoc.pvalue = pval, thresh = thresh, sites = bed[ord,], empirical.pvalues = epvals[ord])
+  else
+    result = list(Npos = Npos, Nneg = Nneg, assoc.pvalue = pval, thresh = thresh, sites = bed[ord,])
 }
 
 tfbs_to_bed <- function(sites, tf.name) {
