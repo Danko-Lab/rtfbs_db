@@ -102,7 +102,10 @@ comparative_scan_rtfbs <- function(pwm, positive.bed, negative.bed, fdr = 0.1, t
   pval = fisher.test(tbl)$p.value
   
   # merge results
-  result = list(Npos = Npos, Nneg = Nneg, assoc.pvalue = pval, thresh = thresh, sites = result.sites)
+  bed = tfbs_to_bed(result.sites, "pwm")
+  ord = order(bed[,1], bed[,2])
+
+  result = list(Npos = Npos, Nneg = Nneg, assoc.pvalue = pval, thresh = thresh, sites = bed[ord,])
 }
 
 tfbs_to_bed <- function(sites, tf.name) {
