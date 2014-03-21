@@ -4,6 +4,23 @@
 ## Finds PWMs in DNAse-1 peaks using rtfbs package availiable on CRAN.
 ##
 
+#' Extend BED file
+#'
+#' @param bed data.frame with bed regions
+#' @param len extension in bp
+#' @return extended bed data.frame
+extend.bed <- function(bed, len) {
+  starts = as.integer(bed[,2] - len)
+  ends = as.integer(bed[,3] + len)
+  
+  N = dim(bed)[2]
+  if (N == 3) {
+    data.frame(bed[,1], starts, ends)
+  } else {
+    data.frame(bed[,1], starts, ends, bed[, 4:N])
+  }
+}
+
 #` Returns the posterior probability of TF binding, conditional on the data passed as part of the function.
 #`
 #` Optionally takes additional parameters passed through to score.ms.
@@ -13,20 +30,14 @@
 #` @param motif_path path to the motif PWM file.
 #` @param divide_num List of parameters for all data types, for the model representing no TF binding.
 #` @return List structure representing the match score to the motif.
-scan_rtfbs <- function(tf_name, dnase_peaks_bed, motif_path, tmp_name= "tmp.DNAseI.peaks", return_posteriors=TRUE, ...) {
+scan_rtfbs <- function(tf_name, dnase_peaks_bed, motif_path, twoBit_path= "/gbdb/hg19/hg19.2bit", return_posteriors=TRUE, ...) {
   ## Read the pwm and sequence file.
   motif <- read.motif(motif_path, header=TRUE) 
   
   ## Write out new fasta file, adding on half-width of the motif, to correctly align motif center ...
   half_width <- ceiling((NROW(motif)-1)/2)
-  write.table(	
-	paste(dnase_peaks_bed[[1]],":",as.integer(dnase_peaks_bed[[2]]-half_width-1),"-",as.integer(dnase_peaks_bed[[3]]+half_width-1), sep=""),
-	paste(tmp_name,".bed",sep=""), row.names=FALSE, col.names=FALSE, quote=FALSE)
-
-  system(paste("twoBitToFa -seqList=", tmp_name, ".bed /gbdb/hg19/hg19.2bit ",tmp_name,".fa", sep=""))
-  
-  ## Read DNAse-1 peaks fasta file.
-  dnase_peaks <- read.ms(paste(tmp_name,".fa",sep=""))
+  extBed = extend.bed(dnase_peaks_bed, half_width - 1)
+  dnase_peaks = read.seqfile.from.bed(extBed, twoBit_path)
 
   ## Swiched rtfbs to returning posteriors.
   bgModel <- build.mm(dnase_peaks, 3)
@@ -46,10 +57,6 @@ scan_rtfbs <- function(tf_name, dnase_peaks_bed, motif_path, tmp_name= "tmp.DNAs
 							strand= binding$strand)
   }
   
-  ## Cleanup
-  unlink(paste(tmp_name,".bed", sep=""))
-  unlink(paste(tmp_name,".fa", sep=""))
-
   return(binding)
 }
 
@@ -65,18 +72,8 @@ scanDb_rtfbs <- function(tfbs, dnase_peaks_bed, file_prefix= "data.db", twoBit_p
   ## Read in the DNAse-1 peaks ...
   half_width=15 ## Max size of TF in set of 1800 is 30 (half-width = 15).
   options("scipen"=100, "digits"=4)
-  write.table(	
-	paste(dnase_peaks_bed[[1]],":",as.integer(dnase_peaks_bed[[2]]-half_width-1),"-",as.integer(dnase_peaks_bed[[3]]+half_width-1), sep=""),
-	paste(file_prefix,".bed",sep=""), row.names=FALSE, col.names=FALSE, quote=FALSE)
-
-  system(paste("twoBitToFa -seqList=", file_prefix, ".bed ",twoBit_path," ",file_prefix,".fa", sep=""))
-  
-  ## Read DNAse-1 peaks fasta file.
-  dnase_peaks <- read.ms(paste(file_prefix,".fa",sep=""))
-
-  ## Cleanup
-  unlink(paste(file_prefix,".bed", sep=""))
-  unlink(paste(file_prefix,".fa", sep=""))
+  extBed = extend.bed(dnase_peaks_bed, half_width - 1)
+  dnase_peaks = read.seqfile.from.bed(extBed, twoBit_path)
   
   ## Swiched rtfbs to returning posteriors.
   bgModel <- build.mm(dnase_peaks, 3)
