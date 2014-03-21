@@ -9,6 +9,6 @@ LinkingTo:
 Suggests:
 Description: Convenience functions to read and scan DNA sequences using Position Weight Matrices (PWMs)
 License: GPL version 3 or newer
-Collate: seqLogo.R tfbs.R find_sites_rtfbs.R zzz.R
+Collate: seqLogo.R tfbs.R find_sites_rtfbs.R zzz.R comp_find_sites_rtfbs.R
 biocViews: Sequencing, Analysis
 LazyLoad: yes
