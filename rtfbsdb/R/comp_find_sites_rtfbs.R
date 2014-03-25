@@ -143,6 +143,9 @@ comparative_scan_rtfbs <- function(pwm, positive.bed, negative.bed, fdr = 0.1, t
 }
 
 tfbs_to_bed <- function(sites, tf.name) {
+  if (dim(sites)[1] == 0)
+      return(NULL)
+  
   spl <- strsplit(as.character(sites$seqname), ":|-")
 
   chroms <- sapply(spl, function(pair) pair[1])
