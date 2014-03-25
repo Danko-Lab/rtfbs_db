@@ -157,6 +157,46 @@ tfbs <- function(filenames, names, ...) {
 	pwm= pwms)
 }
 
+# Create a new tfbs object from all the PWM files found in the supplied folders.
+# Optionally recursively descends into subfolders.
+tfbs.dirs <- function(..., args.read.motif = NULL, pattern = glob2rx("*.pwm"), recursive = FALSE) {
+  pwms = list()
+  paths = list(...)
+  filenames = NULL
+  pwm.names = NULL
+
+  k = 1
+  for (path in paths) {
+    fnames = list.files(path, pattern = pattern, full.names = TRUE, recursive = recursive)
+
+    for (fname in fnames) {
+      pwm = do.call("read.motif", c(list(fname), args.read.motif))
+      pwms[[k]] = pwm
+      k = k + 1
+    }
+
+    filenames = c(filenames, fnames)
+    pwm.names = c(pwm.names, sapply(fnames, function(str) {
+      tmp = basename(str)
+      substr(tmp, 1, nchar(tmp) - 4) # drop .pwm from name
+    }))
+  }
+
+  names(pwm.names) <- NULL # clear filenames
+
+  # build object instance
+  new("tfbs", 
+      TFID = "", 
+      ntfs = as.integer(length(filenames)),
+      filename = filenames, 
+      distancematrix = matrix(0, length(filenames), length(filenames)), 
+      cluster = as.integer(0), 
+      usemotifs = as.integer(1:length(filenames)),
+      mgisymbols = pwm.names,
+      expressionlevel = numeric(0), 
+      pwm = pwms)
+}
+
 setGeneric("tfbs.getDistanceMatrix", 
     def=function(tfbs, ncores=3, BG=log(c(0.25, 0.25, 0.25, 0.25))) {
 	  stopifnot(class(tfbs) == "tfbs")
