@@ -134,12 +134,18 @@ comparative_scan_rtfbs <- function(pwm, positive.bed, negative.bed, fdr = 0.1, t
   
   # merge results
   bed = tfbs_to_bed(result.sites, "pwm")
-  ord = order(bed[,1], bed[,2])
+  if (!is.null(bed) && dim(bed)[1] > 0) {
+    ord = order(bed[,1], bed[,2])
+    bed = bed[ord,]
+
+    if (calc.empirical.pvalue)
+        epvals = epvals[ord]
+  }
 
   if (calc.empirical.pvalue)
-    result = list(Npos = Npos, Nneg = Nneg, assoc.pvalue = pval, thresh = thresh, sites = bed[ord,], empirical.pvalues = epvals[ord])
+    result = list(Npos = Npos, Nneg = Nneg, assoc.pvalue = pval, thresh = thresh, sites = bed, empirical.pvalues = epvals)
   else
-    result = list(Npos = Npos, Nneg = Nneg, assoc.pvalue = pval, thresh = thresh, sites = bed[ord,])
+    result = list(Npos = Npos, Nneg = Nneg, assoc.pvalue = pval, thresh = thresh, sites = bed)
 }
 
 tfbs_to_bed <- function(sites, tf.name) {
