@@ -149,7 +149,7 @@ comparative_scan_rtfbs <- function(pwm, positive.bed, negative.bed, fdr = 0.1, t
 }
 
 tfbs_to_bed <- function(sites, tf.name) {
-  if (dim(sites)[1] == 0)
+  if (NROW(sites) == 0) ##dim(sites)[1] == 0) ## Alternative formulation fails if sites is empty.
       return(NULL)
   
   spl <- strsplit(as.character(sites$seqname), ":|-")
@@ -170,11 +170,8 @@ tfbs_to_bed <- function(sites, tf.name) {
 }
 
 write.starchbed <- function(bed, filename) {
-  # sort BED
-  ord = order(bed[,1], bed[,2])
-  
   # pipe bed into starch file
-  write.table(bed[ord, ], file = pipe(paste("starch - >", filename)), 
+  write.table(bed, file = pipe(paste("sort-bed - | starch - >", filename)), 
     quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t")
 }
 
