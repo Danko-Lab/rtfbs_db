@@ -194,7 +194,7 @@ addLetter <- function(letters,which,x.pos,y.pos,ht,wt){
 
 
 ## plot a sequence logo
-seqLogo <- function(pwm, ic.scale=TRUE, xaxis=TRUE, yaxis=TRUE, xfontsize=15, yfontsize=15){
+seqLogo <- function(pwm, ic.scale=TRUE, xaxis=TRUE, yaxis=TRUE, xfontsize=15, yfontsize=15, newpage=FALSE){
 
 #  if (class(pwm) == "pwm"){
 #    pwm <- pwm@pwm    
@@ -242,7 +242,7 @@ seqLogo <- function(pwm, ic.scale=TRUE, xaxis=TRUE, yaxis=TRUE, xfontsize=15, yf
     x.pos <- x.pos + wt
   }
 
-#  grid.newpage()
+  if(newpage) grid.newpage()
   bottomMargin = ifelse(xaxis, 0 + xfontsize/3.5, 0)
   leftMargin = ifelse(yaxis, 0 + yfontsize/3.5, 0)
   pushViewport(plotViewport(c(bottomMargin,leftMargin,0,0)))
