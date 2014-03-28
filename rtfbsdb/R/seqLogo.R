@@ -262,3 +262,23 @@ seqLogo <- function(pwm, ic.scale=TRUE, xaxis=TRUE, yaxis=TRUE, xfontsize=15, yf
   popViewport()
   par(ask=FALSE)
 }
+
+## get information content profile from PWM
+pwm2ic<-function(pwm) {
+    npos<-ncol(pwm)
+    ic<-numeric(length=npos)
+    for (i in 1:npos) {
+        ic[i]<-2 + sum(sapply(pwm[, i], function(x) {
+            if (x > 0) { x*log2(x) } else { 0 }
+        }))
+    }
+    ic
+}
+
+## get consensus sequence from PWM
+pwm2cons<-function(pwm) {
+    if (class(pwm)!="matrix") {warning("pwm argument must be of class matrix")}
+    letters <- c("A", "C", "G", "T")
+    paste(apply(pwm, 2, function(x){letters[rev(order(x))[1]]}), collapse="")
+}
+
