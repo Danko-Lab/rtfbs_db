@@ -5,7 +5,7 @@
 
 thresh=6
 
-require(atif)
+require(rtfbsdb)
 setwd("/usr/data/GROseq.parser/pwm_data")
 
 ##### 263 #
