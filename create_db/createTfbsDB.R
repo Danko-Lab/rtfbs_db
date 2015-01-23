@@ -4,7 +4,7 @@
 ## 
 
 setwd("/usr/data/GROseq.parser/pwm_data")
-require(atif)
+require(rtfbs_db)
 
 jolma <- paste("jolma/teal/", dir(path="jolma/teal/", pattern="pwm"), sep="")
 jaspar<- paste("jaspar/", dir(path="jaspar/", pattern="pwm"), sep="")
