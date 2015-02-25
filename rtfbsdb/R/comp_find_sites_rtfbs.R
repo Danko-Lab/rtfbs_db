@@ -253,6 +253,12 @@ tfbs_compareTFsite<-function( tfbs, twoBit_path, positive.bed, negative.bed, fil
 {
     stopifnot(class(tfbs) == "tfbs")
 
+	if( missing( fdr) ) fdr <- 0.1;
+	if( missing( threshold ) ) threshold <- NA;
+	if( missing( background.order ) ) background.order <- 2;
+	if( missing( background.length ) ) background.length <- 100000;
+	if( missing( ncores) ) ncores <- 3;
+
 	r <- comparative_scanDb_rtfbs( tfbs, 
 		twoBit_path, 
 		positive.bed, 
