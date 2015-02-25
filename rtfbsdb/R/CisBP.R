@@ -46,7 +46,7 @@ setClass("CisBP.db",
 #'
 #' @return: tfbs.db object;
 
-CisBP.download <- function( species="Homo_sapiens", url="http://cisbp.ccbr.utoronto.ca/bulk_archive.php" ) 
+CisBP.download <- function( species="Homo_sapiens", url="http://cisbp.ccbr.utoronto.ca/bulk_archive.php", ... ) 
 {
   if(! (require(RCurl) && require (stringr) ) )
     stop("Package RCurl and stringr are necessary to download files.");
@@ -114,7 +114,6 @@ CisBP.download <- function( species="Homo_sapiens", url="http://cisbp.ccbr.utoro
 
   new("CisBP.db", 
 	species = species, 
-	family = family,
 	file.tfinfo = "TF_Information.txt",
 	zip.file= zip.file,
 	zip.url= zip.url);  
@@ -278,7 +277,7 @@ setMethod("tfbs.find", signature(tfbs.db="CisBP.db"),
       tbm_f_all <- "All"; 
     }
     
-    cat( length(nidx), "PWM files are selected!\n");
+    cat( " ", length(nidx), "PWM files are selected!\n");
 
     tmp.dir <- tempdir();
     pwm.files <- c();
@@ -293,21 +292,21 @@ setMethod("tfbs.find", signature(tfbs.db="CisBP.db"),
 		r.file <- unzip( tfbs.db@zip.file, c(pwm.file), exdir=tmp.dir  );
 		if(length(r.file)<1)
 		{
-			cat("Can not find PWM file:", tbm$Motif_ID[i], ".txt","\n" );
+			cat("! Can not find PWM file for :", tbm$Motif_ID[i], ".txt","\n" );
 			next;
 		}
         
 		tb <- try( read.table(paste(tmp.dir, pwm.file, sep="/"), header=T, sep="\t", row.names=1), TRUE );
 		if(class(tb)=="try-error") 
 		{
-			cat("Can not find PWM file:", tbm$Motif_ID[i], ".txt","\n" );
+			cat("! Can not find PWM file for :", tbm$Motif_ID[i], ".txt","\n" );
 			next;
 		}
 	
 		if(NROW(tb)==0) next;
     
     	pwm.files <- c( pwm.files, paste(tmp.dir, pwm.file, sep="/") );
-    	nidx.motif <- c( nidx.motif, i );
+    	nidx.motif<- c( nidx.motif, i );
     }
 
 	TF_info <- NULL;

@@ -154,7 +154,7 @@ tfbs <- function(filenames, names, extra_info=NULL, ...) {
 	cluster= as.integer(0), 
 	usemotifs= as.integer(1:length(filenames)),
 	mgisymbols= as.character(names), 
-	expressionlevel=numeric(0), 
+	expressionlevel=as.data.frame(NULL), 
 	pwm= pwms)
 }
 
@@ -194,7 +194,7 @@ tfbs.dirs <- function(..., args.read.motif = NULL, pattern = glob2rx("*.pwm"), r
       cluster = as.integer(0), 
       usemotifs = as.integer(1:length(filenames)),
       mgisymbols = pwm.names,
-      expressionlevel = numeric(0), 
+      expressionlevel = as.data.frame(NULL), 
       pwm = pwms)
 }
 
