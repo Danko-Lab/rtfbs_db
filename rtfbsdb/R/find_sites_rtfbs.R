@@ -124,9 +124,10 @@ scanDb_rtfbs <- function(tfbs, dnase_peaks_bed, file_prefix= "data.db", twoBit_p
 
 tfbs_scanTFsite<-function(tfbs, twoBit_path, bed_dat=NULL, file_prefix="data.db",  ncores= 3, return_type="matches", threshold= 6, ... ) 
 {
+
   stopifnot(class(tfbs) == "tfbs")
 
-	if(is.null(bed_dat))
+	if( missing(bed_dat) )
 	{
 		file.tmp <- tempfile();
 		
@@ -138,6 +139,11 @@ tfbs_scanTFsite<-function(tfbs, twoBit_path, bed_dat=NULL, file_prefix="data.db"
 		bed_dat <- data.frame(chrom=chromInfo[,1], chromStart=rep(0)+offset_dist, chromEnd=(chromInfo[,2]-1-offset_dist))
 	}
 	
+	if( missing(file_prefix) ) file_prefix="data.db";
+	if( missing(ncores) ) ncores= 3;
+	if( missing(return_type) ) return_type="matches";
+	if( missing(threshold) ) threshold= 6;
+
 	r <- scanDb_rtfbs( tfbs, bed_dat, file_prefix=file_prefix, twoBit_path=twoBit_path, ncores= ncores, return_type=return_type, threshold= threshold, ...); 
 	r;
 }
