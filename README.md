@@ -11,6 +11,9 @@ This package is in no way intended for general distribution or use... It is UNSU
 Sources of Position Weight Matrices (PWMs).
 -------------------------------------------
 
+* CIS-BP: http://cisbp.ccbr.utoronto.ca/bulk.php
+	Weirauch MT, et. al. Determination and inference of eukaryotic transcription factor sequence specificity. Cell. 2014 Sep 11;158(6):1431-43. doi: 10.1016/j.cell.2014.08.009.
+
 * Jolma: Downloaded from the supplementary data of this paper: http://www.cell.com/retrieve/pii/S0092867412014961
 	Jolma A, et. al.  DNA-binding specificities of human transcription factors. Cell. 2013 Jan 17;152(1-2):327-39. doi: 10.1016/j.cell.2012.12.009. 
 
