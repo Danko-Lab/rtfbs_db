@@ -124,22 +124,22 @@ yb.sig.pal <- function(n, scale=10) {
 ## sequence preferences of a set of TFs.
 setClass("tfbs", 
   representation(
-    TFID=     "character",      ## A non-unique ID for TF i.
-    ntfs=     "integer",        ## Number of motifs in matrix.
-    pwm=        "list",         ## PWM for TF i.
-    usemotifs=  "integer",      ## The indices of TFs to be used for analyses, such as scanning DNA sequences.
+    TFID       = "character",    ## A non-unique ID for TF i.
+    ntfs       = "integer",      ## Number of motifs in matrix.
+    pwm        = "list",         ## PWM for TF i.
+    extra_info = "data.frame",   ## extra finformation for PWMs, it maybe different with motif databse
+    usemotifs  = "integer",      ## The indices of TFs to be used for analyses, such as scanning DNA sequences.
 
-    filename= "character",      ## The filename of the PWM.
-    distancematrix="matrix",    ## Distance matrix between motifs
-    cluster=  "integer",        ## The number of the cluster that this TF is included in.
-    mgisymbols= "character",    ## Unique gene symbols for TF i.
-    expressionlevel= "numeric"  ## Expression level.
+    filename   = "character",    ## The filename of the PWM.
+    distancematrix="matrix",     ## Distance matrix between motifs
+    cluster    = "integer",      ## The number of the cluster that this TF is included in.
+    mgisymbols = "character",    ## Unique gene symbols for TF i.
+    expressionlevel= "data.frame"   ## Expression level.
   ),
   )
 
-
 ## Creates a new tfbs object.  Reads files
-tfbs <- function(filenames, names, ...) {
+tfbs <- function(filenames, names, extra_info=NULL, ...) {
   pwms <- list()
   for(i in 1:length(filenames)) {
     curr <- read.motif(filenames[i], ...)
@@ -148,6 +148,7 @@ tfbs <- function(filenames, names, ...) {
   new("tfbs", 
 	TFID= "", 
 	ntfs= as.integer(length(filenames)),
+	extra_info = extra_info,
 	filename= filenames, 
 	distancematrix= matrix(0, length(filenames), length(filenames)), 
 	cluster= as.integer(0), 
@@ -235,7 +236,8 @@ setMethod("tfbs.clusterMotifs", c(tfbs="tfbs"),
         pal100 <- c("#7E291B","#66E52C","#8F66F0","#58DBE8","#396526","#EAABC1","#E1C33C","#3E3668","#EB3F90","#C3E6A8","#E74618","#66A2E9","#3E7774","#DF9056","#3C2C21","#DF40D7","#6CEF92","#8C5A6B","#BC8AE2","#A03B99","#56AC2D","#389C6C","#E26B7E","#706B4B","#D2E374","#A0A560","#7B1C3E","#49F7DB","#C8C6E9","#414FA2","#95A590","#8A669A","#98A62F","#9E792C","#D69489","#547FE5","#DF6340","#849BAB","#E63A61","#8A386D","#DAE338","#263715","#BBDEE3","#3F1324","#A1E03B","#383544","#76C2E8","#794D38","#DD74E2","#D7BF8E","#E366B9","#894D19","#D57221","#D9B764","#B0303D","#D6BFBC","#757A28","#D991CC","#356344","#E3A22D","#223C36","#83B664","#D8E4C5","#AE9ED9","#37576D","#CF7398","#6BEAB2","#6C9266","#B33662","#4B340E","#57E65B","#E23635","#9B464B","#757089","#578BBA","#A6311B","#B2714E","#457F20","#4EA3B1","#B93286","#73D463","#531914","#6B78C2","#E07467","#8D786E","#515018","#361E40","#AA4FCC","#90D2C4","#71469B","#419C4C","#37558A","#B393B0","#9BE090","#856BDA","#66B593","#47CA84","#5D205B","#672F3F","#59D8C2")
         pal500 <- rep(pal100, 5)
 
-        pl <- levelplot((mat)[ord.hc2, ord.hc2], col.regions= yb.sig.pal(100, scale=3), xlab="", ylab="",
+        #pl <- levelplot((mat)[ord.hc2, ord.hc2], col.regions= yb.sig.pal(100, scale=3), xlab="", ylab="",
+        levelplot((mat)[ord.hc2, ord.hc2], col.regions= yb.sig.pal(100, scale=3), xlab="", ylab="",
         colorkey = list(space="left", labels=list(cex=1.5)), 
         legend = list(
           top = list(fun = dendrogramGrob,
@@ -267,27 +269,6 @@ setMethod("tfbs.setUseMotifs.random", c(tfbs="tfbs"),
       return(tfbs)
 })
 
-
-## Gets expression level of target TF.
-## TODO: Add the MGI symbol to each TF.  Not 100% sure where to do this?!
-setGeneric("tfbs.getExpression", 
-    def=function(tfbs, bed, file_plus, file_minus) {
-	  stopifnot(class(tfbs) == "tfbs")
-	  standardGeneric("tfbs.getExpression")
-	})
-setMethod("tfbs.getExpression", c(tfbs="tfbs"),
-    function(tfbs, bed, file_plus, file_minus) {
-      bw_plus <- load.bigWig("file_plus")
-      bw_minus <- load.bigWig("file_minus")
-	  
-      indx <- match(tfbs@mgisymbols, bed[,4])
-      bw_plus <- load.bigWig(file_plus)
-      bw_minus <- load.bigWig(file_minus)
-      tfbs@expressionlevel <- bedQuery.bigWig(bed[indx,], bw_plus, bw_minus)
-      return(tfbs)
-})
-
-
 ################################################
 ## Basic functions for drawing TFs.
 
@@ -302,7 +283,8 @@ setMethod("tfbs.drawLogo", c(tfbs="tfbs"),
       grid.newpage()
       vp1 <- viewport(x=0, y=0, width=1, height=1, just=c("left","bottom"))
       pushViewport(vp1) 
-      seqLogo(makePWM(exp(t(tfbs@pwm[[i]]))), xaxis = TRUE, yaxis = TRUE)
+      #seqLogo(makePWM(exp(t(tfbs@pwm[[i]]))), xaxis = TRUE, yaxis = TRUE)
+      seqLogo( exp(t(tfbs@pwm[[i]])), xaxis = TRUE, yaxis = TRUE)
       popViewport()
 	})
 
@@ -325,15 +307,96 @@ setMethod("tfbs.drawLogosForClusters", c(tfbs="tfbs"),
 			for(j in seq(1, nmotifs, 2)) {
 			  vp1 <- viewport(x=0, y=((j-1)/2)/ceiling(nmotifs/2), width=0.5, height=1/ceiling(nmotifs/2), just=c("left","bottom"))
 			  pushViewport(vp1) 
-			  seqLogo(makePWM(exp(t(tfbs@pwm[[motifs_in_cluster[j]]]))), xaxis = FALSE, yaxis = FALSE)
+			  #seqLogo(makePWM(exp(t(tfbs@pwm[[motifs_in_cluster[j]]]))), xaxis = FALSE, yaxis = FALSE)
+			  seqLogo(exp(t(tfbs@pwm[[motifs_in_cluster[j]]])), xaxis = FALSE, yaxis = FALSE)
 			  popViewport()
 			  
 			  if((j+1) <= nmotifs) {
 				vp1 <- viewport(x=0.5, y=((j-1)/2)/ceiling(nmotifs/2), width=0.5, height=1/ceiling(nmotifs/2), just=c("left","bottom"))
 				pushViewport(vp1) 
-				seqLogo(makePWM(exp(t(tfbs@pwm[[motifs_in_cluster[j]]]))), xaxis = FALSE, yaxis = FALSE)
+				#seqLogo(makePWM(exp(t(tfbs@pwm[[motifs_in_cluster[j]]]))), xaxis = FALSE, yaxis = FALSE)
+				seqLogo( exp(t(tfbs@pwm[[motifs_in_cluster[j]]])), xaxis = FALSE, yaxis = FALSE)
 				popViewport()
 			  }
 			}
 		}
 	})
+
+#
+# The following function has been moved to express.R 
+#
+##################################################
+## Gets expression level of target TF.
+## TODO: Add the MGI symbol to each TF.  Not 100% sure where to do this?!
+setGeneric("tfbs.getExpression", 
+    def=function(tfbs, bed, file_bigwig_plus, file_bigwig_minus, twoBit_path) {
+	  stopifnot(class(tfbs) == "tfbs")
+	  standardGeneric("tfbs.getExpression")
+	})
+
+setMethod("tfbs.getExpression", c(tfbs="tfbs"), tfbs_getExpression );
+
+#    function(tfbs, bed, file_plus, file_minus) {
+#      bw_plus <- load.bigWig("file_plus")
+#      bw_minus <- load.bigWig("file_minus")
+#	  
+#      indx <- match(tfbs@mgisymbols, bed[,4])
+#      bw_plus <- load.bigWig(file_plus)
+#      bw_minus <- load.bigWig(file_minus)
+#      tfbs@expressionlevel <- bedQuery.bigWig(bed[indx,], bw_plus, bw_minus)
+#      return(tfbs)
+#})
+####################################################
+
+## find TF sites in the BED range from sequence data file(hg19/hg19.2bit);
+##
+## hg19.2bit : contains the complete hg19 Human Genome
+##
+## see codes in find_sites_rtfbs.R
+setGeneric("tfbs.scanTFsite", 
+    def=function(tfbs, twoBit_path, bed1, bed2, file_prefix, ncores, return_type, threshold, ...) {
+	  stopifnot(class(tfbs) == "tfbs")
+	  standardGeneric("tfbs.scanTFsite")
+	})
+
+setMethod("tfbs.scanTFsite", c(tfbs="tfbs"), tfbs_scanTFsite );
+
+
+## Comparative TFBS search between positive BED and negative BED
+##
+##
+## hg19.2bit : contains the complete hg19 Human Genome
+##
+## see codes in comp_find_sites_rtfbs.R
+setGeneric("tfbs.compareTFsite", 
+    def=function(tfbs, twoBit_path, positive.bed, negative.bed, file_prefix, fdr, threshold, background.order, background.length, ncores) {
+	  stopifnot(class(tfbs) == "tfbs")
+	  standardGeneric("tfbs.compareTFsite")
+	})
+
+setMethod("tfbs.compareTFsite", c(tfbs="tfbs"), tfbs_compareTFsite );
+
+setGeneric("tfbs.selectByGeneExp", 
+    def=function(tfbs) {
+	  stopifnot(class(tfbs) == "tfbs")
+	  standardGeneric("tfbs.selectByGeneExp")
+	})
+setMethod("tfbs.selectByGeneExp", c(tfbs="tfbs"),
+    function(tfbs) {
+      stopifnot(!is.null(tfbs@expressionlevel) );
+      stopifnot(!is.null(tfbs@cluster) );
+
+      tfbs@usemotifs <- sapply(1:max(tfbs@cluster), function(x) {
+	    a <- which(tfbs@cluster == x)
+		if(length(a) > 1) {
+		  a.min <- which.min( tfbs@expressionlevel$prob[a] );
+		  if(length(a.min)>0)
+		  	return( a[ a.min[1] ] ) 
+		  else
+		    return( sample(a, 1) );
+		} else {
+	      return(a)
+		}})
+		
+      return(tfbs)
+})

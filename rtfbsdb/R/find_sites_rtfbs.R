@@ -121,3 +121,23 @@ scanDb_rtfbs <- function(tfbs, dnase_peaks_bed, file_prefix= "data.db", twoBit_p
   return(binding_all)
 }
 
+
+tfbs_scanTFsite<-function(tfbs, twoBit_path, bed_dat=NULL, file_prefix="data.db",  ncores= 3, return_type="matches", threshold= 6, ... ) 
+{
+  stopifnot(class(tfbs) == "tfbs")
+
+	if(is.null(bed_dat))
+	{
+		file.tmp <- tempfile();
+		
+		system(paste("twoBitInfo", file.twoBit, file.tmp, sep=" "));
+		chromInfo <- read.table( file.tmp );
+		unlink( file.tmp );
+			
+		chromInfo <- chromInfo[grep("_|chrM|chrY|chrX", chromInfo[,1], invert=TRUE),]
+		bed_dat <- data.frame(chrom=chromInfo[,1], chromStart=rep(0)+offset_dist, chromEnd=(chromInfo[,2]-1-offset_dist))
+	}
+	
+	r <- scanDb_rtfbs( tfbs, bed_dat, file_prefix=file_prefix, twoBit_path=twoBit_path, ncores= ncores, return_type=return_type, threshold= threshold, ...); 
+	r;
+}

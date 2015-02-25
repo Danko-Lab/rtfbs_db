@@ -175,7 +175,7 @@ write.starchbed <- function(bed, filename) {
     quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t")
 }
 
-comparative_scanDb_rtfbs <- function(tfbs, positive.bed, negative.bed, file_prefix, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, twoBit_path= "/gbdb/hg19/hg19.2bit", ncores = 3) {
+comparative_scanDb_rtfbs <- function( tfbs, twoBit_path, positive.bed, negative.bed, file_prefix, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, ncores = 3) {
   stopifnot(class(tfbs) == "tfbs")
   
   # read sequences
@@ -248,3 +248,21 @@ comparative_scanDb_rtfbs <- function(tfbs, positive.bed, negative.bed, file_pref
   # recombine results
   do.call("rbind", binding_all)
 }
+
+tfbs_compareTFsite<-function( tfbs, twoBit_path, positive.bed, negative.bed, file_prefix, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, ncores = 3) 
+{
+    stopifnot(class(tfbs) == "tfbs")
+
+	r <- comparative_scanDb_rtfbs( tfbs, 
+		twoBit_path, 
+		positive.bed, 
+		negative.bed, 
+		file_prefix, 
+		fdr = fdr , 
+		threshold = threshold , 
+		background.order = background.order, 
+		background.length = background.length, 
+		ncores = ncores ); 
+	r;
+}
+
