@@ -48,19 +48,28 @@ simple_reduce_bed<-function( r.bed )
 		return(r.reduce); 		
 }
 
-## Gets expression level of target TF.
-## USE extra_info$DBID to find gene_ids encode by GENCODE V21
+#' Gets expression level of target TF.
+#' USE extra_info$DBID to find gene information encoded by GENCODE V21
+#'
+#' @param tfbs: tfbs object
+#' @param bed:  NOT USED
+#' @param file_bigwig_plus:  bigwig file for strand plus(+)
+#' @param file_bigwig_minus:  bigwig file for strand minus(-)
+#' @param twoBit_path:  hg19 Human Genome or other species
+#'
+#' @return: tfbs.db object with changed expressionlevel;
 
 tfbs_getExpression <- function(tfbs, bed, file_bigwig_plus, file_bigwig_minus, twoBit_path) 
 {
 	stopifnot(!is.null(tfbs@extra_info));
     
+    # load pre-installed database(GENCODE HUMAN V21)
     load( system.file("extdata", "gencode_human21_transcript_ext.rdata", package="rtfbsdb"), environment() );
     
     bw.plus  <- load.bigWig( file_bigwig_plus );
     bw.minus <- load.bigWig( file_bigwig_minus ) ;
     bw.reads <- get_reads_from_bigwig( bw.plus, bw.minus, twoBit_path);
-cat(" ", sum(bw.reads), "Reads in", file_bigwig_plus, "and", file_bigwig_minus,"\n");
+    cat("*", sum(bw.reads), "Reads in", file_bigwig_plus, "and", file_bigwig_minus,"\n");
 	
 	r.bed.list <- c();
 	r.dbid.idx <- c();
@@ -127,6 +136,7 @@ cat(" ", sum(bw.reads), "Reads in", file_bigwig_plus, "and", file_bigwig_minus,"
 	df.exp$lambda[r.dbid.idx]    <- r.lambda;
 	df.exp$prob[r.dbid.idx]      <- p.pois;
 	
+	# expressionlevel is data.frame including all information.
 	tfbs@expressionlevel <- df.exp;
 	
 	return(tfbs);
