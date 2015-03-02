@@ -129,9 +129,10 @@ tfbs_scanTFsite<-function(tfbs, twoBit_path, bed_dat=NULL, file_prefix="data.db"
 
 	if( missing(bed_dat) )
 	{
+		offset_dist <- 250;
 		file.tmp <- tempfile();
 		
-		system(paste("twoBitInfo", file.twoBit, file.tmp, sep=" "));
+		system(paste("twoBitInfo", twoBit_path, file.tmp, sep=" "));
 		chromInfo <- read.table( file.tmp );
 		unlink( file.tmp );
 			

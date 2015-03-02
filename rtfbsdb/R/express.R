@@ -64,6 +64,7 @@ tfbs_getExpression <- function(tfbs, bed, file_bigwig_plus, file_bigwig_minus, t
 	stopifnot(!is.null(tfbs@extra_info));
     
     # load pre-installed database(GENCODE HUMAN V21)
+    gencode_human21_transcript_ext <- NULL;
     load( system.file("extdata", "gencode_human21_transcript_ext.rdata", package="rtfbsdb"), environment() );
     
     bw.plus  <- load.bigWig( file_bigwig_plus );

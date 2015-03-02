@@ -46,7 +46,7 @@ setClass("CisBP.db",
 #'
 #' @return: tfbs.db object;
 
-CisBP.download <- function( species="Homo_sapiens", url="http://cisbp.ccbr.utoronto.ca/bulk_archive.php", ... ) 
+CisBP.download <- function( species="Homo_sapiens", url="http://cisbp.ccbr.utoronto.ca/bulk_archive.php" ) 
 {
   if(! (require(RCurl) && require (stringr) ) )
     stop("Package RCurl and stringr are necessary to download files.");
@@ -55,7 +55,7 @@ CisBP.download <- function( species="Homo_sapiens", url="http://cisbp.ccbr.utoro
   #if(is.null(url)) url <- "http://127.0.0.1:8888/";
   if( is.null(url) ) url <- "http://cisbp.ccbr.utoronto.ca/bulk_archive.php";
  
-  if(!url.exists(url))
+  if(!RCurl::url.exists(url))
      stop( paste("URL is invalid(", url, ")." ));
 
   cat("  CisBP Download\n");
@@ -65,20 +65,20 @@ CisBP.download <- function( species="Homo_sapiens", url="http://cisbp.ccbr.utoro
   f.encode <- function(x)
   {
     if(x!="Download+Species+Archive%21")
-     	return(curlEscape(x))
+     	return( RCurl::curlEscape(x) )
     else	
 		return(x);
   }
 
   # to append specific headers in HTTP request(Accept).
 
-  h.curl = getCurlHandle();
-  hidden <- curlSetOpt( .opts = list(httpheader = c(Accept="text/html,application/xhtml+xml,application/xml"), verbose = TRUE), curl=h.curl)
+  h.curl = RCurl::getCurlHandle();
+  hidden <- RCurl::curlSetOpt( .opts = list(httpheader = c(Accept="text/html,application/xhtml+xml,application/xml"), verbose = TRUE), curl=h.curl)
 
   cat("  Posting the form data to the web page and get the link of zip file ...\n");
   
   # HTTP post menthod is called to send the form parameters(selSpec, ...)
-  t <- postForm( url, curl=h.curl, 
+  t <- RCurl::postForm( url, curl=h.curl, 
 	selSpec   = species,
 	"Spec%5B%5D"  = "Logos",
 	"Spec%5B%5D"  = "TF_Information",
@@ -90,7 +90,7 @@ CisBP.download <- function( species="Homo_sapiens", url="http://cisbp.ccbr.utoro
   
 
   # parser the return page and get the link of zip file
-  zip.path <- str_extract(as.character(t), "tmp/[^ \f\n\r\t\v]+.zip\">Download")
+  zip.path <- stringr::str_extract(as.character(t), "tmp/[^ \f\n\r\t\v]+.zip\">Download")
   zip.path <- substring( zip.path, 1, nchar(zip.path)-10 );
 	
   zip.url <- paste("http://cisbp.ccbr.utoronto.ca/", zip.path, sep="");
@@ -147,7 +147,7 @@ CisBP.zipload <- function( zip.file, species="Homo_sapiens" )
 
 #' Construct tfbs.DB object from inner zip file stored in this package.
 #'
-#' @param species: for human, Homo_sapiens_2015_02_02_12:09_pm.zip is used.
+#' @param species: for human, Homo_sapiens_2015_02_02_12_09_pm.zip is used.
 #'                 for mouse, N/A
 #'
 #' @return: tfbs.db object;
@@ -156,7 +156,7 @@ CisBP.extdata<-function( species="Homo_sapiens" )
 {
   zip.file <- "";	
   if ( species=="Homo_sapiens") 
-    zip.file <- system.file("extdata","Homo_sapiens_2015_02_02_12:09_pm.zip", package="rtfbsdb")
+    zip.file <- system.file("extdata","Homo_sapiens_2015_02_02_12_09_pm.zip", package="rtfbsdb")
   else
     stop( paste("No zip file for ", species, "."));
     

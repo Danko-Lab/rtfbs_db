@@ -217,13 +217,16 @@ setMethod("tfbs.getDistanceMatrix", c(tfbs="tfbs"),
 
 ## Clusters TFs based on DNA sequence preferences.
 setGeneric("tfbs.clusterMotifs", 
-    def=function(tfbs, n_motifs, draw_heatmap= FALSE) {
+    def=function(tfbs, n_motifs, draw_heatmap= FALSE, subset=NULL) {
 	  stopifnot(class(tfbs) == "tfbs")
 	  standardGeneric("tfbs.clusterMotifs")
 	})
 setMethod("tfbs.clusterMotifs", c(tfbs="tfbs"),
-    function(tfbs, n_motifs, draw_heatmap= FALSE) {
+    function(tfbs, n_motifs, draw_heatmap= FALSE, subset=NULL) {
       mat <- tfbs@distancematrix
+      if(!is.null(subset)) 
+         mat <- tfbs@distancematrix[subset,subset,drop=F];
+         
       hc1 <- agnes(as.dist((1-mat)^5), diss=TRUE)
       cuth <- cutree(hc1, k=n_motifs)
 
@@ -237,14 +240,14 @@ setMethod("tfbs.clusterMotifs", c(tfbs="tfbs"),
         pal500 <- rep(pal100, 5)
 
         #pl <- levelplot((mat)[ord.hc2, ord.hc2], col.regions= yb.sig.pal(100, scale=3), xlab="", ylab="",
-        levelplot((mat)[ord.hc2, ord.hc2], col.regions= yb.sig.pal(100, scale=3), xlab="", ylab="",
+        print( levelplot((mat)[ord.hc2, ord.hc2], col.regions= yb.sig.pal(100, scale=3), xlab="", ylab="",
         colorkey = list(space="left", labels=list(cex=1.5)), 
         legend = list(
           top = list(fun = dendrogramGrob,
           args = list(x = hc2, ord = ord.hc2, side = "top", #lwd=2,
           size = 7, size.add = 0.5, 
           add = list(rect = list(col = "transparent", fill = pal500[cuth])),
-          type = "rectangle"))))
+          type = "rectangle")))) );
       }
 	  tfbs@cluster <- cuth
       return(tfbs)
