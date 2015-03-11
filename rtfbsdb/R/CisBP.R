@@ -286,25 +286,35 @@ setMethod("tfbs.find", signature(tfbs.db="CisBP.db"),
 
     for (i in nidx)
 	{
-		if( as.character(tbm$Motif_ID[i])==".") next;
+		motif_id <- as.character(tbm$Motif_ID[i]);
+		
+		if( as.character(motif_id)==".")
+		{
+			cat("! No ID for this motif.\n"); 	
+			next;
+        }
         
-		pwm.file <- paste( "pwms_all_motifs/", tbm$Motif_ID[i], ".txt", sep="");
+		pwm.file <- paste( "pwms_all_motifs/", motif_id, ".txt", sep="");
 		r.file <- unzip( tfbs.db@zip.file, c(pwm.file), exdir=tmp.dir  );
 		if(length(r.file)<1)
 		{
-			cat("! Can not find PWM file for :", tbm$Motif_ID[i], ".txt","\n" );
+			cat("! Can not find PWM file for motif ID=", motif_id, ".\n" );
 			next;
 		}
         
 		tb <- try( read.table(paste(tmp.dir, pwm.file, sep="/"), header=T, sep="\t", row.names=1), TRUE );
 		if(class(tb)=="try-error") 
 		{
-			cat("! Can not find PWM file for :", tbm$Motif_ID[i], ".txt","\n" );
+			cat("! Can not find PWM file for motif ID=", motif_id, ".\n" );
 			next;
 		}
 	
-		if(NROW(tb)==0) next;
-    
+		if(NROW(tb)==0)
+		{
+			cat("! No A C G T values in the PWM file for motif ID=", motif_id, ".\n" );
+			next;
+    	}
+    	
     	pwm.files <- c( pwm.files, paste(tmp.dir, pwm.file, sep="/") );
     	nidx.motif<- c( nidx.motif, i );
     }
