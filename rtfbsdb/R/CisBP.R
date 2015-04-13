@@ -12,16 +12,18 @@ setClass("tfbs.db",
     )
   )
 
-setGeneric("tfbs.find", 
-    def=function(tfbs.db, ...) {
-	  #stopifnot(class(tfbs.db) == "tfbs.db")
-	  standardGeneric("tfbs.find")
+setGeneric("CisBP.find", 
+    def=function(cisbp.db, tf_name = NULL, tf_status = NULL,
+                 family_name = NULL, motif_type = NULL, msource_id =
+                 NULL, motif_info_type = 1) {
+	  standardGeneric("CisBP.find")
 	})
 
-setGeneric("tfbs.group", 
-    def=function(tfbs.db, group_by, ...) {
-	  #stopifnot(class(tfbs.db) == "tfbs.db")
-	  standardGeneric("tfbs.group")
+setGeneric("CisBP.group", 
+    def=function(cisbp.db, group_by = c("tf_name", "tf_species",
+                 "tf_status", "family_name", "motif_type",
+                 "msource_id"), motif_info_type = 1) {
+	  standardGeneric("CisBP.group")
 	})
 
 ## Create a CisBP database class (extending tfbs.db)
@@ -147,16 +149,24 @@ CisBP.zipload <- function( zip.file, species="Homo_sapiens" )
 
 #' Construct tfbs.DB object from inner zip file stored in this package.
 #'
-#' @param species: for human, Homo_sapiens_2015_02_02_12_09_pm.zip is used.
-#'                 for mouse, N/A
+#' @param species: for human, Homo_sapiens_2015_04_09.zip is used.
+#'                 for mouse, Mus_musculus_2015_04_09.zip
 #'
 #' @return: tfbs.db object;
 
-CisBP.extdata<-function( species="Homo_sapiens" )
+CisBP.extdata<-function( species )
 {
   zip.file <- "";	
-  if ( species=="Homo_sapiens") 
-    zip.file <- system.file("extdata","Homo_sapiens_2015_02_02_12_09_pm.zip", package="rtfbsdb")
+  if ( species=="Homo_sapiens" ||  species=="Human" ||  species=="human") 
+  {
+  	zip.file <- system.file("extdata","Homo_sapiens_2015_04_09.zip", package="rtfbsdb");
+  	species <- "Homo_sapiens";
+  }
+  else if ( species=="Mus_musculus" || species=="Mouse" || species=="mouse") 
+  {
+  	zip.file <- system.file("extdata","Mus_musculus_2015_04_09.zip", package="rtfbsdb");
+  	species <- "Mus_musculus";
+  }
   else
     stop( paste("No zip file for ", species, "."));
     
@@ -185,30 +195,30 @@ CisBP.extdata<-function( species="Homo_sapiens" )
 #' 2: TF_Information_all_motifs.txt: (direct motifs) and (inferred motifs above the threshold)
 #' 3: F_Information_all_motifs_plus.txt: All motifs
 #' 
-#' @param tfbs.db: tfbs.db object
+#' @param cisbp.db: CisBP.db object
 #' @param motif_info_type: 1,2 or 3 indicate the index of above files.
 #'
 #' @return: temporary file;
 
-CisBP.active_motif_info<-function( tfbs.db, motif_info_type=1 )
+CisBP.active_motif_info<-function( cisbp.db, motif_info_type=1 )
 {
     motif_infos <- c( "TF_Information.txt", "TF_Information_all_motifs.txt", "TF_Information_all_motifs_plus.txt");
     
     if(motif_info_type<1 || motif_info_type>3)
     {
        cat("! The meta data can be stored in TF_Information.txt(1), TF_Information_all_motifs.txt(2) or TF_Information_all_motifs_plus.txt(3).");
-       return(tfbs.db@file.tfinfo);
+       return(cisbp.db@file.tfinfo);
     }
     
     file.tfinfo <- motif_infos[ motif_info_type ];
     
     tmp.dir <- tempdir();
-    r.file <- unzip(tfbs.db@zip.file, c(file.tfinfo), exdir=tmp.dir );
+    r.file <- unzip(cisbp.db@zip.file, c(file.tfinfo), exdir=tmp.dir );
     if(length(r.file)<1)
     {
     
       cat("! The meta file (", file.tfinfo ,") can not be found in the zip file.");
-      return( tfbs.db@file.tfinfo );
+      return( cisbp.db@file.tfinfo );
     }
     
     return( paste(tmp.dir, file.tfinfo, sep="/") );
@@ -216,20 +226,20 @@ CisBP.active_motif_info<-function( tfbs.db, motif_info_type=1 )
 
 #' Get the statistical summary by grouping the fields in the motif table
 #'
-#' @param tfbs.db: tfbs.db object
+#' @param cisbp.db: CisBP object
 #' @param group_by: available values are tf_name, tf_species, tf_status, family_name, motif_type and msource_id.
 #' @param motif_info_type: 1,2 or 3 indicate which motif file will be used.
 #'
 #' @return: data.frame;
 
-setMethod("tfbs.group", signature(tfbs.db="CisBP.db"),
-    function(tfbs.db, group_by=c("tf_name", "tf_species", "tf_status", "family_name", "motif_type", "msource_id"), 
+setMethod("CisBP.group", signature(cisbp.db="CisBP.db"),
+    function(cisbp.db, group_by=c("tf_name", "tf_species", "tf_status", "family_name", "motif_type", "msource_id"), 
     		motif_info_type=1 )
     {
       group_by <- match.arg(group_by);
       
-      tfbs.db@file.tfinfo <- CisBP.active_motif_info( tfbs.db, motif_info_type );
-      tb.motifs <- read.csv(tfbs.db@file.tfinfo, header=T, sep="\t");
+      cisbp.db@file.tfinfo <- CisBP.active_motif_info( cisbp.db, motif_info_type );
+      tb.motifs <- read.csv(cisbp.db@file.tfinfo, header=T, sep="\t");
       
       col.idx <- which(toupper(group_by) == toupper(colnames(tb.motifs)) )
       gr <- aggregate( tb.motifs["TF_ID"], by=as.data.frame(tb.motifs[,col.idx]), FUN=length)    
@@ -239,7 +249,7 @@ setMethod("tfbs.group", signature(tfbs.db="CisBP.db"),
 
 #' Find the subset by querying the motif table
 #'
-#' @param tfbs.db: tfbs.db object
+#' @param cisbp.db: cisbp.db object
 #' @param tf_name: string, the query value for tf_name 
 #' @param tf_status: string, the query value for tf_status 
 #' @param family_name: string, the query value for family_name  
@@ -249,13 +259,13 @@ setMethod("tfbs.group", signature(tfbs.db="CisBP.db"),
 #'
 #' @return: NULL or tfbs object;
 
-setMethod("tfbs.find", signature(tfbs.db="CisBP.db"),
-    function(tfbs.db, tf_name=NULL, tf_status=NULL, family_name=NULL, motif_type=NULL, msource_id=NULL , motif_info_type=1) 
+setMethod("CisBP.find", signature(cisbp.db="CisBP.db"),
+    function(cisbp.db, tf_name=NULL, tf_status=NULL, family_name=NULL, motif_type=NULL, msource_id=NULL , motif_info_type=1) 
 {
 
-    tfbs.db@file.tfinfo <- CisBP.active_motif_info( tfbs.db, motif_info_type );
+    cisbp.db@file.tfinfo <- CisBP.active_motif_info( cisbp.db, motif_info_type );
 
-    tbm <- read.csv(tfbs.db@file.tfinfo, header=T, sep="\t");
+    tbm <- read.csv(cisbp.db@file.tfinfo, header=T, sep="\t");
     
     tbm_f <- c();
 
@@ -284,6 +294,7 @@ setMethod("tfbs.find", signature(tfbs.db="CisBP.db"),
 
 	nidx.motif <- c();
 
+	names <- c();
     for (i in nidx)
 	{
 		motif_id <- as.character(tbm$Motif_ID[i]);
@@ -295,7 +306,7 @@ setMethod("tfbs.find", signature(tfbs.db="CisBP.db"),
         }
         
 		pwm.file <- paste( "pwms_all_motifs/", motif_id, ".txt", sep="");
-		r.file <- unzip( tfbs.db@zip.file, c(pwm.file), exdir=tmp.dir  );
+		r.file <- unzip( cisbp.db@zip.file, c(pwm.file), exdir=tmp.dir  );
 		if(length(r.file)<1)
 		{
 			cat("! Can not find PWM file for motif ID=", motif_id, ".\n" );
@@ -317,6 +328,7 @@ setMethod("tfbs.find", signature(tfbs.db="CisBP.db"),
     	
     	pwm.files <- c( pwm.files, paste(tmp.dir, pwm.file, sep="/") );
     	nidx.motif<- c( nidx.motif, i );
+    	names     <- c( names, motif_id);
     }
 
 	TF_info <- NULL;
@@ -325,8 +337,9 @@ setMethod("tfbs.find", signature(tfbs.db="CisBP.db"),
 
     if(length(pwm.files)>0)
       tfbs(
+      	 species    = cisbp.db@species,
          filenames  = pwm.files, 
-         names      = tbm_f_all, 
+         names      = names, 
          extra_info = TF_info,
          header=T, sep="\t" , row.names=1 )
     else

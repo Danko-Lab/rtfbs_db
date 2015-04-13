@@ -1,15 +1,14 @@
 Package: rtfbsdb
-Version: 0.0.1
-Date: 2013-02-05
+Version: 0.1.0
+Date: 2015-04-12
 Title: Parse TF motifs from public databases, read into R, and scan using 'rtfbs'.
 Author: Charles G. Danko <dankoc@gmail.com>
-Maintainer: Charles G. Danko <dankoc@gmail.com>
+Maintainer: Charles G. Danko <dankoc@gmail.com> Zhong Wang<zw355@cornell.edu>
 Depends: R (>= 2.6)
 Imports: rphast, rtfbs, bigWig, parallel, grid, cluster, methods, latticeExtra,lattice
 LinkingTo:
 Suggests: RCurl, stringr 
 Description: Convenience functions to read and scan DNA sequences using Position Weight Matrices (PWMs)
 License: GPL version 3 or newer
-# Collate: seqLogo.R tfbs.R find_sites_rtfbs.R zzz.R comp_find_sites_rtfbs.R
 biocViews: Sequencing, Analysis
 LazyLoad: yes

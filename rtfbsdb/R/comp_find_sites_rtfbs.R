@@ -13,12 +13,13 @@ joint.gc.quantile.bins <- function(set1.ms, set2.ms, n = 4) {
   gc1 = gcContent.ms(set1.ms)
   gc2 = gcContent.ms(set2.ms)
   
-  cutoffs = quantile(c(gc1, gc2), seq(from = 0, to = 1, length.out = n + 1), names = FALSE)
+  cutoffs = quantile(c(gc1, gc2), seq(from = 0, to = 1, length.out = n + 1), names = FALSE, na.rm=T)
   bin1 <- findInterval(gc1, cutoffs, all.inside = TRUE)
   bin2 <- findInterval(gc2, cutoffs, all.inside = TRUE)
   
   # check each bin has at least one sequence
-  n.seqs.per.bin = sapply(1:n, function(i) min(sum(bin1 == i), sum(bin2 == i)))
+  n.seqs.per.bin = sapply(1:n, function(i) min(sum(bin1 == i, na.rm=T), sum(bin2 == i, na.rm=T)))
+
   stopifnot(all(n.seqs.per.bin > 0))
   
   return(list(bins1 = bin1, bins2 = bin2))
@@ -88,10 +89,10 @@ comparative_scan_rtfbs.ms <- function(pwm, positive.ms, negative.ms, background.
 
 # NOTE: empirical p-values are computed under the assumption that the negative set
 #       is not bound by the specified factor (but is accessible)
-comparative_scan_rtfbs <- function(pwm, positive.bed, negative.bed, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, twoBit_path= "/gbdb/hg19/hg19.2bit", calc.empirical.pvalue = FALSE) {
+comparative_scan_rtfbs <- function(pwm, file.twoBit, positive.bed, negative.bed, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, calc.empirical.pvalue = FALSE) {
   # read sequences
-  positive.ms = read.seqfile.from.bed(positive.bed, twoBit_path)
-  negative.ms = read.seqfile.from.bed(negative.bed, twoBit_path)
+  positive.ms = read.seqfile.from.bed(positive.bed, file.twoBit)
+  negative.ms = read.seqfile.from.bed(negative.bed, file.twoBit)
 
   # compute GC quantile masks
   gcBins = joint.gc.quantile.bins(positive.ms, negative.ms)
@@ -175,13 +176,13 @@ write.starchbed <- function(bed, filename) {
     quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t")
 }
 
-comparative_scanDb_rtfbs <- function( tfbs, twoBit_path, positive.bed, negative.bed, file_prefix, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, ncores = 3) {
+comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix, usemotifs=NA, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, ncores = 3) {
   stopifnot(class(tfbs) == "tfbs")
   
   # read sequences
-  positive.ms = read.seqfile.from.bed(positive.bed, twoBit_path)
-  negative.ms = read.seqfile.from.bed(negative.bed, twoBit_path)
-  
+  positive.ms = read.seqfile.from.bed(positive.bed, file.twoBit)
+  negative.ms = read.seqfile.from.bed(negative.bed, file.twoBit)
+
   # compute CG quantile masks
   gcBins = joint.gc.quantile.bins(positive.ms, negative.ms)
   
@@ -204,9 +205,11 @@ comparative_scanDb_rtfbs <- function( tfbs, twoBit_path, positive.bed, negative.
   gcBacks.ms = lapply(1:4, function(idx) {
     simulate.ms(gcBacks[[idx]], background.length)
   })
+   
+  if(missing(usemotifs)) usemotifs<-c(1:tfbs@ntfs); 
   
   # iterate over TF set
-  binding_all <- mclapply(tfbs@usemotifs, function(i, ...) {
+  binding_all <- mclapply(usemotifs, function(i, ...) {
 	  # get PWM information
 	  pwm = tfbs@pwm[[i]]
     pwm.name = paste(tfbs@mgisymbols[i], "@", i, sep='')
@@ -238,7 +241,7 @@ comparative_scanDb_rtfbs <- function( tfbs, twoBit_path, positive.bed, negative.
     pval = fisher.test(tbl)$p.value
     
     # save sites
-    starch.file = paste(file_prefix, ".", i, ".bed.starch", sep='')
+    starch.file = paste(file.prefix, ".", i, ".bed.starch", sep='')
     write.starchbed(result.bed, starch.file)
     
     # return info
@@ -249,7 +252,7 @@ comparative_scanDb_rtfbs <- function( tfbs, twoBit_path, positive.bed, negative.
   do.call("rbind", binding_all)
 }
 
-tfbs_compareTFsite<-function( tfbs, twoBit_path, positive.bed, negative.bed, file_prefix, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, ncores = 3) 
+tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix="comp.db", usemotifs=NA, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, ncores = 3) 
 {
     stopifnot(class(tfbs) == "tfbs")
 
@@ -258,12 +261,14 @@ tfbs_compareTFsite<-function( tfbs, twoBit_path, positive.bed, negative.bed, fil
 	if( missing( background.order ) ) background.order <- 2;
 	if( missing( background.length ) ) background.length <- 100000;
 	if( missing( ncores) ) ncores <- 3;
+	if( missing( usemotifs) ) usemotifs <- c(1:tfbs@ntfs);
 
 	r <- comparative_scanDb_rtfbs( tfbs, 
-		twoBit_path, 
+		file.twoBit, 
 		positive.bed, 
 		negative.bed, 
-		file_prefix, 
+		file.prefix, 
+		usemotifs = usemotifs,
 		fdr = fdr , 
 		threshold = threshold , 
 		background.order = background.order, 

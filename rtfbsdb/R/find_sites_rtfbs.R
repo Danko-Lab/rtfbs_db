@@ -30,22 +30,22 @@ extend.bed <- function(bed, len) {
 #` @param motif_path path to the motif PWM file.
 #` @param divide_num List of parameters for all data types, for the model representing no TF binding.
 #` @return List structure representing the match score to the motif.
-scan_rtfbs <- function(tf_name, dnase_peaks_bed, motif_path, twoBit_path= "/gbdb/hg19/hg19.2bit", return_posteriors=TRUE, ...) {
+scan_rtfbs <- function(tf_name, file.twoBit, dnase_peaks_bed, motif_path, return.posteriors=TRUE, ...) {
   ## Read the pwm and sequence file.
   motif <- read.motif(motif_path, header=TRUE) 
   
   ## Write out new fasta file, adding on half-width of the motif, to correctly align motif center ...
   half_width <- ceiling((NROW(motif)-1)/2)
   extBed = extend.bed(dnase_peaks_bed, half_width - 1)
-  dnase_peaks = read.seqfile.from.bed(extBed, twoBit_path)
+  dnase_peaks = read.seqfile.from.bed(extBed, file.twoBit)
 
   ## Swiched rtfbs to returning posteriors.
   bgModel <- build.mm(dnase_peaks, 3)
 
   ## Switch to rtfbsPost to return proper data structure.
-  binding <- score.ms(dnase_peaks, motif, bgModel, return_posteriors=return_posteriors, ...) 
+  binding <- score.ms(dnase_peaks, motif, bgModel, return_posteriors=return.posteriors, ...) 
   
-  if(return_posteriors == FALSE) { ## Parse binding site into genomic coordinates.
+  if(return.posteriors == FALSE) { ## Parse binding site into genomic coordinates.
     spl <- strsplit(as.character(binding$seqname), ":|-")
     peak_chrom <- as.character(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[1]]}))
     peak_start <- as.integer(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[2]]}))
@@ -60,37 +60,38 @@ scan_rtfbs <- function(tf_name, dnase_peaks_bed, motif_path, twoBit_path= "/gbdb
   return(binding)
 }
 
-## return_type --> c("matches", "posteriors", "maxposterior", or "writedb")
+## return.type --> c("matches", "posteriors", "maxposterior", or "writedb")
 ##
 ## matches 		-- returns all matching motifs.
 ## writedb 		-- writes a bed file with matches.  Assuems that sort-bed and starch tools are availiable in $PATH
 ## posteriors 	-- returns the posteriors at each position.
 ## maxposterior	-- returns the max(posterior) in each dnase-1 peak.
-scanDb_rtfbs <- function(tfbs, dnase_peaks_bed, file_prefix= "data.db", twoBit_path= "/gbdb/hg19/hg19.2bit", ncores= 3, return_type="matches", threshold= 6, ...) {
+
+scanDb_rtfbs <- function(tfbs, file.twoBit, dnase.peaks.bed, file.prefix= "data.db", usemotifs=NA, ncores= 3, return.type="matches", threshold= 6, ...) {
   stopifnot(class(tfbs) == "tfbs")
 
   ## Read in the DNAse-1 peaks ...
   half_width=15 ## Max size of TF in set of 1800 is 30 (half-width = 15).
   options("scipen"=100, "digits"=4)
-  extBed = extend.bed(dnase_peaks_bed, half_width - 1)
-  dnase_peaks = read.seqfile.from.bed(extBed, twoBit_path)
+  extBed = extend.bed(dnase.peaks.bed, half_width - 1)
+  dnase_peaks = read.seqfile.from.bed(extBed, file.twoBit)
   
   ## Swiched rtfbs to returning posteriors.
   bgModel <- build.mm(dnase_peaks, 3)
-  return_posteriors <- (return_type=="posteriors"|return_type=="maxposterior")
+  return.posteriors <- (return.type=="posteriors"|return.type=="maxposterior")
 
-  binding_all <- mclapply(tfbs@usemotifs, function(i, ...) {
+  binding_all <- mclapply(usemotifs, function(i, ...) {
 	  ## Read the pwm and sequence file.
 	  motif <- tfbs@pwm[[i]]
 
 	  ## Switch to rtfbsPost to return proper data structure.
-	  binding <- score.ms(dnase_peaks, motif, bgModel, return_posteriors=return_posteriors, threshold=threshold, ...)
+	  binding <- score.ms(dnase_peaks, motif, bgModel, return_posteriors=return.posteriors, threshold=threshold, ...)
 
-      if(return_type == "maxposterior" & NROW(binding) > 0) { ## Parse binding site into genomic coordinates.
+      if(return.type == "maxposterior" & NROW(binding) > 0) { ## Parse binding site into genomic coordinates.
         return(sapply(1:NROW(binding), function(x) { max(c(binding[[x]]$MotifModel$Forward - binding[[x]]$Background, binding[[x]]$MotifModel$Reverse - binding[[x]]$Background)) }))
       }
-	  
-	  if(return_posteriors == FALSE & NROW(binding) > 0) { ## Parse binding site into genomic coordinates.
+
+	  if(return.posteriors == FALSE & NROW(binding) > 0) { ## Parse binding site into genomic coordinates.
 		spl <- strsplit(as.character(binding$seqname), ":|-")
 		peak_chrom <- as.character(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[1]]}))
 		peak_start <- as.integer(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[2]]}))
@@ -100,51 +101,51 @@ scanDb_rtfbs <- function(tfbs, dnase_peaks_bed, file_prefix= "data.db", twoBit_p
 								name= paste(tfbs@mgisymbols[i],"@",i,sep=""), # binding$seqname,
 								score= binding$score,
 								strand= binding$strand)
-		if(return_type == "writedb") {
-		  write.table(binding, file= pipe(paste(" sort-bed - | starch - > ",file_prefix,i,".bed.tmp.starch", sep="")),  quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t")
-		  return(paste(file_prefix,i,".bed.tmp.starch ", sep=""))
+		if(return.type == "writedb") {
+		  write.table(binding, file= pipe(paste(" sort-bed - | starch - > ",file.prefix,i,".bed.tmp.starch", sep="")),  quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t")
+		  return(paste(file.prefix,i,".bed.tmp.starch ", sep=""))
 		}
 	  }
 	  return(binding)
   }, mc.cores= ncores)
 
-  if(return_type == "writedb") {
+  if(return.type == "writedb") {
    cat_files <- paste(unlist(binding_all), collapse=" ")
-   system(paste("starchcat ", cat_files, " > ",file_prefix,".db.starch", sep=""))
-   system(paste("rm ",file_prefix,"*.bed.tmp.starch",sep=""))
-   binding_all <- paste(file_prefix,".db.starch", sep="")
+   system(paste("starchcat ", cat_files, " > ",file.prefix,".db.starch", sep=""))
+   system(paste("rm ",file.prefix,"*.bed.tmp.starch",sep=""))
+   binding_all <- paste(file.prefix,".db.starch", sep="")
   }
-  if(return_type == "maxposterior") {
-   binding_all <- matrix(unlist(binding_all), nrow= NROW(dnase_peaks), ncol= NROW(tfbs@usemotifs))
+  if(return.type == "maxposterior") {
+   binding_all <- matrix(unlist(binding_all), nrow= NROW(dnase_peaks), ncol= NROW(usemotifs))
   }
 
   return(binding_all)
 }
 
+#ncores=3 for 4 cores CPU.
+# Under 1 node with 1 task mcapply can not be going will.
+ 
 
-tfbs_scanTFsite<-function(tfbs, twoBit_path, bed_dat=NULL, file_prefix="data.db",  ncores= 3, return_type="matches", threshold= 6, ... ) 
+tfbs_scanTFsite<-function(tfbs, file.twoBit, dnase.peaks.bed=NULL, file.prefix="scan.db",  usemotifs=NA, ncores= 3, return.type="matches", threshold= 6, ... ) 
 {
 
   stopifnot(class(tfbs) == "tfbs")
 
-	if( missing(bed_dat) )
+	if( missing(dnase.peaks.bed) )
 	{
+		chromInfo <- get_chromosome_size(file.twoBit);
+
 		offset_dist <- 250;
-		file.tmp <- tempfile();
-		
-		system(paste("twoBitInfo", twoBit_path, file.tmp, sep=" "));
-		chromInfo <- read.table( file.tmp );
-		unlink( file.tmp );
-			
-		chromInfo <- chromInfo[grep("_|chrM|chrY|chrX", chromInfo[,1], invert=TRUE),]
-		bed_dat <- data.frame(chrom=chromInfo[,1], chromStart=rep(0)+offset_dist, chromEnd=(chromInfo[,2]-1-offset_dist))
+		chromInfo <- chromInfo[grep("_|chrM|chrY|chrX", chromInfo[,1], invert=TRUE),];
+		dnase.peaks.bed <- data.frame(chrom=chromInfo[,1], chromStart=rep(0)+offset_dist, chromEnd=(chromInfo[,2]-1-offset_dist));
 	}
 	
-	if( missing(file_prefix) ) file_prefix="data.db";
+	if( missing(file.prefix) ) file.prefix="data.db";
+	if( missing(return.type) ) return.type="matches";
 	if( missing(ncores) ) ncores= 3;
-	if( missing(return_type) ) return_type="matches";
 	if( missing(threshold) ) threshold= 6;
+	if( missing(usemotifs)) usemotifs =c(1:tfbs@ntfs);
 
-	r <- scanDb_rtfbs( tfbs, bed_dat, file_prefix=file_prefix, twoBit_path=twoBit_path, ncores= ncores, return_type=return_type, threshold= threshold, ...); 
+	r <- scanDb_rtfbs( tfbs, file.twoBit, dnase.peaks.bed, file.prefix=file.prefix, usemotifs=usemotifs, ncores=ncores, return.type=return.type, threshold= threshold, ...); 
 	r;
 }
