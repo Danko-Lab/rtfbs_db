@@ -105,18 +105,21 @@ CisBP.download <- function( species="Homo_sapiens", url="http://cisbp.ccbr.utoro
     stop( paste("Failed to download file from url=", zip.url, sep="") );
 
   cat("  Detecting TF_Information.txt ...\n");
-  r.file <- unzip( zip.file, c("TF_Information.txt") );
+  tmp.dir <- tempdir();
+  r.file <- unzip( zip.file, c("TF_Information.txt"), exdir=tmp.dir );
   if(length(r.file)<1)
   {
     cat("! TF_Information.txt can not be found in the zip file(", zip.file, ")\n");
   	return(NULL);
   }
+
+  #unlink(r.file);
   
   cat("* TF_Information =", r.file, "\n");
 
   new("CisBP.db", 
 	species = species, 
-	file.tfinfo = "TF_Information.txt",
+	file.tfinfo = paste(tmp.dir, "TF_Information.txt", sep="/"),
 	zip.file= zip.file,
 	zip.url= zip.url);  
 }
@@ -138,11 +141,11 @@ CisBP.zipload <- function( zip.file, species="Homo_sapiens" )
   	return(NULL);
   }
 
-  unlink(r.file);
-     
+  #unlink(r.file);
+
   new("CisBP.db", 
 	species = species, 
-	file.tfinfo = "TF_Information.txt",
+	file.tfinfo = paste(tmp.dir, "TF_Information.txt", sep="/"),
 	zip.file= zip.file,
 	zip.url= ""); 
 }

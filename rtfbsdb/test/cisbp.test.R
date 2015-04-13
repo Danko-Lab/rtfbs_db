@@ -1,5 +1,5 @@
 #
-# Test a full procedure of tfbs.db class
+# Test a full procedure of CisBP.db class
 #
 
 library(rtfbsdb)
@@ -19,13 +19,13 @@ db4 <- CisBP.extdata(species="Homo_sapiens");
 
 #group method
 
-gr1 <-CisBP.group(db3, group_by="family_name", motif_info_type=1 ); 
+gr1 <-CisBP.group(db1, group_by="family_name", motif_info_type=1 ); 
 
-gr2 <-CisBP.group(db3, group_by="tf_status", motif_info_type=1 ); 
+gr2 <-CisBP.group(db2, group_by="tf_status", motif_info_type=1 ); 
 
 gr3 <-CisBP.group(db3, group_by="tf_status", motif_info_type=2); 
 
-gr4 <-CisBP.group(db3, group_by="tf_status", motif_info_type=3); 
+gr4 <-CisBP.group(db4, group_by="tf_status", motif_info_type=3); 
 
 gr5 <-CisBP.group(db3, group_by="motif_type", motif_info_type=3); 
 
