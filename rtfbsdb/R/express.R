@@ -96,12 +96,12 @@ tfbs_getExpression <- function(tfbs, file.bigwig.plus, file.bigwig.minus, file.t
     gencode_transcript_ext <- NULL;
     if( missing(gencode.ext.rdata) )
     {
-	    # load pre-installed database(GENCODE HUMAN V22)
+	    # load pre-installed database(GENCODE HUMAN V21)
 	    if (tfbs@species=="Homo_sapiens" || tfbs@species=="human" || tfbs@species=="Human" )
-	    	load( system.file("extdata", "gencode_v22_transcript_ext.rdata", package="rtfbsdb"), environment() )
-	    # load pre-installed database(GENCODE MOUSE V4)
+	    	load( system.file("extdata", "gencode_v21_transcript_ext.rdata", package="rtfbsdb"), environment() )
+	    # load pre-installed database(GENCODE MOUSE V3)
 	    else if (tfbs@species=="Mus_musculus" || tfbs@species=="mouse"  || tfbs@species=="Mouse" )
-	    	load( system.file("extdata", "gencode_vM4_transcript_ext.rdata", package="rtfbsdb"), environment() )
+	    	load( system.file("extdata", "gencode_vM3_transcript_ext.rdata", package="rtfbsdb"), environment() )
 	    else
 	    	stop("The tfbs object is not calculated from human or mouse data, you need to provide the gencode data for this species.");
     }

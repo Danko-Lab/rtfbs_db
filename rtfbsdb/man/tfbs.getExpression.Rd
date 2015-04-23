@@ -22,17 +22,18 @@ tfbs.getExpression(tfbs,
 }
 
 \details{
-For each motif, the occurance ranges can be queried by the gene ID in the GENCODE v22 
-database(file:gencode.v22.annotation.gtf). After the searching, one range obtianed from 
-the merge of the multiple ranges will be used to detect the reads count in the specified 
-bigwig files(including plus and minus). The probability of each motif can be calcuated 
-by the reads count and lambda.\cr
+For each motif, the occurance ranges can be queried by the gene ID in the GENCODE 
+database( for human, gencode.v21.annotation.gtf, for mouse: gencode.vM3.annotation.gtf). 
+After the searching, one range obtianed from the merge of the multiple ranges will be 
+used to detect the reads count in the specified  bigwig files(including plus and minus). 
+The probability of each motif can be calcuated by the reads count and lambda.\cr
 
 The lambda is determined by the following formulation:\cr
 
 \code{r.lambda = 0.04 * sum(reads_in_all_chromosomes)/10751533/1000.}\cr
 
-The dataset of GENECODE v21 has been compiled into RDATA file and delivered in this package.\cr
+The dataset of GENECODE v21 (human) and vM3 (mouse) have been compiled into RDATA file 
+and attached in this package.\cr
 
 The \code{gencode_transcript_ext} object can be accessed after the following command is 
 executed successfully.\cr
@@ -68,10 +69,10 @@ tfs <- CisBP.find(db.human, motif_type="ChIP-seq", motif_info_type=1 );
 
 if(0)
 {
-file.bigwig.plus <- "/work/03350/tg826494/hg19/GSM1480327_K562_PROseq_plus.bw";
-file.bigwig.minus <- "/work/03350/tg826494/hg19/GSM1480327_K562_PROseq_minus.bw";
+	file.bigwig.plus <- "/work/03350/tg826494/hg19/GSM1480327_K562_PROseq_plus.bw";
+	file.bigwig.minus <- "/work/03350/tg826494/hg19/GSM1480327_K562_PROseq_minus.bw";
 
-tfs <- tfbs.getExpression(tfs, file.bigwig.plus, file.bigwig.minus );
+	tfs <- tfbs.getExpression(tfs, file.bigwig.plus, file.bigwig.minus );
 }
 
 }

@@ -13,6 +13,7 @@ tfbs.compareTFsite(tfbs,
       negative.bed, 
       file.prefix, 
       usemotifs=NA,
+      background.correction=FALSE, 
       fdr=0.1, 
       threshold=NA, 
       background.order=2, 
@@ -26,6 +27,7 @@ tfbs.compareTFsite(tfbs,
   \item{negative.bed}{Data frame, bed-formatted up-regulatory ranges}
   \item{file.prefix}{String, the prefix for outputted file }
   \item{usemotifs}{Number, the index of which motifs are used to compare. All motifs are used if NA. }
+  \item{background.correction}{Logical value, if the difference between positive and negative TREs is significant,the resampling will be applied to the correction for the negative TREs. Default:FALSE. }
   \item{fdr}{Numeric value, False Discovery Rate (FDR) of possible binding sites, only binding sites with FDR less than this value can be selected.}
   \item{threshold}{Numeric value, only sites with scores above this threshold are returned (default = 6)}
   \item{background.order}{ Number, order of Markov model to build background}

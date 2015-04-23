@@ -176,12 +176,23 @@ write.starchbed <- function(bed, filename) {
     quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t")
 }
 
-comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix, usemotifs=NA, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, ncores = 3) {
+comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix, 
+	usemotifs=NA, background.correction=FALSE, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, ncores = 3) {
   stopifnot(class(tfbs) == "tfbs")
   
   # read sequences
   positive.ms = read.seqfile.from.bed(positive.bed, file.twoBit)
   negative.ms = read.seqfile.from.bed(negative.bed, file.twoBit)
+	
+  # detect the difference of gcContent between positive and negative TREs, 
+  # if the difference is significant, make a correction for the negative TREs 
+  # based on the resampling method.	
+  r.bgchk <- background.check( positive.ms, negative.ms, background.correction, file.prefix )
+  if(!is.null(r.bgchk))
+  {
+    negative.bed <- negative.bed[ r.bgchk, ]; 
+  	negative.ms  <- read.seqfile.from.bed( negative.bed, file.twoBit);
+  }	
 
   # compute CG quantile masks
   gcBins = joint.gc.quantile.bins(positive.ms, negative.ms)
@@ -237,7 +248,7 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
     # process result
     result.bed = tfbs_to_bed(result.sites, pwm.name)
     
-    tbl = rbind(c(Npos, Nneg), c(dim(positive.bed)[1] - Npos, dim(negative.bed)[1] - Nneg))
+    tbl = rbind(c(Npos, Nneg), c(dim(positive.bed)[1] - Npos, NROW(negative.bed) - Nneg))
     pval = fisher.test(tbl)$p.value
     
     # save sites
@@ -252,7 +263,8 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
   do.call("rbind", binding_all)
 }
 
-tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix="comp.db", usemotifs=NA, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, ncores = 3) 
+tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix="comp.db", 
+	usemotifs=NA, background.correction = FALSE, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, ncores = 3) 
 {
     stopifnot(class(tfbs) == "tfbs")
 
@@ -261,6 +273,7 @@ tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, fil
 	if( missing( background.order ) ) background.order <- 2;
 	if( missing( background.length ) ) background.length <- 100000;
 	if( missing( ncores) ) ncores <- 3;
+	if( missing( background.correction) ) background.correction <- FALSE;
 	if( missing( usemotifs) ) usemotifs <- c(1:tfbs@ntfs);
 
 	r <- comparative_scanDb_rtfbs( tfbs, 
@@ -269,11 +282,85 @@ tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, fil
 		negative.bed, 
 		file.prefix, 
 		usemotifs = usemotifs,
+		background.correction = background.correction,
 		fdr = fdr , 
 		threshold = threshold , 
 		background.order = background.order, 
 		background.length = background.length, 
 		ncores = ncores ); 
 	r;
+}
+
+background.check<-function( positive.ms, negative.ms, background.correction, file.prefix )
+{
+	gc.pos <- gcContent.ms(positive.ms);
+	gc.neg <- gcContent.ms(negative.ms);
+	
+	gc.test <- wilcox.test(gc.pos, gc.neg, conf.int=TRUE, conf.level=0.9 );
+	
+	# Actually 0.01 is not good for wilcox.test, 
+	if(gc.test$p.value<0.01 )
+	{
+		cat("! The difference between negative and positive TREs is significant, p-value of Wilcox test:", gc.test$p.value, "\n" );
+		
+		if( require(vioplot) )
+		{
+			pdf.file <- paste("vioplot.before.correct", file.prefix, "pdf", sep=".");
+			cat("! Please check the vioplot figure to make sure, the vioplot figure: ", pdf.file, "\n" );
+
+			pdf(pdf.file);
+			vioplot(gc.pos, gc.neg, names=c("Positive", "Negative"));
+			abline(h=median(gc.pos), lty="dotted")
+			dev.off();
+		}
+	}
+	
+	#No need to do sampling the background data.
+	if( background.correction==FALSE || gc.test$p.value > 0.01)
+		return(NULL);
+		
+	resample <- function(ref, orig, n=10000, nbins=10) {
+		## (1) Break gcContent down into 10 equally sized bins.
+		breaks <- seq(0, 1, length.out=nbins) #seq(min(ref), max(ref), length.out=nbins)
+
+		## (2) Get the empirical frequencies of each bin.
+		empir <- sapply(1:(NROW(breaks)-1), function(x) {sum(breaks[x]<= ref & ref < breaks[x+1])/NROW(ref)})
+		
+		## (3) Re-sample TREs in the BG set w/ probability proportional to the bin.
+		resamp_prob <- rep(1, NROW(orig))
+		for(i in 1:NROW(empir)) {
+			incl <- breaks[i] <= orig & orig < breaks[i+1]
+			resamp_prob[incl] <- empir[i]/ sum(incl)
+		}
+
+		sample(1:NROW(resamp_prob), n, prob= resamp_prob, replace=FALSE)
+	}
+
+	# n.sample <- 5000;
+	# for some small group, 5000 is very huge. so make adjustment
+	if (length(gc.pos) < length(gc.neg))
+		n.sample <- min( c( 5000, 1.5*length(gc.pos), length(gc.pos)/2+length(gc.neg)/2) )
+	else
+		n.sample <- round(0.6*length(gc.neg))
+
+	indx.bgnew <- resample( gc.pos, gc.neg, n=n.sample)
+
+	gc.test2 <- wilcox.test(gc.pos, gc.neg[indx.bgnew], conf.int=TRUE, conf.level=0.9 );
+
+	cat("! After the resampling from negative TREs, p-value of Wilcox test:", gc.test2$p.value, "\n" );
+
+	if( require(vioplot) )
+	{
+		pdf.file <- paste("vioplot.after.correct", file.prefix, "pdf", sep=".");
+		cat("! The vioplot figure:", pdf.file, "\n" );
+
+		pdf(pdf.file);
+		vioplot(gc.pos, gc.neg, gc.neg[indx.bgnew], names=c("Positive", "Negative", "Negative.resample")); 
+		abline(h=median(gc.pos), lty="dotted")
+		dev.off()
+	}
+	
+	## return sampling background.
+	return( indx.bgnew );
 }
 

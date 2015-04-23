@@ -369,7 +369,7 @@ setMethod("tfbs.scanTFsite", c(tfbs="tfbs"), tfbs_scanTFsite );
 ##
 ## see codes in comp_find_sites_rtfbs.R
 setGeneric("tfbs.compareTFsite", 
-    def=function(tfbs, file.twoBit, positive.bed, negative.bed, file.prefix="comp.db", usemotifs=NA, fdr=0.1, threshold=NA, background.order=2, background.length=100000, ncores=3) {
+    def=function(tfbs, file.twoBit, positive.bed, negative.bed, file.prefix="comp.db", usemotifs=NA, background.correction = FALSE, fdr=0.1, threshold=NA, background.order=2, background.length=100000, ncores=3) {
 	  stopifnot(class(tfbs) == "tfbs")
 	  standardGeneric("tfbs.compareTFsite")
 	})
