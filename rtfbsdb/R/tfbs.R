@@ -329,7 +329,7 @@ setMethod("tfbs.drawLogosForClusters", c(tfbs="tfbs"),
 ## Gets expression level of target TF.
 ## TODO: Add the MGI symbol to each TF.  Not 100% sure where to do this?!
 setGeneric("tfbs.getExpression", 
-    def=function(tfbs, file.bigwig.plus, file.bigwig.minus, file.twoBit=NA, gencode.ext.rdata=NA) {
+    def=function(tfbs, file.bigwig.plus, file.bigwig.minus, file.twoBit=NA, file.gencode.gtf=NA, ncores = 8) {
 	  stopifnot(class(tfbs) == "tfbs")
 	  standardGeneric("tfbs.getExpression")
 	})
@@ -422,3 +422,35 @@ setMethod("tfbs.selectByRandom", c(tfbs="tfbs"),
 		
       return(cluster.mat[ usemotifs, 1])
 })
+
+setMethod("show", "tfbs", function(object){
+
+	cat("Species: ", object@species, "\n");
+	cat("TF number: ", object@ntfs, "\n");
+
+	if(all(which(object@distancematrix==0))) 
+		cat( "Distance Matrix:  NULL\n" )
+	else
+		cat( "Distance Matrix:  [", NROW(object@distancematrix), ",", NCOL(object@distancematrix), "]\n" );
+	
+	if(NROW(object@expressionlevel)==0) 
+		cat( "Expression:  NULL\n" )
+	else
+		cat( "Expression:  [", NROW(object@expressionlevel), ",", NCOL(object@expressionlevel), "]\n" );
+
+	df <- NULL;	
+	if(!is.null(object@extra_info))
+	{
+		df <- object@extra_info[,c("Motif_ID", "DBID", "TF_Name", "Family_Name", "Motif_Type", "MSource_Identifier")]
+		df <- data.frame(df, filename=basename(object@filename));
+	}
+	else
+		df <- data.frame(Motif_ID=object@mgisymbols, filename=basename(object@filename));
+
+	if(!is.null(object@expressionlevel))
+		df <- data.frame(df, p.pois = object@expressionlevel[,c("p.pois")] );
+
+	show(head(df, 20));
+});
+
+

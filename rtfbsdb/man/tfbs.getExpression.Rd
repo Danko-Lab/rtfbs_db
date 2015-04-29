@@ -61,6 +61,7 @@ See Also as \code{\link{tfbs}}, ~~~
 }
 \examples{
 
+library(rtfbsdb);
 # Load the internal CisBP data set
 db.human <- CisBP.extdata("Homo_sapiens");
 
@@ -69,10 +70,12 @@ tfs <- CisBP.find(db.human, motif_type="ChIP-seq", motif_info_type=1 );
 
 if(0)
 {
-	file.bigwig.plus <- "/work/03350/tg826494/hg19/GSM1480327_K562_PROseq_plus.bw";
-	file.bigwig.minus <- "/work/03350/tg826494/hg19/GSM1480327_K562_PROseq_minus.bw";
+	file.bigwig.plus <- "testdata//GSM1480327_K562_PROseq_plus.bw";
+	file.bigwig.minus <-"testdata/GSM1480327_K562_PROseq_minus.bw";
 
-	tfs <- tfbs.getExpression(tfs, file.bigwig.plus, file.bigwig.minus );
+	tfs <- tfbs.getExpression(tfs, file.bigwig.plus, file.bigwig.minus, file.gencode.gtf="/local/storage/data/gencode/gencode.v21.annotation.gtf", ncores = 21 );
+
+	tfs <- tfbs.getExpression(tfs, file.bigwig.plus, file.bigwig.minus, ncores = 21 );
 }
 
 }

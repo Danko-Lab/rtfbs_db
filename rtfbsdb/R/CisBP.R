@@ -3,7 +3,7 @@
 ## Two methods fortfbs.db
 ## tfbs.group: get the statistical summary( SQL/sum ) 
 ##             according to a field
-## tfbs.find : get the subset by the specified parameter.
+## CisBP.create : get the subset by the specified parameter.
 ##
 
 setClass("tfbs.db", 
@@ -12,11 +12,12 @@ setClass("tfbs.db",
     )
   )
 
-setGeneric("CisBP.find", 
+setGeneric("CisBP.create", 
     def=function(cisbp.db, tf_name = NULL, tf_status = NULL,
-                 family_name = NULL, motif_type = NULL, msource_id =
-                 NULL, motif_info_type = 1) {
-	  standardGeneric("CisBP.find")
+                 family_name = NULL, motif_type = NULL, msource_id =NULL, motif_info_type = 1,
+                 expressed_only=TRUE, include_DBID_Missing=TRUE, 
+    		 	 file.bigwig.plus=NA, file.bigwig.minus=NA, file.twoBit=NA, file.gencode.gtf=NA, ncores = 1) {
+	  standardGeneric("CisBP.create")
 	})
 
 setGeneric("CisBP.group", 
@@ -190,7 +191,7 @@ CisBP.extdata<-function( species )
 	zip.url= "extdata");  
 }
 
-#' Select the motif table for tfbs.find and tfbs.group function. 
+#' Select the motif table for CisBP.create and CisBP.group function. 
 #'
 #' Three TF information files in zip file
 #'
@@ -262,8 +263,10 @@ setMethod("CisBP.group", signature(cisbp.db="CisBP.db"),
 #'
 #' @return: NULL or tfbs object;
 
-setMethod("CisBP.find", signature(cisbp.db="CisBP.db"),
-    function(cisbp.db, tf_name=NULL, tf_status=NULL, family_name=NULL, motif_type=NULL, msource_id=NULL , motif_info_type=1) 
+setMethod("CisBP.create", signature(cisbp.db="CisBP.db"),
+    function(cisbp.db, tf_name=NULL, tf_status=NULL, family_name=NULL, motif_type=NULL, msource_id=NULL , motif_info_type=1, 
+    		 expressed_only=TRUE, include_DBID_Missing=TRUE, 
+    		 file.bigwig.plus=NA, file.bigwig.minus=NA, file.twoBit=NA, file.gencode.gtf=NA, ncores = 1 ) 
 {
 
     cisbp.db@file.tfinfo <- CisBP.active_motif_info( cisbp.db, motif_info_type );
@@ -304,7 +307,7 @@ setMethod("CisBP.find", signature(cisbp.db="CisBP.db"),
 		
 		if( as.character(motif_id)==".")
 		{
-			cat("! No ID for this motif.\n"); 	
+			cat("! No ID for this motif(.).\n"); 	
 			next;
         }
         
@@ -338,14 +341,34 @@ setMethod("CisBP.find", signature(cisbp.db="CisBP.db"),
 	if(length(nidx.motif)>0)
 		TF_info <- tbm[ nidx.motif, , drop=F];
 
-    if(length(pwm.files)>0)
-      tfbs(
+    if(length(pwm.files)==0)
+    {
+      cat("! No PWM files to create a tfbs object.\n");
+      return(NULL);
+    }
+
+    tfs <- tfbs(
       	 species    = cisbp.db@species,
          filenames  = pwm.files, 
          names      = names, 
          extra_info = TF_info,
-         header=T, sep="\t" , row.names=1 )
-    else
-      return(NULL);
+         header=T, sep="\t" , row.names=1 );
+
+	if( !missing(file.bigwig.plus) && !missing(file.bigwig.minus) )
+	{
+		tfs <- tfbs.getExpression(tfs, file.bigwig.plus, file.bigwig.minus, file.twoBit=file.twoBit, file.gencode.gtf=file.gencode.gtf, ncores = ncores );
+		if(expressed_only) tfs <- tfbs.selectExpressed( tfs, 0.05, include_DBID_Missing );
+	}
+	
+    return(tfs);
 })
 
+
+setMethod("show", "CisBP.db", function(object){
+
+	cat("Species: ", object@species, "\n");
+	cat("Data Source: ", object@zip.url, "\n");
+	cat("Zip file: ", object@zip.file, "\n");
+	cat("TF information: ", object@file.tfinfo, "\n");
+
+});
