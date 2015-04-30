@@ -171,7 +171,8 @@ tfbs_getExpression <- function(tfbs, file.bigwig.plus, file.bigwig.minus, file.t
     else
 	{
 		chromInfo <- try(get_chromosome_size(file.twoBit));
-		stop("Failed to use twoBitInfo command to get the chromosome information from 2bit file.");
+		if( class(chromInfo)=="try-error")
+			stop("Failed to use twoBitInfo command to get the chromosome information from 2bit file.");
 	}	
 
 	# Load bigWig files(minus and plus)
