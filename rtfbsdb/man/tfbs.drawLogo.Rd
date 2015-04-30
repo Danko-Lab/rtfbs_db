@@ -20,7 +20,7 @@ No return values.
 }
 
 \seealso{
-See Also as \code{"\linkS4class{tfbs}"}}
+See Also as \code{"\linkS4class{tfbs}"}
 }
 \examples{
  
