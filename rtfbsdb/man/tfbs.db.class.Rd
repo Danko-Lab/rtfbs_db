@@ -20,6 +20,8 @@ No methods defined with class "tfbs.db" in the signature.
 }
 
 \seealso{
+\code{"\linkS4class{CisBP.db}"} inherits this class.
+
 }
 \examples{
 showClass("tfbs.db")

@@ -10,8 +10,8 @@ Draw the logo for a single TF motif.
 tfbs.drawLogo(tfbs, index)
 }
 \arguments{
-  \item{tfbs}{A tfbs object}
-  \item{index}{Number, indicating the motif index.}
+  \item{tfbs}{A tfbs object(\code{"\linkS4class{tfbs}"})}
+  \item{index}{Vector of number, indicating the motif index.}
 }
 \details{
 }
@@ -20,14 +20,14 @@ No return values.
 }
 
 \seealso{
-See Also as \code{\link{tfbs}}
+See Also as \code{"\linkS4class{tfbs}"}}
 }
 \examples{
  
  db <- CisBP.extdata("Homo_sapiens");
- tfs <- CisBP.find(db, family_name="AP-2");
+ tfs <- tfbs.createFromCisBP(db, family_name="AP-2");
  pdf("test-logos.pdf");
- for(i in 1:10) tfbs.drawLogo(tfs, i );
+ tfbs.drawLogo(tfs, 1:10 );
  dev.off();
  
  #unlink("test-logos.pdf");

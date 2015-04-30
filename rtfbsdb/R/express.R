@@ -114,7 +114,7 @@ simple_reduce_bed<-function( r.bed )
 #'
 #' @return: tfbs.db object with changed expressionlevel;
 
-tfbs_getExpression <- function(tfbs, file.bigwig.plus, file.bigwig.minus, file.twoBit=NA, file.gencode.gtf=NA, ncores = 8 ) 
+tfbs_getExpression <- function(tfbs, file.bigwig.plus, file.bigwig.minus, file.twoBit=NA, file.gencode.gtf=NA, ncores = 3 ) 
 {
 	stopifnot(!is.null(tfbs@extra_info));
     
@@ -409,9 +409,9 @@ import_gencode <-function( species, file.gencode.gtf, ncores = 1)
 }
 
 
-tfbs.selectExpressed<-function( tfs, prob.sig=0.05, include_DBID_Missing=FALSE )
+tfbs.selectExpressed<-function( tfs, prob.sig=0.05, include.DBID.Missing=FALSE )
 {
-	if( include_DBID_Missing )
+	if( include.DBID.Missing )
 		tf.expresed <- which( tfs@expressionlevel$p.pois<=prob.sig | is.na(tfs@expressionlevel$p.pois) )
 	else
 		tf.expresed <- which( tfs@expressionlevel$p.pois<=prob.sig );

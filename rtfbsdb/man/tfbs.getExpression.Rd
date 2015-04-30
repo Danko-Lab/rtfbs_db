@@ -11,14 +11,16 @@ USE extra_info$DBID to find gene information encoded by GENCODE V21\cr
 tfbs.getExpression(tfbs, 
       file.bigwig.plus, file.bigwig.minus, 
       file.twoBit=NA, 
-      gencode.ext.rdata=NA)
+      file.gencode.gtf=NA,
+      ncores =3 )
 }
 \arguments{
-  \item{tfbs}{A tfbs object outputted by CisBP.extdata(), CisBP.dowmload(), CisBP.zipload().}
+  \item{tfbs}{A tfbs object(\code{"\linkS4class{tfbs}"}).}
   \item{file.bigwig.plus}{String, indicating bigwig file for strand plus(+).}
   \item{file.bigwig.minus}{String, indicating bigwig file for strand minus(-).}
   \item{file.twoBit}{String, indicating the binary data of sequence.}
-  \item{gencode.ext.rdata}{Gencode RDATA file encoded by ths package.}
+  \item{file.gencode.gtf}{Gencode RDATA file encoded by ths package.}
+  \item{ncores}{Number, comupting nodes in parallel environment.}
 }
 
 \details{
@@ -38,7 +40,7 @@ and attached in this package.\cr
 The \code{gencode_transcript_ext} object can be accessed after the following command is 
 executed successfully.\cr
 
-\code{load( system.file("extdata", "gencode_human21_transcript_ext.rdata", 
+\code{load( system.file("extdata", "gencode_human21_transcript_ext.rdata", \cr
       package="rtfbsdb"), environment() );}\cr
 }
 
@@ -57,16 +59,15 @@ A tbfs object with new expression data frame including the follwing columns:
 }
 
 \seealso{
-See Also as \code{\link{tfbs}}, ~~~
+See Also as \code{"\linkS4class{tfbs}"}, ~~~
 }
 \examples{
 
-library(rtfbsdb);
 # Load the internal CisBP data set
 db.human <- CisBP.extdata("Homo_sapiens");
 
 # Create a tfbs object by querying the meta file of CisBP dataset. 
-tfs <- CisBP.find(db.human, motif_type="ChIP-seq", motif_info_type=1 );
+tfs <- tfbs.createFromCisBP(db.human, motif_type="ChIP-seq", tf.information.type=1 );
 
 if(0)
 {

@@ -10,7 +10,7 @@ Select the motifs randomly from each group of clustering.
 tfbs.selectByRandom(tfbs, cluster.mat)
 }
 \arguments{
-  \item{tfbs}{A tfbs object.}
+  \item{tfbs}{A tfbs object(\code{"\linkS4class{tfbs}"}).}
   \item{cluster.mat}{ A matrix with 2 columns returned by \code{\link{tfbs.clusterMotifs}}, 1st column is the index of motifs and 2nd column is the group number of clustering.}
 }
 \details{
@@ -26,7 +26,7 @@ See Also as \code{\link{tfbs.selectByGeneExp}}, \code{\link{tfbs.getExpression}}
 
 db <- CisBP.extdata("Homo_sapiens");
 
-tfs <- CisBP.find(db, family_name="AP-2");
+tfs <- tfbs.createFromCisBP(db, family_name="AP-2");
 
 tfs <- tfbs.getDistanceMatrix(tfs, ncores=1);
  

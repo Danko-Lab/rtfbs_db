@@ -10,7 +10,7 @@ Draw the motif logos by one group per page.
 tfbs.drawLogosForClusters(tfbs, cluster.mat, pdf.logos)
 }
 \arguments{
-  \item{tfbs}{A tfbs object.}
+  \item{tfbs}{A tfbs object(\code{"\linkS4class{tfbs}"}).}
   \item{cluster.mat}{ A matrix with 2 columns returned by \code{\link{tfbs.clusterMotifs}}, 1st column is the index of motifs and 2nd column is the group number of clustering.}
   \item{pdf.logos}{ String indicating a PDF eilname.}
 }
@@ -27,7 +27,7 @@ See Also as \code{\link{tfbs.clusterMotifs}}
 db <- CisBP.extdata("Homo_sapiens");
 
 # Create a tfbs object by querying the meta file of CisBP dataset. 
-tfs <- CisBP.find(db, motif_type="ChIP-seq", motif_info_type=1 );
+tfs <- tfbs.createFromCisBP(db, motif_type="ChIP-seq", tf.information.type=1 );
 
 # Calculate the distance matrix 
 tfs <- tfbs.getDistanceMatrix( tfs, ncores=1);

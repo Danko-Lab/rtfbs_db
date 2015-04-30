@@ -28,10 +28,10 @@ force_even: whether the PWM matrix with odd size needs to be even.\cr
 
 }
 \value{
-A tfbs object collecting all the PWM files in the specified folders. For the details of tfbs object, please see \code{\link{tfbs.db}}
+A tfbs object collecting all the PWM files in the specified folders. For the details of tfbs object, please see \code{\link{tfbs}}
 }
 \seealso{
-The structure of tfbs object is described in \code{\link{tfbs.db}}
+The structure of tfbs object is described in \code{"\linkS4class{tfbs}"}
 }
 \examples{
 

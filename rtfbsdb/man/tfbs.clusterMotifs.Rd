@@ -14,7 +14,7 @@ tfbs.clusterMotifs(tfbs,
       group.k = NA)
 }
 \arguments{
-  \item{tfbs}{A tfbs object returned by CisBP.find, tfbs.dirs or other functions.}
+  \item{tfbs}{A tfbs object (\code{"\linkS4class{tfbs}"})  returned by \code{\link{tfbs.createFromCisBP}}, \code{\link{tfbs.dirs}} or other functions.}
   \item{subset}{Vector, the indexes of partial motifs if not all motifs are clustered.}
   \item{pdf.heatmap}{String, a PDF filename for heatmap.}
   \item{method}{String, availabe values are "agnes" and "cors".}
@@ -36,7 +36,7 @@ See Also as \code{\link{tfbs.selectByGeneExp}}  and \code{\link{tfbs.selectByRan
 db <- CisBP.extdata("Homo_sapiens");
 
 # Create a tfbs object by querying the meta file of CisBP dataset. 
-tfs <- CisBP.find(db, motif_type="ChIP-seq", motif_info_type=1 );
+tfs <- tfbs.createFromCisBP(db, motif_type="ChIP-seq", tf.information.type=1 );
 
 # Calculate the distance matrix 
 tfs <- tfbs.getDistanceMatrix( tfs, ncores=1 );

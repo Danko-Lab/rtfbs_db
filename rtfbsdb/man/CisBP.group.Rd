@@ -8,14 +8,16 @@ Get the statistical summary by grouping the field in the CisBP dataset.
 }
 \usage{
 CisBP.group(cisbp.db, 
-      group_by=c("tf_name", "tf_species", "tf_status", "family_name", 
+      group.by=c("tf_name", "tf_species", "tf_status", "family_name", 
             "motif_type", "msource_id"), 
-      motif_info_type=1)
+      tf.information.type=1)
 }
 \arguments{
-  \item{cisbp.db}{ A CisBP object including the TF_Information.txt.}
-  \item{group_by}{ String, indicating which field will be used to group values. Available values are tf_name, tf_species, tf_status, family_name, motif_type and msource_id.}
-  \item{motif_info_type}{ Number, indicating which TF meta file will be used. Available values are 1 for TF_Information.txt, 2 for TF_Information_all_motifs.txt and 3 for F_Information_all_motifs_plus.txt.}
+  \item{cisbp.db}{ A CisBP object (\code{"\linkS4class{CisBP.db}"}) including the TF_Information.txt.}
+  \item{group.by}{ String, indicating which field will be used to group values. Available values are tf_name, tf_species, tf_status, family_name, motif_type and msource_id.}
+  \item{tf.information.type}{ Number, indicating which TF meta file will be used. Available values are 1 for \cr
+  TF_Information.txt, 2 for TF_Information_all_motifs.txt and 3 \cr
+  for F_Information_all_motifs_plus.txt.}
 }
 \details{
 Three TF information files in CisBP dataset.\cr\cr
@@ -29,7 +31,7 @@ Three TF information files in CisBP dataset.\cr\cr
   \item{number}{Counts of group value  }
 }
 \seealso{
-See Also as \code{\link{CisBP.find}}
+See Also as \code{\link{tfbs.createFromCisBP}}
 }
 \examples{
 
@@ -37,16 +39,16 @@ See Also as \code{\link{CisBP.find}}
 db_human <- CisBP.extdata("Homo_sapiens");
 
 # Group the motif count by the column of family_name in TF_Information.txt
-gr1 <- CisBP.group(db_human, group_by="family_name", motif_info_type=1 ); 
+gr1 <- CisBP.group(db_human, group.by="family_name", tf.information.type=1 ); 
 
 # Group the motif count by the column of tf_status in TF_Information.txt
-gr2 <- CisBP.group(db_human, group_by="tf_status", motif_info_type=1 ); 
+gr2 <- CisBP.group(db_human, group.by="tf_status", tf.information.type=1 ); 
 
 # Group the motif count by the column of tf_status in TF_Information_all_motifs.txt
-gr3 <- CisBP.group(db_human, group_by="tf_status", motif_info_type=2); 
+gr3 <- CisBP.group(db_human, group.by="tf_status", tf.information.type=2); 
 
 # Group the motif count by the column of tf_status in F_Information_all_motifs_plus.txt
-gr4 <- CisBP.group(db_human, group_by="tf_status", motif_info_type=3); 
+gr4 <- CisBP.group(db_human, group.by="tf_status", tf.information.type=3); 
 
 }
 

@@ -22,7 +22,7 @@ tfbs(filenames,
 \details{
 }
 \value{
-A tfbs object (class name: tfbs) including all PWM matrics.The all attributes are as follows:
+A tfbs object (class: \code{"\linkS4class{tfbs}"}) including all PWM matrics.The all attributes are as follows:
 
   \item{TFID}{Vector of non-unique ID for TF.}
   \item{species}{String indicating the species name}
@@ -34,7 +34,7 @@ A tfbs object (class name: tfbs) including all PWM matrics.The all attributes ar
   \item{distancematrix}{Distance matrix between motifs returned by \code{\link{tfbs.getDistanceMatrix}}, default:NULL.}
   \item{expressionlevel}{Data frame indicatig the result of expression level returned by \code{\link{tfbs.getExpression}}, default:NULL. }
 
-The tfbs object can be created by the function of \code{\link{tfbs}}, \code{\link{tfbs.dir}}, \code{\link{CisBP.find}}.
+The tfbs object can be created by the function of \code{\link{tfbs}}, \code{\link{tfbs.dir}}, \code{\link{tfbs.createFromCisBP}}.
 }
 \seealso{
 }

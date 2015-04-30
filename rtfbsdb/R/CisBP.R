@@ -12,18 +12,18 @@ setClass("tfbs.db",
     )
   )
 
-setGeneric("CisBP.create", 
+setGeneric("tfbs.createFromCisBP", 
     def=function(cisbp.db, tf_name = NULL, tf_status = NULL,
-                 family_name = NULL, motif_type = NULL, msource_id =NULL, motif_info_type = 1,
-                 expressed_only=TRUE, include_DBID_Missing=TRUE, 
+                 family_name = NULL, motif_type = NULL, msource_id =NULL, tf.information.type = 1,
+                 expressed.only=TRUE, include.DBID.Missing=TRUE, 
     		 	 file.bigwig.plus=NA, file.bigwig.minus=NA, file.twoBit=NA, file.gencode.gtf=NA, ncores = 1) {
-	  standardGeneric("CisBP.create")
+	  standardGeneric("tfbs.createFromCisBP")
 	})
 
 setGeneric("CisBP.group", 
-    def=function(cisbp.db, group_by = c("tf_name", "tf_species",
+    def=function(cisbp.db, group.by = c("tf_name", "tf_species",
                  "tf_status", "family_name", "motif_type",
-                 "msource_id"), motif_info_type = 1) {
+                 "msource_id"), tf.information.type = 1) {
 	  standardGeneric("CisBP.group")
 	})
 
@@ -200,21 +200,21 @@ CisBP.extdata<-function( species )
 #' 3: F_Information_all_motifs_plus.txt: All motifs
 #' 
 #' @param cisbp.db: CisBP.db object
-#' @param motif_info_type: 1,2 or 3 indicate the index of above files.
+#' @param tf.information.type: 1,2 or 3 indicate the index of above files.
 #'
 #' @return: temporary file;
 
-CisBP.active_motif_info<-function( cisbp.db, motif_info_type=1 )
+CisBP.active_motif_info<-function( cisbp.db, tf.information.type=1 )
 {
     motif_infos <- c( "TF_Information.txt", "TF_Information_all_motifs.txt", "TF_Information_all_motifs_plus.txt");
     
-    if(motif_info_type<1 || motif_info_type>3)
+    if(tf.information.type<1 || tf.information.type>3)
     {
        cat("! The meta data can be stored in TF_Information.txt(1), TF_Information_all_motifs.txt(2) or TF_Information_all_motifs_plus.txt(3).");
        return(cisbp.db@file.tfinfo);
     }
     
-    file.tfinfo <- motif_infos[ motif_info_type ];
+    file.tfinfo <- motif_infos[ tf.information.type ];
     
     tmp.dir <- tempdir();
     r.file <- unzip(cisbp.db@zip.file, c(file.tfinfo), exdir=tmp.dir );
@@ -231,18 +231,18 @@ CisBP.active_motif_info<-function( cisbp.db, motif_info_type=1 )
 #' Get the statistical summary by grouping the fields in the motif table
 #'
 #' @param cisbp.db: CisBP object
-#' @param group_by: available values are tf_name, tf_species, tf_status, family_name, motif_type and msource_id.
-#' @param motif_info_type: 1,2 or 3 indicate which motif file will be used.
+#' @param group.by: available values are tf_name, tf_species, tf_status, family_name, motif_type and msource_id.
+#' @param tf.information.type: 1,2 or 3 indicate which motif file will be used.
 #'
 #' @return: data.frame;
 
 setMethod("CisBP.group", signature(cisbp.db="CisBP.db"),
-    function(cisbp.db, group_by=c("tf_name", "tf_species", "tf_status", "family_name", "motif_type", "msource_id"), 
-    		motif_info_type=1 )
+    function(cisbp.db, group.by=c("tf_name", "tf_species", "tf_status", "family_name", "motif_type", "msource_id"), 
+    		tf.information.type=1 )
     {
-      group_by <- match.arg(group_by);
+      group_by <- match.arg(group.by);
       
-      cisbp.db@file.tfinfo <- CisBP.active_motif_info( cisbp.db, motif_info_type );
+      cisbp.db@file.tfinfo <- CisBP.active_motif_info( cisbp.db, tf.information.type );
       tb.motifs <- read.csv(cisbp.db@file.tfinfo, header=T, sep="\t");
       
       col.idx <- which(toupper(group_by) == toupper(colnames(tb.motifs)) )
@@ -259,17 +259,17 @@ setMethod("CisBP.group", signature(cisbp.db="CisBP.db"),
 #' @param family_name: string, the query value for family_name  
 #' @param motif_type: string, the query value for motif_type  
 #' @param msource_id: string, the query value for msource_id  
-#' @param motif_info_type: 1,2 or 3 indicate which motif file will be used.
+#' @param tf.information.type: 1,2 or 3 indicate which motif file will be used.
 #'
 #' @return: NULL or tfbs object;
 
-setMethod("CisBP.create", signature(cisbp.db="CisBP.db"),
-    function(cisbp.db, tf_name=NULL, tf_status=NULL, family_name=NULL, motif_type=NULL, msource_id=NULL , motif_info_type=1, 
-    		 expressed_only=TRUE, include_DBID_Missing=TRUE, 
-    		 file.bigwig.plus=NA, file.bigwig.minus=NA, file.twoBit=NA, file.gencode.gtf=NA, ncores = 1 ) 
+setMethod("tfbs.createFromCisBP", signature(cisbp.db="CisBP.db"),
+    function(cisbp.db, tf_name=NULL, tf_status=NULL, family_name=NULL, motif_type=NULL, msource_id=NULL , tf.information.type=1, 
+    		 expressed.only=TRUE, include.DBID.Missing=TRUE, 
+    		 file.bigwig.plus=NA, file.bigwig.minus=NA, file.twoBit=NA, file.gencode.gtf=NA, ncores = 1) 
 {
 
-    cisbp.db@file.tfinfo <- CisBP.active_motif_info( cisbp.db, motif_info_type );
+    cisbp.db@file.tfinfo <- CisBP.active_motif_info( cisbp.db, tf.information.type );
 
     tbm <- read.csv(cisbp.db@file.tfinfo, header=T, sep="\t");
     
@@ -357,7 +357,7 @@ setMethod("CisBP.create", signature(cisbp.db="CisBP.db"),
 	if( !missing(file.bigwig.plus) && !missing(file.bigwig.minus) )
 	{
 		tfs <- tfbs.getExpression(tfs, file.bigwig.plus, file.bigwig.minus, file.twoBit=file.twoBit, file.gencode.gtf=file.gencode.gtf, ncores = ncores );
-		if(expressed_only) tfs <- tfbs.selectExpressed( tfs, 0.05, include_DBID_Missing );
+		if(expressed.only) tfs <- tfbs.selectExpressed( tfs, 0.05, include.DBID.Missing );
 	}
 	
     return(tfs);

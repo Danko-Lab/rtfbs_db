@@ -21,7 +21,7 @@ tfbs.compareTFsite(tfbs,
       ncores=3)
 }
 \arguments{
-  \item{tfbs}{A tfbs object, see also \code{\link{tfbs}}}
+  \item{tfbs}{A tfbs object, see also \code{"\linkS4class{tfbs}"} }
   \item{file.twoBit}{String, the file name of genome data( hg19.2bit, mm10.2bit) }
   \item{positive.bed}{Data frame, bed-formatted down-regulatory ranges}
   \item{negative.bed}{Data frame, bed-formatted up-regulatory ranges}
@@ -35,6 +35,11 @@ tfbs.compareTFsite(tfbs,
   \item{ncores}{Number, comupting nodes in parallel environment.}
 }
 \details{
+The background difference between positive.bed and negative.bed is checked before the comparson. The p-value of Wilcox test and a vioplot figure 
+show this difference and help the user to determine whether the correction is necessary. If the difference is very significant, please set 
+\emph{background.correction} to do background correction by resampling the TREs from negative bed data based on the frequency of TREs in 
+negative bed data.
+
 }
 \value{
 A data frame with the following columns:
@@ -45,6 +50,7 @@ A data frame with the following columns:
   \item{starch}{Binary filename of detected TF sites.}
 }
 \seealso{
+
 }
 \examples{
 
@@ -53,7 +59,7 @@ file.dREG.all.bed    <- "/home/zw355/src/rtfbs_db/rtfbsdb/test/dREG.all.bed"
 file.twoBit     <- "/local/storage/data/hg19/hg19.2bit"
 
 db <- CisBP.extdata("Homo_sapiens");
-tfs <- CisBP.find(db, family_name="AP-2");
+tfs <- tfbs.createFromCisBP(db, family_name="AP-2");
 
 dREG_H_change_bed <- read.table(file.dREG.H.change.bed, header=FALSE);
 dREG_all_bed <- read.table(file.dREG.all.bed, header=FALSE);
@@ -63,7 +69,7 @@ t <- tfbs.compareTFsite( tfs,
       dREG_H_change_bed, 
       dREG_all_bed, 
       file.prefix="test.db",
-      ncores = 1);
+      ncores = 1); #ncores=3
 
 }
 \keyword{tfbs object}

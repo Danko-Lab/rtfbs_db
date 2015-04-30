@@ -278,6 +278,9 @@ setMethod("tfbs.drawLogo", c(tfbs="tfbs"),
     {
       for(i in index)
       {
+      	  if( i<=0 || i>tfbs@ntfs)
+      	      next;
+      	      
 		  grid.newpage()
 		  vp1 <- viewport(x=0, y=0, width=1, height=1, just=c("left","bottom"))
 		  pushViewport(vp1) 

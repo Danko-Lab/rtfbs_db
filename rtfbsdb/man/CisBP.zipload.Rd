@@ -16,7 +16,7 @@ CisBP.zipload(zip.file, species = "Homo_sapiens")
 \details{
 }
 \value{
-A CisBP object (class name: CisBP.db) is returned with four items:
+A CisBP object (class name: \code{"\linkS4class{CisBP.db}"}) is returned with four items:
   \item{species}{String indicating the species name}
   \item{zip.file}{String indicating the filename of temporary data file.}
   \item{zip.url}{String indicating the download source }

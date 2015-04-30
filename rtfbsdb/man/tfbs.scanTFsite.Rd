@@ -19,7 +19,7 @@ tfbs.scanTFsite(tfbs,
 }
 
 \arguments{
-  \item{tfbs}{A tfbs object returned by \code{CisBP.find}, \code{tfbs}, \code{tfbs.dirs}. }
+  \item{tfbs}{A tfbs object (\code{"\linkS4class{tfbs}"}) returned by \code{\link{tfbs.createFromCisBP}}, \code{\link{tfbs}}, \code{\link{tfbs.dirs}}. }
   \item{file.twoBit}{String, the file name of genome data( hg19.2bit or mm10.2bit) }
   \item{dnase.peaks.bed}{Data frame, bed-formatted peak information}
   \item{file.prefix}{String, the prefix for outputted file, only used when the return.type is \emph{writedb} }
@@ -33,10 +33,10 @@ tfbs.scanTFsite(tfbs,
 
 (1) Four options are availabe for the function of tfbs.scanTFsite as follows.\cr
 \itemize{
-\item{matches}{returns all matching motifs.}
-\item{writedb}{writes a bed file with matches.  Assuems that sort-bed and starch tools are availiable in $PATH}
-\item{posteriors}{returns the posteriors at each position.}
-\item{maxposterior}{returns the max(posterior) in each dnase-1 peak.}
+\item{matches:}{ returns all matching motifs.}
+\item{writedb:}{ writes a bed file with matches.  Assuems that sort-bed and starch tools are availiable in $PATH}
+\item{posteriors:}{ returns the posteriors at each position.}
+\item{maxposterior:}{ returns the max(posterior) in each dnase-1 peak.}
 }
 
 (2) In order to make the binary file with the parameter of writedb, make sure that starchcat 
@@ -56,7 +56,7 @@ The option of \emph{matches} returns a list including the result of every motif,
 
 The option of \emph{writedb} will return a binary BED filename in which store all bed ranges.\cr
 
-The option of \emph{posteriors} will return a list for each motif returned by score.ms function. Scores represent the motif ’match score’,
+The option of \emph{posteriors} will return a list for each motif returned by score.ms function. Scores represent the motif 'match score',
 or the product of the probability of observing each base under the motif or background models.  Scores are returned under the motif model for all positions in the sequence, on both forward and reverse strands, and under the background
 model. \cr
 
@@ -75,7 +75,7 @@ file.dREG.H.change.bed <- "/home/zw355/src/rtfbs_db/rtfbsdb/test/dREG.H.change.b
 file.twoBit     <- "/local/storage/data/hg19/hg19.2bit"
 
 db <- CisBP.extdata("Homo_sapiens");
-tfs <- CisBP.find(db, family_name="AP-2");
+tfs <- tfbs.createFromCisBP(db, family_name="AP-2");
 
 dREG_H_change_bed <- read.table(file.dREG.H.change.bed, header=FALSE);
 

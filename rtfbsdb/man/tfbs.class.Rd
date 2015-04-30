@@ -17,7 +17,7 @@
 Tfbj object is a collection of motif PWM data. Some functions are provided based on the PWM and GENCODE data, such as clustering, search and compare.
 }
 \section{Objects from the Class}{
-Objects can be created by calls of the function of \code{CisBP.find}, \code{tfbs.dirs} and \code{tfbs}.
+Objects can be created by calls of the function of \code{\link{tfbs.createFromCisBP}}, \code{\link{tfbs.dirs}} and \code{\link{tfbs}}.
 }
 \section{Slots}{
   \describe{

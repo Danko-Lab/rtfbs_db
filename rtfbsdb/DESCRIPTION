@@ -2,7 +2,7 @@ Package: rtfbsdb
 Version: 0.1.5
 Date: 2015-04-27
 Title: Parse TF motifs from public databases, read into R, and scan using 'rtfbs'.
-Author: Charles G. Danko <dankoc@gmail.com>
+Author: Charles G. Danko <dankoc@gmail.com>, Zhong Wang<zw355@cornell.edu>
 Maintainer: Charles G. Danko <dankoc@gmail.com> Zhong Wang<zw355@cornell.edu>
 Depends: R (>= 2.6)
 Imports: rphast, rtfbs, bigWig, parallel, grid, cluster, methods, latticeExtra,lattice

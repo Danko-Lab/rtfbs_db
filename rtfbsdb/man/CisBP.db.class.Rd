@@ -2,7 +2,7 @@
 \Rdversion{1.1}
 \docType{class}
 \alias{CisBP.db-class}
-\alias{CisBP.find,CisBP.db-method}
+\alias{tfbs.createFromCisBP,CisBP.db-method}
 \alias{CisBP.group,CisBP.db-method}
 
 \title{Class \code{"CisBP.db"}}
@@ -11,7 +11,7 @@ The motif library from CisBP web site.\cr
 Link: \code{\link{http://cisbp.ccbr.utoronto.ca/}}
 }
 \section{Objects from the Class}{
-Objects can be created by calls of the form \code{CisBP.extdata()}, \code{CisBP.zipload()}, \code{CisBP.download()}.
+Objects can be created by calls of the form \code{\link{CisBP.extdata}}, \code{\link{CisBP.zipload}}, \code{\link{CisBP.download}}.
 }
 \section{Slots}{
   \describe{
@@ -26,8 +26,8 @@ Class \code{"\linkS4class{tfbs.db}"}, directly.
 }
 \section{Methods}{
   \describe{
-    \item{CisBP.find}{Build a tfbs object by querying the meta file of CisBP dataset and subseting the results.}
-    \item{CisBP.group}{Get the statistical summary by grouping the field in the CisBP dataset.}
+    \item{\link{tfbs.createFromCisBP}}{Build a tfbs object by querying the meta file of CisBP dataset and subseting the results.}
+    \item{\link{CisBP.group}}{Get the statistical summary by grouping the field in the CisBP dataset.}
 	 }
 }
 \references{

@@ -18,4 +18,4 @@ export(comparative_scan_rtfbs.ms, comparative_scan_rtfbs, write.starchbed, compa
 #export(seqLogo, read.seqfile.from.bed)
 exportClasses("tfbs.db")
 exportClasses("CisBP.db")
-export(CisBP.download, CisBP.zipload, CisBP.extdata, CisBP.group, CisBP.create )
+export(CisBP.download, CisBP.zipload, CisBP.extdata, CisBP.group, tfbs.createFromCisBP )
