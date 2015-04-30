@@ -4,13 +4,13 @@
 
 file.bigwig.plus  <- "/home/zw355/src/rtfbs_db/testdata/GSM1480327_K562_PROseq_plus.bw";
 file.bigwig.minus <- "/home/zw355/src/rtfbs_db/testdata/GSM1480327_K562_PROseq_minus.bw";
-file.hg19 <- "/home/zw355/src/rtfbs_db/testdata/hg19.2bit";
+file.hg19 <- "/local/storage/data/hg19/hg19.2bit";
 
 library(rtfbsdb)
 
 db <- CisBP.extdata("Homo_sapiens");
-db.sum <- CisBP.group( db, group_by="family_name", motif_info_type=1);
-tfs <- CisBP.find( db );
+db.sum <- CisBP.group( db, group.by="family_name", tf.information.type=1);
+tfs <- tfbs.createFromCisBP( db );
 
 save(tfs, file="tfbs.rdata");
 
