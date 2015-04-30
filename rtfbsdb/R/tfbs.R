@@ -274,13 +274,28 @@ setGeneric("tfbs.drawLogo",
 	  standardGeneric("tfbs.drawLogo")
 	})
 setMethod("tfbs.drawLogo", c(tfbs="tfbs"),
-    function(tfbs, index) {
-      grid.newpage()
-      vp1 <- viewport(x=0, y=0, width=1, height=1, just=c("left","bottom"))
-      pushViewport(vp1) 
-      #seqLogo(makePWM(exp(t(tfbs@pwm[[index]]))), xaxis = TRUE, yaxis = TRUE)
-      seqLogo( exp(t(tfbs@pwm[[index]])), xaxis = TRUE, yaxis = TRUE)
-      popViewport()
+    function(tfbs, index) 
+    {
+      for(i in index)
+      {
+		  grid.newpage()
+		  vp1 <- viewport(x=0, y=0, width=1, height=1, just=c("left","bottom"))
+		  pushViewport(vp1) 
+
+		  tf_name <- tfbs@mgisymbols[i];	
+		  if (!is.null(tfbs@extra_info))
+			  tf_name <- paste( tfbs@extra_info[ i, "TF_Name"], " (Motif_ID:", tfbs@extra_info[ i, "Motif_ID"], "/DBID:", tfbs@extra_info[ i, "DBID"], ")", sep="");
+
+		  pushViewport( viewport(x=0, y=0.95, width=1, height=0.05, just=c("left","bottom")) );
+		  grid.text( tf_name, rot=0, gp=gpar(cex=1), check.overlap=T);  
+		  popViewport();
+
+		  pushViewport( viewport(x=0, y=0, width=1, height=0.96, just=c("left","bottom")) );
+		  seqLogo( exp(t(tfbs@pwm[[i]])), xaxis = TRUE, yaxis = TRUE)
+		  popViewport();
+
+		  popViewport()
+      }
 	})
 
 ## Draws all logos for each cluster.
@@ -294,27 +309,62 @@ setMethod("tfbs.drawLogosForClusters", c(tfbs="tfbs"),
 		if(!missing(pdf.logos))
 			pdf( pdf.logos );	
 
+		draw_tf_name <- function(tfbs, idx, nmax.motifs)
+		{
+		  	tf_name <- tfbs@mgisymbols[idx];	
+		  	if (!is.null(tfbs@extra_info))
+		  		tf_name <- tfbs@extra_info[ idx, "TF_Name"];
+			
+			n.block  <- round(nmax.motifs/2);
+		  	pushViewport( viewport(x=0.01, y=0, width=0.05, height=1, just=c("left","bottom")) );
+		  	
+	  		str.inches <- strwidth(tf_name, units = 'in');
+	  	    y.scale <- convertHeight(unit(str.inches, "inches"), "native", valueOnly=T );
+		
+			cex <- 1;
+			if( y.scale> 0.8 ) cex <- 0.8/y.scale;
+			if( cex > 1 ) cex <- 1;
+
+	  		grid.text( tf_name, rot=90, gp=gpar(cex=cex), check.overlap=T);  
+
+		  	popViewport();
+		}
+
 		for(i in 1:max(cluster.mat[,2])) 
 		{
 			motifs_in_cluster <- cluster.mat[which(cluster.mat[,2]==i), 1];
-			nmotifs <- length(motifs_in_cluster)
-			#print(nmotifs)
+			nmotifs <- length(motifs_in_cluster);
 			
-			grid.newpage()
-			for(j in seq(1, nmotifs, 2)) {
-			  vp1 <- viewport(x=0, y=((j-1)/2)/ceiling(nmotifs/2), width=0.5, height=1/ceiling(nmotifs/2), just=c("left","bottom"))
-			  pushViewport(vp1) 
-			  #seqLogo(makePWM(exp(t(tfbs@pwm[[motifs_in_cluster[j]]]))), xaxis = FALSE, yaxis = FALSE)
-			  seqLogo(exp(t(tfbs@pwm[[motifs_in_cluster[j]]])), xaxis = FALSE, yaxis = FALSE)
-			  popViewport()
-			  
-			  if((j+1) <= nmotifs) {
-				vp1 <- viewport(x=0.5, y=((j-1)/2)/ceiling(nmotifs/2), width=0.5, height=1/ceiling(nmotifs/2), just=c("left","bottom"))
-				pushViewport(vp1) 
-				#seqLogo(makePWM(exp(t(tfbs@pwm[[motifs_in_cluster[j]]]))), xaxis = FALSE, yaxis = FALSE)
-				seqLogo( exp(t(tfbs@pwm[[motifs_in_cluster[j]]])), xaxis = FALSE, yaxis = FALSE)
-				popViewport()
+			nmax.motifs <- nmotifs;
+			# at least4 motif space will be designed in each page.
+			if( nmax.motifs <= 4 ) nmax.motifs <- 4;
+			
+			grid.newpage();
+			for(j in seq(1, nmax.motifs, 2)) {
+			
+			  vp1 <- viewport(x=0, y=((j-1)/2)/ceiling(nmax.motifs/2), width=0.5, height=1/ceiling(nmax.motifs/2), just=c("left","bottom"));
+			  pushViewport(vp1); 
+			  #seqLogo(makePWM(exp(t(tfbs@pwm[[motifs_in_cluster[j]]]))), xaxis = FALSE, yaxis = FALSE);
+			  if ( j <= nmotifs )
+			  {
+			  	draw_tf_name(tfbs, motifs_in_cluster[j], nmax.motifs);
+		  	    pushViewport( viewport(x=0.04, y=0, width=0.96, height=1, just=c("left","bottom")) );
+			  	seqLogo(exp(t(tfbs@pwm[[motifs_in_cluster[j]]])), xaxis = FALSE, yaxis = FALSE);
+			  	popViewport();
 			  }
+			  popViewport();
+			  
+			  vp1 <- viewport(x=0.5, y=((j-1)/2)/ceiling(nmax.motifs/2), width=0.5, height=1/ceiling(nmax.motifs/2), just=c("left","bottom"));
+			  pushViewport(vp1); 
+			  #seqLogo(makePWM(exp(t(tfbs@pwm[[motifs_in_cluster[j]]]))), xaxis = FALSE, yaxis = FALSE);
+			  if ( j+1 <= nmotifs )
+			  {
+			  	draw_tf_name(tfbs, motifs_in_cluster[j+1], nmax.motifs);
+		  	    pushViewport( viewport(x=0.04, y=0, width=0.96, height=1, just=c("left","bottom")) );
+			  	seqLogo( exp(t(tfbs@pwm[[motifs_in_cluster[j+1]]])), xaxis = FALSE, yaxis = FALSE);
+			  	popViewport();
+			  }
+			  popViewport();
 			}
 		}
 
@@ -447,9 +497,10 @@ setMethod("show", "tfbs", function(object){
 	else
 		df <- data.frame(Motif_ID=object@mgisymbols, filename=basename(object@filename));
 
-	if(!is.null(object@expressionlevel))
+	if(NROW(object@expressionlevel)>0) 
 		df <- data.frame(df, p.pois = object@expressionlevel[,c("p.pois")] );
-
+	
+	cat("\nPartial list of TFs\n");
 	show(head(df, 20));
 });
 

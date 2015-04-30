@@ -110,7 +110,7 @@ tfbs_corclustering_bic_optim<-function( obs_mat )
 
 	optim_list <- c();
 
-show(obs_mat);
+#show(obs_mat);
 
 	loop <-1;		
 	for( vr in set.var.range )
