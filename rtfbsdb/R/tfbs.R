@@ -382,7 +382,7 @@ setMethod("tfbs.drawLogosForClusters", c(tfbs="tfbs"),
 ## Gets expression level of target TF.
 ## TODO: Add the MGI symbol to each TF.  Not 100% sure where to do this?!
 setGeneric("tfbs.getExpression", 
-    def=function(tfbs, file.bigwig.plus, file.bigwig.minus, file.twoBit=NA, file.gencode.gtf=NA, ncores = 8) {
+    def=function(tfbs, file.bigwig.plus, file.bigwig.minus, file.twoBit=NA, file.gencode.gtf=NA, seq.datatype=NA, ncores = 1) {
 	  stopifnot(class(tfbs) == "tfbs")
 	  standardGeneric("tfbs.getExpression")
 	})

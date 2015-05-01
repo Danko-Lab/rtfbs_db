@@ -12,6 +12,7 @@ tfbs.getExpression(tfbs,
       file.bigwig.plus, file.bigwig.minus, 
       file.twoBit=NA, 
       file.gencode.gtf=NA,
+      seq.datatype=NA,
       ncores =3 )
 }
 \arguments{
@@ -20,6 +21,7 @@ tfbs.getExpression(tfbs,
   \item{file.bigwig.minus}{String, indicating bigwig file for strand minus(-).}
   \item{file.twoBit}{String, indicating the binary data of sequence.}
   \item{file.gencode.gtf}{Gencode RDATA file encoded by ths package.}
+  \item{seq.datatype}{String,indicating which kind of seq data is applied to this function, three values are available: GRO-seq, PRO-seq and RNA-seq. Default: GRO-seq}
   \item{ncores}{Number, comupting nodes in parallel environment.}
 }
 

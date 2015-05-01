@@ -110,11 +110,12 @@ simple_reduce_bed<-function( r.bed )
 #                       hg19.2bit: contains the complete hg19 Human Genome in the 2bit format
 #                                  http://hgdownload-test.cse.ucsc.edu/goldenPath/hg19/bigZips/hg19.2bit(08-Mar-2009 15:29)
 #                       mm10.2bit  http://hgdownload-test.cse.ucsc.edu/goldenPath/mm10/bigZips/mm10.2bit(07-Feb-2012 10:52)  
-#' @param gencode.ext.rdata:  Genecode RDATA file Encoded by import_gencode
+#' @param file.gencode.gtf:  Genecode GTF file downloaded from GENCODE website
+#' @param seq.datatype:  three values: GRO-seq, PRO-seq, RNA-seq
 #'
 #' @return: tfbs.db object with changed expressionlevel;
 
-tfbs_getExpression <- function(tfbs, file.bigwig.plus, file.bigwig.minus, file.twoBit=NA, file.gencode.gtf=NA, ncores = 3 ) 
+tfbs_getExpression <- function(tfbs, file.bigwig.plus, file.bigwig.minus, file.twoBit=NA, file.gencode.gtf=NA,  seq.datatype=NA, ncores = 3 ) 
 {
 	stopifnot(!is.null(tfbs@extra_info));
     
@@ -147,6 +148,14 @@ tfbs_getExpression <- function(tfbs, file.bigwig.plus, file.bigwig.minus, file.t
 	    #load( gencode.ext.rdata, environment() );
 		#cat("Outputing RDATA file:", file.rdata, "\n");
     }
+
+    if(seq.datatype=="GRO-seq" ||seq.datatype=="PRO-seq")
+    	gencode_transcript_ext <- gencode_transcript_ext[ which(gencode_transcript_ext$V3=="transcript"),];	
+	
+    if(seq.datatype=="RNA-seq")
+    	gencode_transcript_ext <- gencode_transcript_ext[ which(gencode_transcript_ext$V3=="exon"),];	
+
+   	cat("  For", seq.datatype, ",", NROW(gencode_transcript_ext), "items are selected from GENCODE dataset.\n");
     
     # Load chromosome sizes or calculate the size using file.twoBit
     chromInfo <- NULL;

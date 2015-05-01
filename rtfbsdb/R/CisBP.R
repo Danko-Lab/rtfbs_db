@@ -15,7 +15,7 @@ setClass("tfbs.db",
 setGeneric("tfbs.createFromCisBP", 
     def=function(cisbp.db, tf_name = NULL, tf_status = NULL,
                  family_name = NULL, motif_type = NULL, msource_id =NULL, tf.information.type = 1,
-                 expressed.only=TRUE, include.DBID.Missing=TRUE, 
+                 expressed.only=TRUE, include.DBID.Missing=TRUE, seq.datatype=NA,
     		 	 file.bigwig.plus=NA, file.bigwig.minus=NA, file.twoBit=NA, file.gencode.gtf=NA, ncores = 1) {
 	  standardGeneric("tfbs.createFromCisBP")
 	})
@@ -265,9 +265,12 @@ setMethod("CisBP.group", signature(cisbp.db="CisBP.db"),
 
 setMethod("tfbs.createFromCisBP", signature(cisbp.db="CisBP.db"),
     function(cisbp.db, tf_name=NULL, tf_status=NULL, family_name=NULL, motif_type=NULL, msource_id=NULL , tf.information.type=1, 
-    		 expressed.only=TRUE, include.DBID.Missing=TRUE, 
+    		 expressed.only=TRUE, include.DBID.Missing=TRUE, seq.datatype=NA, 
     		 file.bigwig.plus=NA, file.bigwig.minus=NA, file.twoBit=NA, file.gencode.gtf=NA, ncores = 1) 
 {
+    if( missing(seq.datatype)) seq.datatype <- "GRO-seq";
+    if( !(seq.datatype %in% c("GRO-seq", "PRO-seq", "RNA-seq") ) )
+    	stop("Only GRO-seq, PRO-seq and RNA-seq data can use this package.");
 
     cisbp.db@file.tfinfo <- CisBP.active_motif_info( cisbp.db, tf.information.type );
 
@@ -280,7 +283,7 @@ setMethod("tfbs.createFromCisBP", signature(cisbp.db="CisBP.db"),
     if(!is.null(family_name))tbm_f <- c( tbm_f, paste( "tbm$Family_Name=='", family_name, "'", sep="") );
     if(!is.null(motif_type)) tbm_f <- c( tbm_f, paste( "tbm$Motif_Type=='", motif_type, "'", sep="") );
     if(!is.null(msource_id)) tbm_f <- c( tbm_f, paste( "tbm$MSource_Identifier=='", msource_id, "'", sep="") );
-
+    
     if(length(tbm_f)>0)
     {
       tbm_f_all <- paste(tbm_f, collapse=" & " );
@@ -356,7 +359,7 @@ setMethod("tfbs.createFromCisBP", signature(cisbp.db="CisBP.db"),
 
 	if( !missing(file.bigwig.plus) && !missing(file.bigwig.minus) )
 	{
-		tfs <- tfbs.getExpression(tfs, file.bigwig.plus, file.bigwig.minus, file.twoBit=file.twoBit, file.gencode.gtf=file.gencode.gtf, ncores = ncores );
+		tfs <- tfbs.getExpression(tfs, file.bigwig.plus, file.bigwig.minus, file.twoBit=file.twoBit, file.gencode.gtf=file.gencode.gtf, seq.datatype=seq.datatype, ncores = ncores  );
 		if(expressed.only) tfs <- tfbs.selectExpressed( tfs, 0.05, include.DBID.Missing );
 	}
 	
