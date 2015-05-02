@@ -335,7 +335,7 @@ import_gencode <-function( species, file.gencode.gtf, seq.datatype=NA )
 	if( missing(seq.datatype)) seq.datatype <- "GRO-seq";
 	if( seq.datatype =="RNA-seq" ) V3.type <- "exon";
 	
-	awk.cmd <- paste( "awk '($3==\"", V3.type, "\"){gsub( /\\\";?/, \"\", $10);print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10}' ", file.gencode.gtf, sep="");
+	awk.cmd <- paste( "zcat ",file.gencode.gtf," | awk '($3==\"", V3.type, "\"){gsub( /\\\";?/, \"\", $10);gsub( /\\\";?/, \"\", $18);print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$18}' ", sep="");
 	bigdf <- read.table( pipe(awk.cmd), header = F );
 	colnames(bigdf) <- c("V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "same", "gene_id");
 	
