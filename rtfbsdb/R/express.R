@@ -140,7 +140,7 @@ tfbs_getExpression <- function(tfbs, file.bigwig.plus, file.bigwig.minus, file.t
     }
     else
     {
-		gencode_transcript_ext <- try( import_gencode( tfbs@species, file.gencode.gtf, ncores = ncores) );
+		gencode_transcript_ext <- try( import_gencode( tfbs@species, file.gencode.gtf, seq.datatype=seq.datatype) );
     	if(is.null(gencode_transcript_ext) || class(gencode_transcript_ext)=="try-error")
     		stop("Gencode data can not be found in the GTF file specified by the parameter of file.gencode.gtf.");
 
@@ -327,9 +327,24 @@ if(0)
 # Extract the gencode information and save it into RDATA file
 #
 # e.g. 
-# import_gencode( "human", "gencode.v22.annotation.gtf", "gencode.v22.rdata")
+# import_gencode( "human", "gencode.v22.annotation.gtf", seq.datatype="GRO-seq")
 
-import_gencode <-function( species, file.gencode.gtf, ncores = 1)
+import_gencode <-function( species, file.gencode.gtf, seq.datatype=NA )
+{
+	V3.type <- "transcript";
+	if( missing(seq.datatype)) seq.datatype <- "GRO-seq";
+	if( seq.datatype =="RNA-seq" ) V3.type <- "exon";
+	
+	awk.cmd <- paste( "awk '($3==\"", V3.type, "\"){gsub( /\\\";?/, \"\", $10);print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10}' ", file.gencode.gtf, sep="");
+	bigdf <- read.table( pipe(awk.cmd), header = F );
+	colnames(bigdf) <- c("V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "same", "gene_id");
+	
+	return(bigdf);
+}
+
+# make_gencode_rdata( "human", "gencode.v22.annotation.gtf", "gencode.v22.rdata")
+
+make_gencode_rdata <-function( species, file.gencode.gtf, ncores = 1)
 {
 	f.gtf <- try (file( file.gencode.gtf ) );
 	if(class(f.gtf)=="try-error")
@@ -337,9 +352,9 @@ import_gencode <-function( species, file.gencode.gtf, ncores = 1)
 		cat("! Failed to open GTF file(", file.gencode.gtf, ").\n");
 		return(NULL);
 	}
-	
-	
+
 	bigdf <- read.table(f.gtf, header = F, sep="\t", skip=6);
+	
 	# sqldf package
 	# bigdf <- sqldf("select * from f", dbname = tempfile(), 
 	#			   file.format = list(header = F, row.names = F, sep="\t", skip=6));

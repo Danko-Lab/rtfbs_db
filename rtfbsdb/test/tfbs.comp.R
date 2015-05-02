@@ -18,6 +18,7 @@ t <- tfbs.compareTFsite( tfs,
 	file.twoBit_path, 
 	dREG_H_change_bed, 
 	dREG_all_bed, 
+	background.correct=TRUE,
 	file.prefix="test.db",
 	ncores = 7);
 

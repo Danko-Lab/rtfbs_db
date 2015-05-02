@@ -43,11 +43,13 @@ negative bed data.
 }
 \value{
 A data frame with the following columns:
-  \item{tf.name}{Motif name.}
+  \item{tf.name}{TF name.}
   \item{Npos}{TF site count found in positive ranges.}
   \item{Nneg}{TF site count found in negative ranges.}
   \item{assoc.pvalue}{p-value calculated by fisher test.}
   \item{starch}{Binary filename of detected TF sites.}
+  \item{motif.id}{Motif ID.}
+  \item{bf.correct}{p-value corrected by Bonferoni.}
 }
 \seealso{
 
@@ -68,6 +70,7 @@ t <- tfbs.compareTFsite( tfs,
       file.twoBit, 
       dREG_H_change_bed, 
       dREG_all_bed, 
+      background.correction=TRUE,
       file.prefix="test.db",
       ncores = 1); #ncores=3
 

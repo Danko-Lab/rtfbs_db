@@ -288,6 +288,22 @@ tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, fil
 		background.order = background.order, 
 		background.length = background.length, 
 		ncores = ncores ); 
+		
+	if(!is.null(r))	
+	{
+		if(!is.null(tfbs@extra_info))
+		{
+			tf.motifid <- unlist(strsplit(as.character(r$tf.name), "@"))[seq(1, length(r$tf.name)*2-1, 2)];
+			tf.idx <- match( tf.motifid, tfbs@extra_info$Motif_ID );
+			r$tf.name <- tfbs@extra_info$TF_Name[tf.idx];
+			r$motif.id <-tfbs@extra_info$Motif_ID[tf.idx];
+		}
+		
+		bf.correct <- r$assoc.pvalue*NROW(r);
+		bf.correct[which(bf.correct>=1)] <- 1;
+		r <- cbind(r, bf.correct=bf.correct);		
+	}
+	
 	r;
 }
 
