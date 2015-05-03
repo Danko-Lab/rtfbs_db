@@ -449,9 +449,12 @@ tfbs.selectExpressed<-function( tfs, prob.sig=0.05, include.DBID.Missing=FALSE )
 		tfs@filename        <- tfs@filename[ tf.expresed ];
 		tfs@pwm             <- tfs@pwm[ tf.expresed ];
 		tfs@TFID            <- tfs@TFID[ tf.expresed ];
+		tfs@distancematrix  <- tfs@distancematrix[ tf.expresed, tf.expresed, drop=F];
 
 		cat("* After filtering by the gene expression,", length(tf.expresed), "expressed TFs are selected from", tfs@ntfs, "PWM files.\n"); 
 		tfs@ntfs            <- length(tf.expresed);
+		
+		
 	}
 	
 	return(tfs);
