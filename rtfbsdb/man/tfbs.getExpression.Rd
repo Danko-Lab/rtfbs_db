@@ -13,7 +13,7 @@ tfbs.getExpression(tfbs,
       file.twoBit=NA, 
       file.gencode.gtf=NA,
       seq.datatype=NA,
-      ncores =3 )
+      ncores =1 )
 }
 \arguments{
   \item{tfbs}{A tfbs object(\code{"\linkS4class{tfbs}"}).}
@@ -76,7 +76,8 @@ if(0)
 	file.bigwig.plus <- "testdata//GSM1480327_K562_PROseq_plus.bw";
 	file.bigwig.minus <-"testdata/GSM1480327_K562_PROseq_minus.bw";
 
-	tfs <- tfbs.getExpression(tfs, file.bigwig.plus, file.bigwig.minus, file.gencode.gtf="/local/storage/data/gencode/gencode.v21.annotation.gtf", ncores = 21 );
+	tfs <- tfbs.getExpression(tfs, file.bigwig.plus, file.bigwig.minus, 
+	       file.gencode.gtf="/local/storage/data/gencode/gencode.v21.annotation.gtf" );
 
 	tfs <- tfbs.getExpression(tfs, file.bigwig.plus, file.bigwig.minus, ncores = 21 );
 }

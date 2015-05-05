@@ -176,9 +176,14 @@ write.starchbed <- function(bed, filename) {
     quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t")
 }
 
-comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix, 
+comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix=NA, 
 	usemotifs=NA, background.correction=FALSE, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, ncores = 3) {
+  
   stopifnot(class(tfbs) == "tfbs")
+  
+  if( !is.na(file.prefix))
+  	if( !check_folder_writable( file.prefix ) ) 
+  	  stop(paste("Can not create files starting with the prefix:", file.prefix));
   
   # read sequences
   positive.ms = read.seqfile.from.bed(positive.bed, file.twoBit)
@@ -248,22 +253,39 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
     # process result
     result.bed = tfbs_to_bed(result.sites, pwm.name)
     
-    tbl = rbind(c(Npos, Nneg), c(dim(positive.bed)[1] - Npos, NROW(negative.bed) - Nneg))
+    tbl = rbind(c(Npos, Nneg), c(NROW(positive.bed) - Npos, NROW(negative.bed) - Nneg))
     pval = fisher.test(tbl)$p.value
     
     # save sites
-    starch.file = paste(file.prefix, ".", i, ".bed.starch", sep='')
-    write.starchbed(result.bed, starch.file)
+    starch.file <- NA;
+    if( !is.na(file.prefix) )
+    {
+    	starch.file = paste(file.prefix, ".", i, ".bed.starch", sep='')
+    	write.starchbed(result.bed, starch.file)
+    }
+  	
+  	Npos.tmp <- Npos;
+  	if(Npos.tmp==0) Npos.tmp <- 1;
+  	Nneg.tmp <- Nneg;
+  	if(Nneg.tmp==0) Nneg.tmp <- 1;
+  	es.ratio <- (Npos/NROW(positive.bed) )/(Nneg/NROW(negative.bed));
+    
+    pv.bonferroni <- pval*length(usemotifs);
+    if( pv.bonferroni > 1)  pv.bonferroni<-1;
     
     # return info
-    return(data.frame(tf.name = pwm.name, Npos = Npos, Nneg = Nneg, assoc.pvalue = pval, starch = starch.file))
+    return(data.frame(tf.name = pwm.name, Npos = Npos, Nneg = Nneg, es.ratio= es.ratio, assoc.pvalue = pval, pv.bonferroni=pv.bonferroni, starch = starch.file))
   }, mc.cores = ncores)
   
   # recombine results
-  do.call("rbind", binding_all)
+  r.df <- do.call("rbind", binding_all);
+
+  if( missing(file.prefix) || is.na(file.prefix) )  r.df <- subset(r.df, select=-starch);
+  
+  return(r.df);
 }
 
-tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix="comp.db", 
+tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix=NA, 
 	usemotifs=NA, background.correction = FALSE, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, ncores = 3) 
 {
     stopifnot(class(tfbs) == "tfbs")
@@ -298,16 +320,12 @@ tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, fil
 			r$tf.name <- tfbs@extra_info$TF_Name[tf.idx];
 			r$motif.id <-tfbs@extra_info$Motif_ID[tf.idx];
 		}
-		
-		bf.correct <- r$assoc.pvalue*NROW(r);
-		bf.correct[which(bf.correct>=1)] <- 1;
-		r <- cbind(r, bf.correct=bf.correct);		
 	}
 	
 	r;
 }
 
-background.check<-function( positive.ms, negative.ms, background.correction, file.prefix )
+background.check<-function( positive.ms, negative.ms, background.correction, file.prefix=NA )
 {
 	gc.pos <- gcContent.ms(positive.ms);
 	gc.neg <- gcContent.ms(negative.ms);
@@ -322,12 +340,17 @@ background.check<-function( positive.ms, negative.ms, background.correction, fil
 		if( require(vioplot) )
 		{
 			pdf.file <- paste("vioplot.before.correct", file.prefix, "pdf", sep=".");
-			cat("! Please check the vioplot figure to make sure, the vioplot figure: ", pdf.file, "\n" );
+			cat("* Please check the vioplot figure to make sure, the vioplot figure: ", pdf.file, "\n" );
 
-			pdf(pdf.file);
-			vioplot(gc.pos, gc.neg, names=c("Positive", "Negative"));
-			abline(h=median(gc.pos), lty="dotted")
-			dev.off();
+			r.try <- try ( pdf(pdf.file) );
+			if( class(r.try) != "try-error" )
+			{
+				vioplot(gc.pos, gc.neg, names=c("Positive", "Negative"));
+				abline(h=median(gc.pos), lty="dotted")
+				dev.off();
+			}
+			else
+				cat("  Failed to output the vioplot figure for the results.\n");
 		}
 	}
 	
@@ -363,17 +386,23 @@ background.check<-function( positive.ms, negative.ms, background.correction, fil
 
 	gc.test2 <- wilcox.test(gc.pos, gc.neg[indx.bgnew], conf.int=TRUE, conf.level=0.9 );
 
-	cat("! After the resampling from negative TREs, p-value of Wilcox test:", gc.test2$p.value, "\n" );
+	cat("* After the resampling from negative TREs, p-value of Wilcox test:", gc.test2$p.value, "\n" );
 
 	if( require(vioplot) )
 	{
 		pdf.file <- paste("vioplot.after.correct", file.prefix, "pdf", sep=".");
-		cat("! The vioplot figure:", pdf.file, "\n" );
+		cat("* The vioplot figure after correction:", pdf.file, "\n" );
 
-		pdf(pdf.file);
-		vioplot(gc.pos, gc.neg, gc.neg[indx.bgnew], names=c("Positive", "Negative", "Negative.resample")); 
-		abline(h=median(gc.pos), lty="dotted")
-		dev.off()
+		r.try <- try ( pdf(pdf.file) );
+		if( class(r.try) != "try-error")
+		{
+			vioplot(gc.pos, gc.neg, gc.neg[indx.bgnew], names=c("Positive", "Negative", "Negative.resample")); 
+			abline(h=median(gc.pos), lty="dotted")
+			dev.off()
+		}
+		else
+			cat("  Failed to output the vioplot figure for the results of correction.\n");
+		
 	}
 	
 	## return sampling background.

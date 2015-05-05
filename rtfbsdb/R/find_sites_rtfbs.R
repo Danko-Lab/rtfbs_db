@@ -67,8 +67,12 @@ scan_rtfbs <- function(tf_name, file.twoBit, dnase_peaks_bed, motif_path, return
 ## posteriors 	-- returns the posteriors at each position.
 ## maxposterior	-- returns the max(posterior) in each dnase-1 peak.
 
-scanDb_rtfbs <- function(tfbs, file.twoBit, dnase.peaks.bed, file.prefix= "data.db", usemotifs=NA, ncores= 3, return.type="matches", threshold= 6, ...) {
+scanDb_rtfbs <- function(tfbs, file.twoBit, dnase.peaks.bed, file.prefix= "scan.db", usemotifs=NA, ncores= 3, return.type="matches", threshold= 6, ...) {
   stopifnot(class(tfbs) == "tfbs")
+
+  if( !is.na(file.prefix))
+  	if( !check_folder_writable( file.prefix ) ) 
+  	  stop(paste("Can not create files starting with the prefix:", file.prefix));
 
   ## Read in the DNAse-1 peaks ...
   half_width=15 ## Max size of TF in set of 1800 is 30 (half-width = 15).
@@ -125,10 +129,8 @@ scanDb_rtfbs <- function(tfbs, file.twoBit, dnase.peaks.bed, file.prefix= "data.
 #ncores=3 for 4 cores CPU.
 # Under 1 node with 1 task mcapply can not be going will.
  
-
-tfbs_scanTFsite<-function(tfbs, file.twoBit, dnase.peaks.bed=NULL, file.prefix="scan.db",  usemotifs=NA, ncores= 3, return.type="matches", threshold= 6, ... ) 
+tfbs_scanTFsite<-function(tfbs, file.twoBit, dnase.peaks.bed=NULL, file.prefix=NA,  usemotifs=NA, ncores= 3, return.type="matches", threshold= 6, ... ) 
 {
-
   stopifnot(class(tfbs) == "tfbs")
 
 	if( missing(dnase.peaks.bed) )
@@ -140,7 +142,7 @@ tfbs_scanTFsite<-function(tfbs, file.twoBit, dnase.peaks.bed=NULL, file.prefix="
 		dnase.peaks.bed <- data.frame(chrom=chromInfo[,1], chromStart=rep(0)+offset_dist, chromEnd=(chromInfo[,2]-1-offset_dist));
 	}
 	
-	if( missing(file.prefix) ) file.prefix="data.db";
+	if( missing(file.prefix) ) file.prefix="scan.db";
 	if( missing(return.type) ) return.type="matches";
 	if( missing(ncores) ) ncores= 3;
 	if( missing(threshold) ) threshold= 6;

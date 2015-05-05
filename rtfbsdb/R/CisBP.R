@@ -274,7 +274,9 @@ setMethod("tfbs.createFromCisBP", signature(cisbp.db="CisBP.db"),
 
     cisbp.db@file.tfinfo <- CisBP.active_motif_info( cisbp.db, tf.information.type );
 
-    tbm <- read.csv(cisbp.db@file.tfinfo, header=T, sep="\t");
+    tbm <- try( read.csv(cisbp.db@file.tfinfo, header=T, sep="\t") );
+    if( class(tbm) == "try-error" )
+		stop("! Can not open TF information file:", cisbp.db@file.tfinfo, ".\n" );
     
     tbm_f <- c();
 
@@ -300,17 +302,20 @@ setMethod("tfbs.createFromCisBP", signature(cisbp.db="CisBP.db"),
 
     tmp.dir <- tempdir();
     pwm.files <- c();
-
 	nidx.motif <- c();
-
 	names <- c();
+	
+	err.noPWM <- 0;
+	err.noACGT <- 0;
+	
     for (i in nidx)
 	{
 		motif_id <- as.character(tbm$Motif_ID[i]);
 		
 		if( as.character(motif_id)==".")
 		{
-			cat("! No ID for this motif(.).\n"); 	
+			# cat("! No ID for this motif(.).\n"); 	
+			err.noPWM <- err.noPWM + 1;
 			next;
         }
         
@@ -318,20 +323,23 @@ setMethod("tfbs.createFromCisBP", signature(cisbp.db="CisBP.db"),
 		r.file <- unzip( cisbp.db@zip.file, c(pwm.file), exdir=tmp.dir  );
 		if(length(r.file)<1)
 		{
-			cat("! Can not find PWM file for motif ID=", motif_id, ".\n" );
+			# cat("! Can not find PWM file for motif ID=", motif_id, ".\n" );
+			err.noPWM <- err.noPWM + 1;
 			next;
 		}
         
 		tb <- try( read.table(paste(tmp.dir, pwm.file, sep="/"), header=T, sep="\t", row.names=1), TRUE );
 		if(class(tb)=="try-error") 
 		{
-			cat("! Can not find PWM file for motif ID=", motif_id, ".\n" );
+			# cat("! Can not find PWM file for motif ID=", motif_id, ".\n" );
+			err.noPWM <- err.noPWM + 1;
 			next;
 		}
 	
 		if(NROW(tb)==0)
 		{
-			cat("! No A C G T values in the PWM file for motif ID=", motif_id, ".\n" );
+			# cat("! No A C G T values in the PWM file for motif ID=", motif_id, ".\n" );
+			err.noACGT <- err.noACGT + 1
 			next;
     	}
     	
@@ -344,11 +352,16 @@ setMethod("tfbs.createFromCisBP", signature(cisbp.db="CisBP.db"),
 	if(length(nidx.motif)>0)
 		TF_info <- tbm[ nidx.motif, , drop=F];
 
+	if(err.noPWM > 0) cat("! ", err.noPWM, " PWM file(s) can not be found or accessed.\n", sep="")
+	if(err.noACGT > 0) cat("! ", err.noACGT, " PWM file(s) don't have A C G T values.\n", sep="")
+
     if(length(pwm.files)==0)
     {
       cat("! No PWM files to create a tfbs object.\n");
       return(NULL);
     }
+    else
+      cat("*", length(pwm.files), "TFs in the tfbs object.\n");
 
     tfs <- tfbs(
       	 species    = cisbp.db@species,

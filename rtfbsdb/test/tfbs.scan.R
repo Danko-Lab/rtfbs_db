@@ -19,6 +19,6 @@ t1.bed <- tfbs.scanTFsite( tfs,
    file.twoBit_path, 
    bed_dat=dREG_H_change_bed, 
    return_posteriors=FALSE,
-   threshold = 7);
+   ncores=21);
     
 save(t1.bed, tfs, file="tfbs.scan.rdata");

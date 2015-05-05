@@ -16,11 +16,11 @@ tfbs.createFromCisBP(cisbp.db,
       tf.information.type = 1,
       expressed.only=TRUE, 
       include.DBID.Missing=TRUE, 
+      seq.datatype=NA,
       file.bigwig.plus=NA, 
       file.bigwig.minus=NA, 
       file.twoBit=NA, 
       file.gencode.gtf=NA, 
-      seq.datatype=NA,
       ncores = 1 )       
 }
 \arguments{

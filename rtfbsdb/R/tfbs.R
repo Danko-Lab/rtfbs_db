@@ -309,9 +309,21 @@ setGeneric("tfbs.drawLogosForClusters",
 	})
 setMethod("tfbs.drawLogosForClusters", c(tfbs="tfbs"),
     function(tfbs, cluster.mat, pdf.logos=NULL) {
-		if(!missing(pdf.logos))
-			pdf( pdf.logos );	
 
+		if( !is.na( pdf.logos ) )
+	    	if( !check_folder_writable( pdf.logos ) ) 
+	  		    cat("! Can not create pdf file: ", pdf.logos, "\n");
+
+		if(!is.na(pdf.logos))
+		{
+			r.try <- try ( pdf( pdf.logos ) );	
+			if(class(r.try)=="try-error")
+			{
+				cat("! Failed to create PDF file for motif logos.\n");
+				return;
+			}	
+		}
+		
 		draw_tf_name <- function(tfbs, idx, nmax.motifs)
 		{
 		  	tf_name <- tfbs@mgisymbols[idx];	
@@ -371,7 +383,7 @@ setMethod("tfbs.drawLogosForClusters", c(tfbs="tfbs"),
 			}
 		}
 
-		if(!missing(pdf.logos))
+		if(!is.na(pdf.logos))
 			dev.off();	
 	})
 
@@ -407,7 +419,7 @@ setMethod("tfbs.getExpression", c(tfbs="tfbs"), tfbs_getExpression );
 ##
 ## see codes in find_sites_rtfbs.R
 setGeneric("tfbs.scanTFsite", 
-    def=function(tfbs, file.twoBit, dnase.peaks.bed=NULL, file.prefix="scan.db", usemotifs=NA, ncores=3, return.type=c("matches", "posteriors", "maxposterior", "writedb"), threshold=6, ...) {
+    def=function(tfbs, file.twoBit, dnase.peaks.bed=NULL, file.prefix=NA, usemotifs=NA, ncores=3, return.type=c("matches", "posteriors", "maxposterior", "writedb"), threshold=6, ...) {
 	  stopifnot(class(tfbs) == "tfbs")
 	  standardGeneric("tfbs.scanTFsite")
 	})
@@ -422,7 +434,7 @@ setMethod("tfbs.scanTFsite", c(tfbs="tfbs"), tfbs_scanTFsite );
 ##
 ## see codes in comp_find_sites_rtfbs.R
 setGeneric("tfbs.compareTFsite", 
-    def=function(tfbs, file.twoBit, positive.bed, negative.bed, file.prefix="comp.db", usemotifs=NA, background.correction = FALSE, fdr=0.1, threshold=NA, background.order=2, background.length=100000, ncores=3) {
+    def=function(tfbs, file.twoBit, positive.bed, negative.bed, file.prefix=NA, usemotifs=NA, background.correction = FALSE, fdr=0.1, threshold=NA, background.order=2, background.length=100000, ncores=3) {
 	  stopifnot(class(tfbs) == "tfbs")
 	  standardGeneric("tfbs.compareTFsite")
 	})
@@ -506,5 +518,20 @@ setMethod("show", "tfbs", function(object){
 	cat("\nPartial list of TFs\n");
 	show(head(df, 20));
 });
+
+
+check_folder_writable<-function(file.prefix)
+{
+  if( dirname(file.prefix) != "." )
+  	 dir.create( dirname(file.prefix), showWarnings = TRUE, recursive = FALSE );
+  
+  file.temp <- tempfile( tmpdir = dirname(file.prefix), fileext = "")
+  r.try <- try( file.create(file.temp) )	
+  if( class(r.try)=="try-error" || r.try==FALSE )
+  	return(FALSE);
+  	
+  unlink(file.temp);
+  return(TRUE);
+}
 
 

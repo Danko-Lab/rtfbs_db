@@ -11,7 +11,7 @@ does not provided genome data such as hg19.2bit, mm10.2bit.
 tfbs.scanTFsite(tfbs, 
       file.twoBit, 
       dnase.peaks.bed, 
-      file.prefix="scan.db", 
+      file.prefix=NA, 
       usemotifs=NA,
       ncores=3, 
       return.type=c("matches", "posteriors", "maxposterior", "writedb"), 
