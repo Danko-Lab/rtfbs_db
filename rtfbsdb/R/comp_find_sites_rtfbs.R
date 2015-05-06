@@ -184,6 +184,9 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
   if( !is.na(file.prefix))
   	if( !check_folder_writable( file.prefix ) ) 
   	  stop(paste("Can not create files starting with the prefix:", file.prefix));
+
+  if(NROW(negative.bed) < 50)
+	stop(paste("Negative BED file contains only ", NROW(negative.bed), " entries.  Strongly suggest size is increased."))
   
   # read sequences
   positive.ms = read.seqfile.from.bed(positive.bed, file.twoBit)
@@ -375,12 +378,8 @@ background.check<-function( positive.ms, negative.ms, background.correction, fil
 		sample(1:NROW(resamp_prob), n, prob= resamp_prob, replace=FALSE)
 	}
 
-	# n.sample <- 5000;
-	# for some small group, 5000 is very huge. so make adjustment
-	if (length(gc.pos) < length(gc.neg))
-		n.sample <- min( c( 5000, 1.5*length(gc.pos), length(gc.pos)/2+length(gc.neg)/2) )
-	else
-		n.sample <- round(0.6*length(gc.neg))
+	## Make n.sample as large as possible, up to 10k sequences.  More BG gains statistical power.
+	n.sample <- min(c(10000, round(length(gc.neg)/10)))
 
 	indx.bgnew <- resample( gc.pos, gc.neg, n=n.sample)
 
