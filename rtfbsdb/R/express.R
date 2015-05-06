@@ -118,7 +118,7 @@ simple_reduce_bed<-function( r.bed )
 tfbs_getExpression <- function(tfbs, file.bigwig.plus, file.bigwig.minus, file.twoBit=NA, file.gencode.gtf=NA,  seq.datatype=NA, ncores = 3 ) 
 {
 	stopifnot(!is.null(tfbs@extra_info));
-    
+   
     # load gencode RDATA file and set the table of gencode_transcript_ext
     gencode_transcript_ext <- NULL;
     if( missing(file.gencode.gtf) || is.na(file.gencode.gtf) )
@@ -144,9 +144,7 @@ tfbs_getExpression <- function(tfbs, file.bigwig.plus, file.bigwig.minus, file.t
     	if(is.null(gencode_transcript_ext) || class(gencode_transcript_ext)=="try-error")
     		stop("Gencode data can not be found in the GTF file specified by the parameter of file.gencode.gtf.");
 
-		#save(gencode_transcript_ext, file=file.rdata);
-	    #load( gencode.ext.rdata, environment() );
-		#cat("Outputing RDATA file:", file.rdata, "\n");
+    	cat("  Gencode file (", file.gencode.gtf, ") has been loaded.\n")
     }
 
     if(seq.datatype=="GRO-seq" ||seq.datatype=="PRO-seq")

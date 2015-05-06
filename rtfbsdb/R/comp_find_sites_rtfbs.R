@@ -271,7 +271,7 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
   	if(Npos.tmp==0) Npos.tmp <- 1;
   	Nneg.tmp <- Nneg;
   	if(Nneg.tmp==0) Nneg.tmp <- 1;
-  	es.ratio <- (Npos/NROW(positive.bed) )/(Nneg/NROW(negative.bed));
+  	es.ratio <- (Npos.tmp/NROW(positive.bed) )/(Nneg.tmp/NROW(negative.bed));
     
     pv.bonferroni <- pval*length(usemotifs);
     if( pv.bonferroni > 1)  pv.bonferroni<-1;
