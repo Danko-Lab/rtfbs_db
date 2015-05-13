@@ -374,19 +374,23 @@ background.check<-function( positive.ms, negative.ms, background.correction, fil
 
 		sample(1:NROW(resamp_prob), n, prob= resamp_prob, replace=FALSE)
 	}
+	
+	try.sample<-function(n.sample)
+	{
+		indx.bgnew <- resample( gc.pos, gc.neg, n=n.sample)
+		gc.testx <- wilcox.test(gc.pos, gc.neg[indx.bgnew], conf.int=TRUE, conf.level=0.9 );
+		return(gc.testx$p.value);
+	}
 
-	# n.sample <- 5000;
-	# for some small group, 5000 is very huge. so make adjustment
-	if (length(gc.pos) < length(gc.neg))
-		n.sample <- min( c( 5000, 1.5*length(gc.pos), length(gc.pos)/2+length(gc.neg)/2) )
-	else
-		n.sample <- round(0.6*length(gc.neg))
-
+	ns.sample <- c ( round(length(gc.neg)/c(5,10,15,20,25)), 1000);
+	ns.sample <- ns.sample[ns.sample>=1000];
+	
+	ns.pvalue <- unlist(lapply(ns.sample, try.sample));
+	n.sample  <- ns.sample[ which.max(ns.pvalue) ];
+	
 	indx.bgnew <- resample( gc.pos, gc.neg, n=n.sample)
-
 	gc.test2 <- wilcox.test(gc.pos, gc.neg[indx.bgnew], conf.int=TRUE, conf.level=0.9 );
-
-	cat("* After the resampling from negative TREs, p-value of Wilcox test:", gc.test2$p.value, "\n" );
+	cat("* After the resampling from negative TREs, sampe size:", n.sample, "p-value of Wilcox test:", gc.test2$p.value, "\n" );
 
 	if( require(vioplot) )
 	{
