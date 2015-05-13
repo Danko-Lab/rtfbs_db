@@ -184,6 +184,9 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
   if( !is.na(file.prefix))
   	if( !check_folder_writable( file.prefix ) ) 
   	  stop(paste("Can not create files starting with the prefix:", file.prefix));
+
+  if(NROW(negative.bed) < 50)
+	stop(paste("Negative BED file contains only ", NROW(negative.bed), " entries.  Strongly suggest size is increased."))
   
   # read sequences
   positive.ms = read.seqfile.from.bed(positive.bed, file.twoBit)
@@ -382,12 +385,17 @@ background.check<-function( positive.ms, negative.ms, background.correction, fil
 		return(gc.testx$p.value);
 	}
 
+	## Make n.sample as large as possible, up to 10k sequences.  More BG gains statistical power.
+	#n.sample <- min(c(10000, round(length(gc.neg)/10)))
+
+	# In order to get the high p-value, multiple resample sizes are used to do test, find a best one.
+	# Need to consider ? 
 	ns.sample <- c ( round(length(gc.neg)/c(5,10,15,20,25)), 1000);
 	ns.sample <- ns.sample[ns.sample>=1000];
 	
 	ns.pvalue <- unlist(lapply(ns.sample, try.sample));
 	n.sample  <- ns.sample[ which.max(ns.pvalue) ];
-	
+
 	indx.bgnew <- resample( gc.pos, gc.neg, n=n.sample)
 	gc.test2 <- wilcox.test(gc.pos, gc.neg[indx.bgnew], conf.int=TRUE, conf.level=0.9 );
 	cat("* After the resampling from negative TREs, sampe size:", n.sample, "p-value of Wilcox test:", gc.test2$p.value, "\n" );
