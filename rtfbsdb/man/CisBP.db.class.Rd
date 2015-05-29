@@ -26,7 +26,7 @@ Class \code{"\linkS4class{tfbs.db}"}, directly.
 }
 \section{Methods}{
   \describe{
-    \item{\link{tfbs.createFromCisBP}}{Build a tfbs object by querying the meta file of CisBP dataset and subseting the results.}
+    \item{\link{tfbs.createFromCisBP}}{Build a tfbs object by querying the meta file of CisBP dataset and subsetting the results.}
     \item{\link{CisBP.group}}{Get the statistical summary by grouping the field in the CisBP dataset.}
 	 }
 }
