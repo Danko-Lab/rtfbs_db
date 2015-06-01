@@ -43,7 +43,7 @@ get_reads_from_bigwig <- function( bw.plus, bw.minus, chromInfo )
 	  	scores=".",
 	  	strands="+")
 	  	
-   r.plus <- sum(bed6.region.bpQuery.bigWig( bw.plus, bw.minus, r.bed));
+   r.plus <- sum(abs(bed6.region.bpQuery.bigWig( bw.plus, bw.minus, r.bed)));
 
    r.bed <- data.frame( seqnames=chromInfo[,1],
 	  	starts=chromInfo[,2],
@@ -52,7 +52,7 @@ get_reads_from_bigwig <- function( bw.plus, bw.minus, chromInfo )
 	  	scores=".",
 	  	strands="-")
 
-   r.minus <- sum(bed6.region.bpQuery.bigWig( bw.plus, bw.minus, r.bed));
+   r.minus <- sum(abs(bed6.region.bpQuery.bigWig( bw.plus, bw.minus, r.bed)));
 
    return(c(r.plus,r.minus));	  	
 }
