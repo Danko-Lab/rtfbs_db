@@ -20,7 +20,7 @@ A CisBP object (class name: \code{"\linkS4class{CisBP.db}"}) is returned with fo
   \item{species}{String indicating the species name}
   \item{zip.file}{String indicating the filename of temporary data file.}
   \item{zip.url}{String indicating the download source }
-  \item{file.tfinfo}{String indicating the TF filename, defulat is TF_Information.txt.}
+  \item{file.tfinfo}{String indicating the TF filename, default is TF_Information.txt.}
 }
 \seealso{
 See Also as \code{\link{CisBP.extdata}}, \code{\link{CisBP.download}}.

@@ -56,8 +56,8 @@ A tbfs object with new expression data frame including the follwing columns:
 \item{strand}{String, + or -, indicating the strand direction.}
 \item{bed_length}{Integer, the length of range which gene ID can be detected.}
 \item{reads}{The reads number queried by BigWig function from the bigwig files( plus and minus) }
-\item{lambda}{The lammbda parameter in poison distribution. }
-\item{prob}{The probability calculated based on poison distribution.}
+\item{lambda}{The lambda parameter in poison distribution. }
+\item{prob}{The probability calculated based on Poisson distribution.}
 }
 
 \seealso{

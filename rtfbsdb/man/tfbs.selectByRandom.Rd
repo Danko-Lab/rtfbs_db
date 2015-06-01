@@ -17,7 +17,7 @@ tfbs.selectByRandom(tfbs, cluster.mat)
 The indexes of selected motifs can be used in the function of \code{\link{tfbs.compareTFsite}} or \code{\link{tfbs.scanTFsite}}. 
 }
 \value{
-A vector of motif indexes is returned.
+A vector of motif indices is returned.
 }
 \seealso{
 See Also as \code{\link{tfbs.selectByGeneExp}}, \code{\link{tfbs.getExpression}}

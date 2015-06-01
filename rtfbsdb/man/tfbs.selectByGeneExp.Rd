@@ -14,10 +14,10 @@ tfbs.selectByGeneExp(tfbs, cluster.mat)
   \item{cluster.mat}{ A matrix with 2 columns returned by \code{\link{tfbs.clusterMotifs}}, 1st column is the index of motifs and 2nd column is the group number of clustering.}
 }
 \details{
-The function of \code{\link{tfbs.getExpression}} should be successfully called and te results of gene expression should be returned before this function is called. The indexes of selected motifs will be used in the function of \code{\link{tfbs.compareTFsite}} or \code{\link{tfbs.scanTFsite}}. 
+The function of \code{\link{tfbs.getExpression}} should be successfully called and the results of gene expression should be returned before this function is called. The indexes of selected motifs will be used in the function of \code{\link{tfbs.compareTFsite}} or \code{\link{tfbs.scanTFsite}}. 
 }
 \value{
-A vector of motif indexes is returned.
+A vector of motif indices is returned.
 }
 \seealso{
 See Also as \code{\link{tfbs.selectByRandom}}, \code{\link{tfbs.getExpression}}

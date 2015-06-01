@@ -24,7 +24,7 @@ tfbs.clusterMotifs(tfbs,
 This result of clustering will be used in the 
 }
 \value{
-A matrix with 2 columns is returened, 1st column is the index of motifs and 2nd column is the group number of clustering.
+A matrix with 2 columns is returned, 1st column is the index of motifs and 2nd column is the group number of clustering.
 }
 
 \seealso{
