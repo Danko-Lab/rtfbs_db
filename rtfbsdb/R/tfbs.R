@@ -269,50 +269,123 @@ setMethod("tfbs.clusterMotifs", c(tfbs="tfbs"), tfbs_clusterMotifs);
 
 ## Draws the logo for a single tf.
 setGeneric("tfbs.drawLogo", 
-    def=function(tfbs, index) {
+    def=function(tfbs, file.pdf=NULL, index=NULL, tf_id=NULL, motif_id=NULL, tf_name=NULL, family_name=NULL, tf_status=NULL, groupby=NULL) {
 	  stopifnot(class(tfbs) == "tfbs")
 	  standardGeneric("tfbs.drawLogo")
 	})
 setMethod("tfbs.drawLogo", c(tfbs="tfbs"),
-    function(tfbs, index) 
+    function(tfbs, file.pdf=NULL, index=NULL, tf_id=NULL, motif_id=NULL, tf_name=NULL, family_name=NULL, tf_status=NULL, groupby=NULL) 
     {
-      for(i in index)
-      {
-      	  if( i<=0 || i>tfbs@ntfs)
-      	      next;
-      	      
-		  grid.newpage()
-		  vp1 <- viewport(x=0, y=0, width=1, height=1, just=c("left","bottom"))
-		  pushViewport(vp1) 
+      idx.select <- c();
+      
+	  if( !is.null(index) ) idx.select <- c(idx.select, index);
+	  if( !is.null(tfbs@extra_info)  && !is.null(tf_id) ) idx.select <- c( idx.select, which(!is.na(match(tfbs@extra_info$TF_ID, tf_id ))) );
+	  if( !is.null(tfbs@extra_info)  && !is.null(motif_id) ) idx.select <- c( idx.select, which(!is.na(match(tfbs@extra_info$Motif_ID, motif_id ))) );
+	  if( !is.null(tfbs@extra_info)  && !is.null(tf_name) ) idx.select <- c( idx.select, which(!is.na(match(tfbs@extra_info$TF_Name, tf_name ))) );
+	  if( !is.null(tfbs@extra_info)  && !is.null(family_name) ) idx.select <- c( idx.select, which(!is.na(match(tfbs@extra_info$Family_Name, family_name ))) );
+	  if( !is.null(tfbs@extra_info)  && !is.null(tf_status) ) idx.select <- c( idx.select, which(!is.na(match(tfbs@extra_info$TF_Status, tf_status ))) );
+	  if( is.null(index) && is.null(tf_id) && is.null(motif_id) && is.null(tf_name) && is.null(family_name) && is.null(tf_status)) idx.select <- c(1:tfbs@ntfs);
+	  
+	  if( length(which(is.na(idx.select)))>0 )
+	  {
+	  	  cat("!", length(which(is.na(idx.select))), "motifs can not be found in the tfbs object.");
+	  	  idx.select <- idx.select[ !is.na(idx.select) ];
+	  }
+	  
+	  idx.select <- sort(unique(idx.select));
 
+	  draw_viewport <- function(i, xaxis = TRUE, yaxis = TRUE, cex = 1 )
+	  {
 		  tf_name <- tfbs@mgisymbols[i];	
 		  if (!is.null(tfbs@extra_info))
 			  tf_name <- paste( tfbs@extra_info[ i, "TF_Name"], " (Motif_ID:", tfbs@extra_info[ i, "Motif_ID"], "/DBID:", tfbs@extra_info[ i, "DBID"], ")", sep="");
 
-		  pushViewport( viewport(x=0, y=0.95, width=1, height=0.05, just=c("left","bottom")) );
-		  grid.text( tf_name, rot=0, gp=gpar(cex=1), check.overlap=T);  
+		  pushViewport( viewport(x=0, y=0.94, width=1, height=0.05, just=c("left","bottom")) );
+		  grid.text( tf_name, rot=0, gp=gpar(cex=cex), check.overlap=T);  
 		  popViewport();
 
-		  pushViewport( viewport(x=0, y=0, width=1, height=0.96, just=c("left","bottom")) );
-		  seqLogo( exp(t(tfbs@pwm[[i]])), xaxis = TRUE, yaxis = TRUE)
+		  pushViewport( viewport(x=0, y=0, width=1, height=0.94, just=c("left","bottom")) );
+		  seqLogo( exp(t(tfbs@pwm[[i]])), xaxis = xaxis, yaxis = yaxis)
 		  popViewport();
+	  
+	  }
+	
+	  tfbs.grpupdby<-c("Family_Name", "TF_Name", "TF_Status", "Motif_Type");
+	  if( !is.na(groupby) && length( which(groupby == tfbs.grpupdby ) ) == 0)
+	  {
+	  	 cat("The availabe value for groupby are Family_Name, TF_Name, TF_Status and Motif_Type.\n");
+	  	 groupby <- NA;
+	  }	 
 
-		  popViewport()
+	  if(!is.na(file.pdf)) pdf(file.pdf); 
+	  
+	  if(is.na(groupby))	
+	  {
+	  	  for(i.motif in idx.select)
+	      {
+	      	  if( i.motif<=0 || i.motif>tfbs@ntfs)
+	      	      next;
+      	  
+			  grid.newpage()
+			  vp1 <- viewport(x=0, y=0, width=1, height=1, just=c("left","bottom"))
+			  pushViewport(vp1);
+              draw_viewport(i.motif);
+              popViewport();
+      	  }
       }
+      else
+      {
+      	  groups <- unique( as.character( tfbs@extra_info[idx.select, c(groupby)] ) )
+
+	  	  for(k in 1:length(groups) )
+	      {
+	          idx.page <- idx.select[ which( tfbs@extra_info[idx.select, c(groupby)] == groups[k])];
+
+			  grid.newpage();
+			  vp1 <- viewport(x=0, y=0, width=1, height=1, just=c("left","bottom"))
+			  pushViewport(vp1);
+
+	  	      for(i in 1:length(idx.page) )
+	          {
+	              if(i>10 && i%%10==1)
+	              {
+	              	  popViewport();
+	                  grid.newpage();
+			          vp1 <- viewport(x=0, y=0, width=1, height=1, just=c("left","bottom"))
+			          pushViewport(vp1);
+                  }
+                  
+	              i.motif <- idx.page[i];
+	      	      if( i.motif<=0 || i.motif>tfbs@ntfs )
+	      	         next;
+      	  
+			      vp1 <- viewport(y = 0.8 - (((i-1)%%10)%/%2)/5, x=(i+1)%%2/2, width=0.5, height=0.2, just=c("left","bottom"))
+			      pushViewport(vp1);
+                  draw_viewport(i.motif, xaxis = FALSE, yaxis = FALSE, cex=0.6 );
+			      popViewport();
+			      
+      	      }
+
+			  popViewport();
+          }
+      }
+
+	  if(!is.na(file.pdf)) dev.off(); 
+	
 	})
 
 ## Draws all logos for each cluster.
 setGeneric("tfbs.drawLogosForClusters", 
-    def=function(tfbs, cluster.mat, pdf.logos) {
+    def=function(tfbs, cluster.mat, file.pdf) {
 	  stopifnot(class(tfbs) == "tfbs")
 	  standardGeneric("tfbs.drawLogosForClusters")
 	})
 setMethod("tfbs.drawLogosForClusters", c(tfbs="tfbs"),
-    function(tfbs, cluster.mat, pdf.logos=NULL) {
+    function(tfbs, cluster.mat, file.pdf=NULL) {
 
-		if( !is.na( pdf.logos ) )
-	    	if( !check_folder_writable( pdf.logos ) ) 
-	  		    cat("! Can not create pdf file: ", pdf.logos, "\n");
+		if( !is.na( file.pdf ) )
+	    	if( !check_folder_writable( file.pdf ) ) 
+	  		    cat("! Can not create pdf file: ",file.pdf, "\n");
 
 		if(!is.na(pdf.logos))
 		{
@@ -394,7 +467,7 @@ setMethod("tfbs.drawLogosForClusters", c(tfbs="tfbs"),
 ## Gets expression level of target TF.
 ## TODO: Add the MGI symbol to each TF.  Not 100% sure where to do this?!
 setGeneric("tfbs.getExpression", 
-    def=function(tfbs, file.bigwig.plus, file.bigwig.minus, file.twoBit=NA, file.gencode.gtf=NA, seq.datatype=NA, ncores = 1) {
+    def=function(tfbs, file.plus, file.minus, file.twoBit=NA, file.gencode.gtf=NA, seq.datatype=NA, ncores = 3) {
 	  stopifnot(class(tfbs) == "tfbs")
 	  standardGeneric("tfbs.getExpression")
 	})
@@ -419,7 +492,8 @@ setMethod("tfbs.getExpression", c(tfbs="tfbs"), tfbs_getExpression );
 ##
 ## see codes in find_sites_rtfbs.R
 setGeneric("tfbs.scanTFsite", 
-    def=function(tfbs, file.twoBit, dnase.peaks.bed=NULL, file.prefix=NA, usemotifs=NA, ncores=3, return.type=c("matches", "posteriors", "maxposterior", "writedb"), threshold=6, ...) {
+    def=function( tfbs, file.twoBit, df.bed = NULL, return.type=c("matches", "posteriors", "maxposterior", "writedb"), file.prefix = NA,  usemotifs = NA, ncores = 3,  
+                  fdr = NA, threshold = 6, gc.groups = NA, background.order = 2, background.length = 100000 ) {
 	  stopifnot(class(tfbs) == "tfbs")
 	  standardGeneric("tfbs.scanTFsite")
 	})
@@ -434,7 +508,8 @@ setMethod("tfbs.scanTFsite", c(tfbs="tfbs"), tfbs_scanTFsite );
 ##
 ## see codes in comp_find_sites_rtfbs.R
 setGeneric("tfbs.compareTFsite", 
-    def=function(tfbs, file.twoBit, positive.bed, negative.bed, file.prefix=NA, usemotifs=NA, background.correction = FALSE, fdr=0.1, threshold=NA, background.order=2, background.length=100000, ncores=3) {
+    def=function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix = NA, usemotifs = NA, ncores = 3,
+   	              negative.correction = FALSE, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, pv.adj=p.adjust.methods) {
 	  stopifnot(class(tfbs) == "tfbs")
 	  standardGeneric("tfbs.compareTFsite")
 	})

@@ -298,7 +298,7 @@ setMethod("tfbs.createFromCisBP", signature(cisbp.db="CisBP.db"),
       tbm_f_all <- "All"; 
     }
     
-    cat( " ", length(nidx), "PWM files are selected!\n");
+    cat( " ", length(nidx), "PWM files are defined in the CisBP dataset.\n");
 
     tmp.dir <- tempdir();
     pwm.files <- c();
@@ -352,8 +352,8 @@ setMethod("tfbs.createFromCisBP", signature(cisbp.db="CisBP.db"),
 	if(length(nidx.motif)>0)
 		TF_info <- tbm[ nidx.motif, , drop=F];
 
-	if(err.noPWM > 0) cat("! ", err.noPWM, " PWM file(s) can not be found or accessed.\n", sep="")
-	if(err.noACGT > 0) cat("! ", err.noACGT, " PWM file(s) don't have A C G T values.\n", sep="")
+	if( err.noPWM + err.noACGT > 0 )
+		cat("!", err.noPWM + err.noACGT, "PWM file(s) are failed to be loaded ( File missing:", err.noPWM, ", No A C G T values:", err.noACGT, ").\n");
 
     if(length(pwm.files)==0)
     {
@@ -361,7 +361,7 @@ setMethod("tfbs.createFromCisBP", signature(cisbp.db="CisBP.db"),
       return(NULL);
     }
     else
-      cat("*", length(pwm.files), "TFs in the tfbs object.\n");
+      cat("*", length(pwm.files), "PWMs in the tfbs object.\n");
 
     tfs <- tfbs(
       	 species    = cisbp.db@species,
@@ -373,7 +373,12 @@ setMethod("tfbs.createFromCisBP", signature(cisbp.db="CisBP.db"),
 	if( !missing(file.bigwig.plus) && !missing(file.bigwig.minus) )
 	{
 		tfs <- tfbs.getExpression(tfs, file.bigwig.plus, file.bigwig.minus, file.twoBit=file.twoBit, file.gencode.gtf=file.gencode.gtf, seq.datatype=seq.datatype, ncores = ncores  );
-		if(expressed.only) tfs <- tfbs.selectExpressed( tfs, 0.05, include.DBID.Missing );
+		if(!is.null( tfs@expressionlevel ))
+		{
+			if( expressed.only ) tfs <- tfbs.selectExpressed( tfs, 0.05, include.DBID.Missing );
+		}
+		else
+			cat("! Failed to calculate the gene expression and select expressed TFs.\n");
 	}
 	
     return(tfs);

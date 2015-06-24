@@ -100,6 +100,32 @@ simple_reduce_bed<-function( r.bed )
 	return(r.bed); 		
 }
 
+get_bam_reads<-function(file.bam, df.bed )
+{
+	filename <- tempfile();
+	if(is.null(df.bed))
+	{
+		system( paste( "samtools view -c ", file.bam, " > ", filename, sep=""))
+		ts <- try( read.table( filename ));
+		unlink(filename);
+		if(class(ts)!="try-error")
+			return(ts[1,1])
+		else	
+			return(NA);
+	}
+	else
+	{
+		str.cmd <- paste( "sort-bed - | bedtools multicov -bams", file.bam, " -bed - > ", filename ); 
+		write.table(df.bed[,c(1:3),drop=F], file=pipe(str.cmd), quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t");
+		ts <- try(read.table( filename ));
+		unlink(filename);
+		if(class(ts)!="try-error")
+			return(ts[,4])
+		else
+			return(rep(NA, NROW(df.bed)));
+	}
+}
+
 #' Gets expression level of target TF.
 #' USE extra_info$DBID to find gene information encoded by GENCODE V21
 #'
@@ -115,7 +141,7 @@ simple_reduce_bed<-function( r.bed )
 #'
 #' @return: tfbs.db object with changed expressionlevel;
 
-tfbs_getExpression <- function(tfbs, file.bigwig.plus, file.bigwig.minus, file.twoBit=NA, file.gencode.gtf=NA,  seq.datatype=NA, ncores = 3 ) 
+tfbs_getExpression <- function(tfbs, file.plus, file.minus, file.twoBit=NA, file.gencode.gtf=NA,  seq.datatype=NA, ncores = 3 ) 
 {
 	stopifnot(!is.null(tfbs@extra_info));
    
@@ -147,161 +173,139 @@ tfbs_getExpression <- function(tfbs, file.bigwig.plus, file.bigwig.minus, file.t
     	cat("  Gencode file (", file.gencode.gtf, ") has been loaded.\n")
     }
 
+	reads.total <- 0;
+	
     if(seq.datatype=="GRO-seq" ||seq.datatype=="PRO-seq")
-    	gencode_transcript_ext <- gencode_transcript_ext[ which(gencode_transcript_ext$V3=="transcript"),];	
-	
-    if(seq.datatype=="RNA-seq")
-    	gencode_transcript_ext <- gencode_transcript_ext[ which(gencode_transcript_ext$V3=="exon"),];	
-
-   	cat("  For", seq.datatype, ",", NROW(gencode_transcript_ext), "items are selected from GENCODE dataset.\n");
-    
-    # Load chromosome sizes or calculate the size using file.twoBit
-    chromInfo <- NULL;
-    if( missing(file.twoBit) || is.na(file.twoBit) )
     {
-    	if(tfbs@species=="Homo_sapiens" )
-	    {
-	    	cat("* The pre-installed chrmosome information of hg19 is loaded.\n");
-			chromInfo <- read.table ( system.file("extdata", "chrom_info_hg19.tab", package="rtfbsdb"), header=F )
-    	}
-    	else if(tfbs@species=="Mus_musculus")
-	    {
-	    	cat("* The pre-installed chrmosome information of mm10 is loaded.\n");
-			chromInfo <- read.table ( system.file("extdata", "chrom_info_mm10.tab", package="rtfbsdb"), header=F )
-		}
-		else
-		{
-			cat("! The p-value can not be calculated without 2bit file for ", tfbs@species, ".\n");
-			stop("The p-value can not be calculated without 2bit file. ");
-		}			
+    	gencode_transcript_ext <- gencode_transcript_ext[ which(gencode_transcript_ext$V3=="transcript"),];	
+   	    cat("  For", seq.datatype, ",", NROW(gencode_transcript_ext), "items are selected from GENCODE dataset.\n");
+    
+	    # Load bigWig files(minus and plus)
+    	bw.plus  <- try( load.bigWig( file.plus ) );
+    	bw.minus <- try( load.bigWig( file.minus ) );
+	
+		if( class(bw.plus)=="try-error" || class(bw.minus)=="try-error" )
+    		stop("Failed to load bigwig files.");
+	
+		reads.total <- sum(abs(c(bw.plus$primaryDataSize, bw.minus$primaryDataSize)) );
+
+		if( !is.null(bw.plus) )	try( unload.bigWig( bw.plus ) );
+	    if( !is.null(bw.minus) ) try( unload.bigWig( bw.minus ) );
+		
+	   	cat("*", reads.total, "Reads in", file.bigwig.plus, "and", file.bigwig.minus,"\n");
     }
-    else
+	else if(seq.datatype=="RNA-seq")
 	{
-		chromInfo <- try(get_chromosome_size(file.twoBit));
-		if( class(chromInfo)=="try-error")
-			stop("Failed to use twoBitInfo command to get the chromosome information from 2bit file.");
-	}	
-
-	# Load bigWig files(minus and plus)
-    bw.plus  <- try( load.bigWig( file.bigwig.plus ) );
-    bw.minus <- try( load.bigWig( file.bigwig.minus ) );
-    if( class(bw.plus)=="try-error" || class(bw.minus)=="try-error" )
-    	stop("Failed to load bigwig files.");
-   
-	# Count the rads for all chromosomes if possible
-    bw.reads <- NULL;
-	if(!is.null(chromInfo))
-	   	bw.reads  <- get_reads_from_bigwig( bw.plus, bw.minus, chromInfo);
-   	cat("*", sum(abs(bw.reads)), "Reads in", file.bigwig.plus, "and", file.bigwig.minus,"\n");
-
-	r.lambda <- NA;
-	if(!is.null(bw.reads))
-		r.lambda <- 0.04 * sum(abs(bw.reads))/10751533/1000 ;
-
-	DBIDs <- unique( as.character(tfbs@extra_info$DBID) );
-	
-if(0)
-{
-	# Count the reads for all chromosomes if possible
-	if(length(DBIDs)>0)
-	r.bed.list <- mclapply( 1:length(DBIDs), function(i) {
-	    dbid <- as.character(DBIDs[i]);
-    
-		r.bed.idx1 <- which(gencode_transcript_ext$gene_id==dbid);
-		r.bed.idx2 <- grep( paste(dbid, ".", sep=""), gencode_transcript_ext$gene_id );
-		r.bed.idx <- unique( c(r.bed.idx1 ,r.bed.idx2) );
-
-	    if(length(r.bed.idx)<1)
-	    {
-	    	cat ("Can't find DBID=", dbid, ", missing data.\n");
-	    	return(c(dbid=dbid, rep(NA, 8)));
-	    }
-    
-    	r.bed <- gencode_transcript_ext[r.bed.idx, c(1,4,5,6,9,7), drop=F ];
-	    colnames(r.bed) <- c('chr','start','end','id','score','strand');
-	
-	    # Here is a easy method to merege a BED data.frame, but it depends on other library.
-	    # library(GenomicRanges)
-	    # g.bed <- with(r.bed, GRanges(chr, IRanges(start, end), strand, score, id=id))
-		# r.bed.rudece <- reduce(g.bed);
+    	gencode_transcript_ext <- gencode_transcript_ext[ which(gencode_transcript_ext$V3=="exon"),];	
+   	    cat("  For", seq.datatype, ",", NROW(gencode_transcript_ext), "items are selected from GENCODE dataset.\n");
 		
-		r.bed.rudece <- simple_reduce_bed( r.bed );
-
-		# Query reads for each motif
-		r.reads  <- bed6.region.bpQuery.bigWig( bw.plus, bw.minus, r.bed.rudece );
-
-		p.pois <- ppois( abs(r.reads), abs( r.lambda * sum( r.bed.rudece[,3] - r.bed.rudece[,2] ) ), lower.tail=F);
-
-	    r.df   <- c( 
-	    		dbid		= dbid,
-	    		chr 		= r.bed.rudece[1, 1],
-		  		start   	= min(r.bed.rudece [,2]),
-		  	  	end     	= max(r.bed.rudece [,3]),
-		  	  	length     	= sum(r.bed.rudece[,3] - r.bed.rudece[,2] ),
-		  		strand  	= r.bed.rudece[1, 6],
-		  		reads	    = sum(abs(r.reads)),
-		  		lambda      = r.lambda,
-		  		p.pois      = p.pois );
-		r.df;}, mc.cores = ncores );
-}
-
-	if(length(DBIDs)>0)
-	r.bed.list <- mclapply( 1:length(DBIDs), function(i) {
-	    dbid <- as.character(DBIDs[i]);
-    
-		r.bed.idx1 <- which(gencode_transcript_ext$gene_id==dbid);
-		r.bed.idx2 <- grep( paste(dbid, ".", sep=""), gencode_transcript_ext$gene_id );
-		r.bed.idx <- unique( c(r.bed.idx1 ,r.bed.idx2) );
-
-	    if(length(r.bed.idx)<1)
-	    {
-	    	cat ("! Can't find DBID=", dbid, ", missing data.\n");
-	    	return(c(dbid=dbid, rep(NA, 8)));
-	    }
-    
-    	r.bed <- gencode_transcript_ext[r.bed.idx, c(1,4,5,6,9,7), drop=F ];
-	    colnames(r.bed) <- c('chr','start','end','id','score','strand');
-		
-		idx.bed.size1 <- which(r.bed$start >= r.bed$end);
-		if( length(idx.bed.size1) > 0 )
-		{
-			temp.end <- r.bed$end[idx.bed.size1];
-			r.bed$end[idx.bed.size1] <- r.bed$start[idx.bed.size1] + 1;
-			r.bed$start[idx.bed.size1] <- temp.end;
-		}
-		
-		# Query reads for each motif
-		r.reads  <- try(bed6.region.bpQuery.bigWig( bw.plus, bw.minus, r.bed ));
-		if( class(r.reads) == "try-error")
-	    	return(c(dbid=dbid, rep(NA, 8)));
-
-		bed.max <- which.max(abs(r.reads/((r.bed[,3] - r.bed[,2])+1)));
-		
-		p.pois <- ppois( abs(r.reads[bed.max]), r.lambda*abs(r.bed[bed.max,3] - r.bed[bed.max,2]) , lower.tail=F);
-
-	    r.df   <- c( 
-	    		dbid		= dbid,
-	    		chr 		= r.bed[bed.max, 1],
-		  		start   	= r.bed [bed.max,2],
-		  	  	end     	= r.bed [bed.max,3],
-		  	  	length     	= abs(r.bed [bed.max,3] - r.bed [bed.max,2] ),
-		  		strand  	= r.bed [bed.max,6],
-		  		reads	    = abs(r.reads[bed.max]),
-		  		lambda      = r.lambda,
-		  		p.pois      = p.pois );
-		r.df;}, mc.cores = 1 );  # maybe bigwig cuase the crash if multi-cores are applied
-
-
-	df.exp <- transform( do.call(rbind, r.bed.list) );
-	
-	df.idx <- c();
-	for(i in 1:NROW(tfbs@extra_info))
+		reads.total <- get_bam_reads( file.plus, NULL );
+	   	cat("*", reads.total, "Reads in", file.plus, ".\n");
+	}
+	else
 	{
-		idx <- which(as.character(df.exp$dbid)==as.character(tfbs@extra_info$DBID[i]));
-		df.idx <-c(df.idx, idx[1]);
+   	    cat("!  The function tfbs.getExpression only supports GRO-seq, PRO-seq an RNA-seq data.\n");
+		return(tfbs);
 	}
 	
-	df.exp <- cbind( tfbs@extra_info$Motif_ID, df.exp[df.idx,,drop=F] );
+	r.lambda <- 0.04 * reads.total/10751533/1000 ;
+
+	DBIDs <- unique( as.character(tfbs@extra_info$DBID) );
+	if( length(DBIDs)==0 )
+	{
+   	    cat("!  No DBID found in the Gencode file.\n");
+		return(tfbs);
+	}
+	
+	cpu.fun <- function(i.from, i.to)
+	{
+		bw.plus  <- NULL;
+		bw.minus <- NULL;
+		
+	    if(seq.datatype=="GRO-seq" ||seq.datatype=="PRO-seq")
+    	{
+    		bw.plus  <- try( load.bigWig( file.plus ) );
+    		bw.minus <- try( load.bigWig( file.minus ) );
+		}
+		
+		r.bed.list <- lapply( i.from:i.to, function(i) {
+			dbid <- as.character(DBIDs[i]);
+
+			r.bed.idx1 <- which(gencode_transcript_ext$gene_id==dbid);
+			r.bed.idx2 <- grep( paste(dbid, ".", sep=""), gencode_transcript_ext$gene_id );
+			r.bed.idx <- unique( c(r.bed.idx1 ,r.bed.idx2) );
+
+			if(length(r.bed.idx)<1)
+			{
+				cat ("! Can't find DBID=", dbid, ", missing data.\n");
+				return(c(dbid=dbid, rep(NA, 8)));
+			}
+
+			r.bed <- gencode_transcript_ext[r.bed.idx, c(1,4,5,6,9,7), drop=F ];
+			colnames(r.bed) <- c('chr','start','end','id','score','strand');
+
+			idx.bed.size1 <- which(r.bed$start >= r.bed$end);
+			if( length(idx.bed.size1) > 0 )
+			{
+				temp.end <- r.bed$end[idx.bed.size1];
+				r.bed$end[idx.bed.size1] <- r.bed$start[idx.bed.size1] + 1;
+				r.bed$start[idx.bed.size1] <- temp.end;
+			}
+
+			# Query reads for each motif
+			if(seq.datatype=="GRO-seq" ||seq.datatype=="PRO-seq")
+				r.reads  <- try( bed6.region.bpQuery.bigWig( bw.plus, bw.minus, r.bed ) )
+			else
+				r.reads  <- try( get_bam_reads( file.plus, r.bed ) );
+
+			if( class(r.reads) != "try-error")
+			{
+				bed.max <- which.max(abs( r.reads /((r.bed[,3] - r.bed[,2])+1)));
+				p.pois <- ppois( abs(r.reads[bed.max]), r.lambda*abs(r.bed[bed.max,3] - r.bed[bed.max,2]) , lower.tail=F);
+
+				r.df   <- c( 
+						dbid		= dbid,
+						chr 		= r.bed[bed.max, 1],
+						start   	= r.bed [bed.max,2],
+						end     	= r.bed [bed.max,3],
+						length     	= abs(r.bed [bed.max,3] - r.bed [bed.max,2] ),
+						strand  	= r.bed [bed.max,6],
+						reads	    = abs(r.reads[bed.max]),
+						lambda      = r.lambda,
+						p.pois      = p.pois );
+			}
+			else
+				r.df   <- c( 
+						dbid		= dbid,
+						chr 		= NA,
+						start   	= NA,
+						end     	= NA,
+						length     	= NA,
+						strand  	= NA,
+						reads	    = NA,
+						lambda      = NA,
+						p.pois      = NA );
+			r.df;});  
+			
+		df.exp <- transform( do.call(rbind, r.bed.list) );
+		colnames(df.exp) <- c("dbid", "chr", "start", "end", "length", "strand", "reads","lambda", "p.pois");
+
+		if( !is.null(bw.plus) )	try( unload.bigWig( bw.plus ) );
+	    if( !is.null(bw.minus) ) try( unload.bigWig( bw.minus ) );
+	    
+		return( df.exp );	
+	}
+
+	if( ncores > length(DBIDs) ) ncores <- length(DBIDs);
+
+	df.exp <- mclapply( 1:ncores, function(i){
+		sect <- round( seq( 1, length(DBIDs)+1,length.out=ncores+1) ); 
+		return( cpu.fun( sect[i], sect[i+1]-1) );
+	}, mc.cores = ncores )
+
+	df.exp0 <- do.call( rbind, df.exp );
+	df.idx  <- match( as.character(tfbs@extra_info$DBID), as.character(df.exp0$dbid) )
+	df.exp  <- cbind( tfbs@extra_info$Motif_ID, df.exp0[df.idx,,drop=F] );
 	colnames(df.exp) <- c("Motif_ID", "DBID", "chr", "start", "end", "length", "strand", "reads", "lambda", "p.pois" );
 	
 	df.exp <- transform( df.exp, 
@@ -315,9 +319,6 @@ if(0)
 	# expressionlevel is data.frame including all information.
 	tfbs@expressionlevel <- df.exp;
 
-    try( unload.bigWig( bw.plus ) );
-    try( unload.bigWig( bw.minus ) );
-	
 	return(tfbs);
 }
 

@@ -27,8 +27,10 @@ joint.gc.quantile.bins <- function(set1.ms, set2.ms, n = 4) {
 
 # NOTE: empirical p-values are computed under the assumption that the negative set
 #       is not bound by the specified factor (but is accessible)
-comparative_scan_rtfbs.ms <- function(pwm, positive.ms, negative.ms, background.ms, background.mm, fdr = 0.1, threshold = NA, calc.empirical.pvalue = FALSE) {
-  if (is.na(threshold)) {
+comparative_scan_rtfbs.ms <- function(pwm, positive.ms, negative.ms, background.ms, background.mm, fdr.threshold = 0.1, score.threshold = NA, calc.empirical.pvalue = FALSE) 
+{
+  if (!is.na(fdr.threshold)) 
+  {
     pos.sites = score.ms(positive.ms, pwm, background.mm, threshold = 0)
     neg.sites = score.ms(negative.ms, pwm, background.mm, threshold = 0)
     bg.sites = score.ms(background.ms, pwm, background.mm, threshold = 0)
@@ -40,7 +42,7 @@ comparative_scan_rtfbs.ms <- function(pwm, positive.ms, negative.ms, background.
       return(NULL)
     
     # find first score threshold below FDR threshold
-    idxs = which(fdrtbl$fdr <= fdr)
+    idxs = which(fdrtbl$fdr <= fdr.threshold)
     if (length(idxs) == 0)
       return(NULL)
     
@@ -66,9 +68,11 @@ comparative_scan_rtfbs.ms <- function(pwm, positive.ms, negative.ms, background.
     }
     
     return(list(Nneg = Nneg, Npos = Npos, thresh = thresh, sites = pos.sites[pos.mask, ]))
-  } else {
-    pos.sites = score.ms(positive.ms, pwm, background.mm, threshold = threshold)
-    neg.sites = score.ms(negative.ms, pwm, background.mm, threshold = threshold)
+  } 
+  else 
+  {
+    pos.sites = score.ms(positive.ms, pwm, background.mm, threshold = score.threshold)
+    neg.sites = score.ms(negative.ms, pwm, background.mm, threshold = score.threshold)
     
     Npos = length(unique(pos.sites$seqname))
     Nneg = length(unique(neg.sites$seqname))
@@ -81,15 +85,16 @@ comparative_scan_rtfbs.ms <- function(pwm, positive.ms, negative.ms, background.
         (K + 1)/(Z + 1) # empirical p-value
       })
       
-      return(list(Nneg = Nneg, Npos = Npos, thresh = threshold, sites = pos.sites, empirical.pvalues = epvals))
+      return(list(Nneg = Nneg, Npos = Npos, thresh = score.threshold, sites = pos.sites, empirical.pvalues = epvals))
     }
-    return(list(Nneg = Nneg, Npos = Npos, thresh = threshold, sites = pos.sites))
+    
+    return(list(Nneg = Nneg, Npos = Npos, thresh = score.threshold, sites = pos.sites))
   }
 }
 
 # NOTE: empirical p-values are computed under the assumption that the negative set
 #       is not bound by the specified factor (but is accessible)
-comparative_scan_rtfbs <- function(pwm, file.twoBit, positive.bed, negative.bed, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, calc.empirical.pvalue = FALSE) {
+comparative_scan_rtfbs <- function(pwm, file.twoBit, positive.bed, negative.bed, fdr.threshold = 0.1, score.threshold = NA, background.order = 2, background.length = 100000, calc.empirical.pvalue = FALSE) {
   # read sequences
   positive.ms = read.seqfile.from.bed(positive.bed, file.twoBit)
   negative.ms = read.seqfile.from.bed(negative.bed, file.twoBit)
@@ -104,7 +109,8 @@ comparative_scan_rtfbs <- function(pwm, file.twoBit, positive.bed, negative.bed,
   thresh = NULL
   epvals = NULL
   
-  for (idx in 1:4) {
+  for (idx in 1:4) 
+  {
     # compute background model
     pos.ms.i = positive.ms[gcBins$bins1 == idx]
     neg.ms.i = negative.ms[gcBins$bins2 == idx]
@@ -116,7 +122,7 @@ comparative_scan_rtfbs <- function(pwm, file.twoBit, positive.bed, negative.bed,
     bg.ms <- simulate.ms(bg.mm, background.length)
   
     # collect sequences
-    res = comparative_scan_rtfbs.ms(pwm, pos.ms.i, neg.ms.i, bg.ms, bg.mm, fdr = fdr, threshold = threshold, calc.empirical.pvalue = calc.empirical.pvalue)
+    res = comparative_scan_rtfbs.ms(pwm, pos.ms.i, neg.ms.i, bg.ms, bg.mm, fdr.threshold = fdr.threshold, score.threshold = score.threshold, calc.empirical.pvalue = calc.empirical.pvalue)
     
     if (!is.null(res)) {
       result.sites = rbind(result.sites, res$sites)
@@ -144,9 +150,9 @@ comparative_scan_rtfbs <- function(pwm, file.twoBit, positive.bed, negative.bed,
   }
 
   if (calc.empirical.pvalue)
-    result = list(Npos = Npos, Nneg = Nneg, assoc.pvalue = pval, thresh = thresh, sites = bed, empirical.pvalues = epvals)
+    result = list(Npos = Npos, Nneg = Nneg, pvalue = pval, thresh = thresh, sites = bed, empirical.pvalues = epvals)
   else
-    result = list(Npos = Npos, Nneg = Nneg, assoc.pvalue = pval, thresh = thresh, sites = bed)
+    result = list(Npos = Npos, Nneg = Nneg, pvalue = pval, thresh = thresh, sites = bed)
 }
 
 tfbs_to_bed <- function(sites, tf.name) {
@@ -155,8 +161,8 @@ tfbs_to_bed <- function(sites, tf.name) {
   
   spl <- strsplit(as.character(sites$seqname), ":|-")
 
-  chroms <- sapply(spl, function(pair) pair[1])
-	starts <- as.integer(sapply(spl, function(pair) pair[2]))
+  chroms <- sapply(spl, function(pair) pair[1]);
+  starts <- as.integer(sapply(spl, function(pair) pair[2]));
   
   bed = data.frame(
     chrom = chroms,
@@ -176,18 +182,20 @@ write.starchbed <- function(bed, filename) {
     quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t")
 }
 
-comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix=NA, 
-	usemotifs=NA, background.correction=FALSE, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, ncores = 3) {
+comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix = NA, usemotifs = NA, ncores = 3, 
+	negative.correction = FALSE, fdr.threshold = 0.1, score.threshold = NA, background.order = 2, background.length = 100000, pv.adj = NA ) {
   
   stopifnot(class(tfbs) == "tfbs")
   
+  if( missing(pv.adj) ) pv.adj <- "bonferroni";
+ 
   if( !is.na(file.prefix))
   	if( !check_folder_writable( file.prefix ) ) 
   	  stop(paste("Can not create files starting with the prefix:", file.prefix));
 
   if(NROW(negative.bed) < 50)
 	stop(paste("Negative BED file contains only ", NROW(negative.bed), " entries.  Strongly suggest size is increased."))
-  
+
   # read sequences
   positive.ms = read.seqfile.from.bed(positive.bed, file.twoBit)
   negative.ms = read.seqfile.from.bed(negative.bed, file.twoBit)
@@ -195,7 +203,7 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
   # detect the difference of gcContent between positive and negative TREs, 
   # if the difference is significant, make a correction for the negative TREs 
   # based on the resampling method.	
-  r.bgchk <- background.check( positive.ms, negative.ms, background.correction, file.prefix )
+  r.bgchk <- background.check( positive.ms, negative.ms, negative.correction, file.prefix )
   if(!is.null(r.bgchk))
   {
     negative.bed <- negative.bed[ r.bgchk, ]; 
@@ -229,8 +237,9 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
   
   # iterate over TF set
   binding_all <- mclapply(usemotifs, function(i, ...) {
-	  # get PWM information
-	  pwm = tfbs@pwm[[i]]
+	# get PWM information
+	pwm = tfbs@pwm[[i]]
+    
     pwm.name = paste(tfbs@mgisymbols[i], "@", i, sep='')
 
     # scan sequences, per GC bin
@@ -244,7 +253,7 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
       bg.i.mm = gcBacks[[idx]]
       bg.i.ms = gcBacks.ms[[idx]]
       
-      res = comparative_scan_rtfbs.ms(pwm, pos.ms.i, neg.ms.i, bg.i.ms, bg.i.mm, fdr = fdr, threshold = threshold)
+      res = comparative_scan_rtfbs.ms(pwm, pos.ms.i, neg.ms.i, bg.i.ms, bg.i.mm, fdr.threshold = fdr.threshold, score.threshold = score.threshold)
       
       if (!is.null(res)) {
         result.sites = rbind(result.sites, res$sites)
@@ -273,59 +282,80 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
   	if(Nneg.tmp==0) Nneg.tmp <- 1;
   	es.ratio <- (Npos.tmp/NROW(positive.bed) )/(Nneg.tmp/NROW(negative.bed));
     
-    pv.bonferroni <- pval*length(usemotifs);
-    if( pv.bonferroni > 1)  pv.bonferroni<-1;
-    
     # return info
-    return(data.frame(tf.name = pwm.name, Npos = Npos, Nneg = Nneg, es.ratio= es.ratio, assoc.pvalue = pval, pv.bonferroni=pv.bonferroni, starch = starch.file))
+    return(data.frame(tf.name = pwm.name, Npos = Npos, Nneg = Nneg, es.ratio= es.ratio, pvalue = pval, pv.adj=pval, starch = starch.file))
   }, mc.cores = ncores)
   
   # recombine results
   r.df <- do.call("rbind", binding_all);
 
-  if( missing(file.prefix) || is.na(file.prefix) )  r.df <- subset(r.df, select=-starch);
+  if (NROW(r.df)>0)	
+  {
+  	 r.df$p.adj <- p.adjust(r.df$pvalue, method=pv.adj);
+     if( missing(file.prefix) || is.na(file.prefix) )  r.df <- subset( r.df, select=-starch);
+  }
   
   return(r.df);
 }
 
-tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix=NA, 
-	usemotifs=NA, background.correction = FALSE, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, ncores = 3) 
+tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix = NA, usemotifs = NA, ncores = 3,
+	negative.correction = FALSE, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, pv.adj=p.adjust.methods) 
 {
     stopifnot(class(tfbs) == "tfbs")
+  
+    if( !missing(pv.adj)) pv.adj <- match.arg(pv.adj)
+    if( missing(pv.adj) ) pv.adj <- "bonferroni";
+    if( pv.adj == "fdr" ) pv.adj <- "BH";
 
+	if( missing( usemotifs) ) usemotifs <- c(1:tfbs@ntfs);
+	if( missing( ncores) ) ncores <- 3;
+	if( missing( negative.correction) ) negative.correction <- FALSE;
 	if( missing( fdr) ) fdr <- 0.1;
 	if( missing( threshold ) ) threshold <- NA;
 	if( missing( background.order ) ) background.order <- 2;
 	if( missing( background.length ) ) background.length <- 100000;
-	if( missing( ncores) ) ncores <- 3;
-	if( missing( background.correction) ) background.correction <- FALSE;
-	if( missing( usemotifs) ) usemotifs <- c(1:tfbs@ntfs);
 
-	r <- comparative_scanDb_rtfbs( tfbs, 
+	ret <- comparative_scanDb_rtfbs( tfbs, 
 		file.twoBit, 
 		positive.bed, 
 		negative.bed, 
 		file.prefix, 
 		usemotifs = usemotifs,
-		background.correction = background.correction,
-		fdr = fdr , 
-		threshold = threshold , 
+		ncores = ncores,
+		negative.correction = negative.correction,
+		fdr.threshold = fdr , 
+		score.threshold = threshold , 
 		background.order = background.order, 
 		background.length = background.length, 
-		ncores = ncores ); 
+		pv.adj=pv.adj ); 
 		
-	if(!is.null(r))	
+	if(!is.null(ret))	
 	{
 		if(!is.null(tfbs@extra_info))
 		{
-			tf.motifid <- unlist(strsplit(as.character(r$tf.name), "@"))[seq(1, length(r$tf.name)*2-1, 2)];
+			tf.motifid <- unlist(strsplit(as.character( ret$tf.name ), "@"))[seq(1, length(ret$tf.name)*2-1, 2)];
 			tf.idx <- match( tf.motifid, tfbs@extra_info$Motif_ID );
-			r$tf.name <- tfbs@extra_info$TF_Name[tf.idx];
-			r$motif.id <-tfbs@extra_info$Motif_ID[tf.idx];
+			ret$tf.name  <- tfbs@extra_info$TF_Name[ tf.idx ];
+			ret$motif.id <- tfbs@extra_info$Motif_ID[ tf.idx ];
 		}
 	}
 	
-	r;
+	r.parm <- list( file.twoBit = file.twoBit, 
+				file.prefix = file.prefix, 
+				usemotifs   = usemotifs, 
+				ncores      = ncores,
+				fdr         = fdr, 
+				threshold   = threshold, 
+				pv.adj      = pv.adj, 
+				background.order    = background.order, 
+				background.length   = background.length, 
+				negative.correction = negative.correction );
+	
+	r <- list( result = ret, parm = r.parm);
+	
+	class(r) <- c("tfbs.comparson");
+
+	return(r);
 }
 
 background.check<-function( positive.ms, negative.ms, background.correction, file.prefix=NA )
@@ -360,7 +390,13 @@ background.check<-function( positive.ms, negative.ms, background.correction, fil
 	#No need to do sampling the background data.
 	if( background.correction==FALSE || gc.test$p.value > 0.01)
 		return(NULL);
-		
+
+	if( length(negative.ms)< 5000 )
+	{
+		cat("! Failed to make background correction due to small bed data(size<5000).\n");
+		return(NULL);
+	}
+	
 	resample <- function(ref, orig, n=10000, nbins=10) {
 		## (1) Break gcContent down into 10 equally sized bins.
 		breaks <- seq(0, 1, length.out=nbins) #seq(min(ref), max(ref), length.out=nbins)
@@ -421,3 +457,72 @@ background.check<-function( positive.ms, negative.ms, background.correction, fil
 	return( indx.bgnew );
 }
 
+print.tfbs.comparson<-function( r.comp, useS4=FALSE, pv.cutoff=0.05 )
+{
+	cat("Negative correction:", r.comp$parm$negative.correction, "\n");
+	cat("p-value correction:",  r.comp$parm$pv.adj, "\n");
+	cat("Significant p-value:", pv.cutoff, "\n");
+	cat("TF binding FDR threshold:", r.comp$parm$fdr, "\n");
+	cat("TF binding score threshold:", r.comp$parm$threshold, "\n");
+	cat("TF binding background.order:", r.comp$parm$background.order, "\n");
+	cat("TF binding background.length:", r.comp$parm$background.length, "\n");
+
+	cat("Total Motif:", NROW(r.comp$result), "\n");
+	cat("\nSignificant Motifs(or top 20):\n");
+
+	r.comp.sig <- summary.tfbs.comparson(r.comp, pv.cutoff=pv.cutoff);
+	if(NROW(r.comp.sig)>20)
+		r.comp.sig <- r.comp.sig[c(1:20),];
+
+	show(r.comp.sig);		
+}
+
+summary.tfbs.comparson<-function( r.comp, pv.cutoff=0.05, pv.adj=NA)
+{
+	r <- r.comp$result;
+	if(!is.na(pv.adj))
+		r$pv.adj  <- p.adjust( r$pvalue, pv.adj );
+	
+	idx.sel <- which(r$pv.adj<= pv.cutoff);
+	if(length(idx.sel)<=0)
+		return(data.frame(motif.id=character(0),tf.name=character(0),Npos=numeric(0),Nneg=numeric(0),pv.adj=numeric(0),es.ratio=numeric(0)))
+
+	r <- r[ idx.sel, ];
+	r.comp.sig <- r[ order( r$pvalue), c("motif.id","tf.name","Npos","Nneg","pv.adj","es.ratio")];
+	
+	return( r.comp.sig );
+}
+
+tfbs.reportComparson<-function( tfbs, r.comp, file.pdf=NA, report.size="letter", report.title="", sig.only=TRUE, pv.cutoff=NA, pv.adj=NA )
+{
+	r.comp.sel <- r.comp$result;
+	if( sig.only )
+		r.comp.sel <- summary.tfbs.comparson(r.comp, pv.cutoff, pv.adj)
+	else
+	{
+		if(!is.na(pv.adj))  
+			r.comp.sel$pv.adj <- p.adjust( r.comp.sel$pvalue, pv.adj );
+
+		r.comp.sel <- r.comp.sel[order(r.comp.sel$pvalue), ,drop=F];
+	}
+	
+	if(NROW(r.comp.sel)==0)
+	{
+		cat( "! No summary information for the report.\n" );
+		return;
+	}	
+
+	r.comp.new <- data.frame( No=c(1:NROW(r.comp.sel)), r.comp.sel[, c("motif.id","tf.name","Npos","Nneg","pv.adj","es.ratio","motif.id") ] );
+	
+	df.style <- data.frame(position=numeric(0), width=numeric(0), header=character(0), hjust=character(0), style=character(0), extra1=character(0), extra2=character(0), extra2=character(0));
+	df.style <- rbind(df.style, data.frame(position=0.00, width=0.04, header="No.",        hjust="left",   style="text", extra1="0",  extra2="0",  extra3="0"));
+	df.style <- rbind(df.style, data.frame(position=0.04, width=0.10, header="Motif ID",   hjust="left",   style="text", extra1="0",  extra2="0",  extra3="0"));
+	df.style <- rbind(df.style, data.frame(position=0.14, width=0.09, header="TF Name",    hjust="left",   style="text", extra1="0",  extra2="0",  extra3="0"));
+	df.style <- rbind(df.style, data.frame(position=0.23, width=0.06, header="N. Pos.",    hjust="centre", style="text", extra1="0",  extra2="0",  extra3="0"));
+	df.style <- rbind(df.style, data.frame(position=0.29, width=0.06, header="N. Neg.",    hjust="centre", style="text", extra1="0",  extra2="0",  extra3="0"));
+	df.style <- rbind(df.style, data.frame(position=0.35, width=0.08, header="p-value",    hjust="centre", style="bar",  extra1="1e-6", extra2="1",extra3="1"));
+	df.style <- rbind(df.style, data.frame(position=0.43, width=0.08, header="*Ratio",      hjust="centre", style="bar",  extra1="-10",extra2="10", extra3="0"));
+	df.style <- rbind(df.style, data.frame(position=0.51, width=0.49, header="Motif Logo", hjust="centre", style="logo", extra1="0",  extra2="0",  extra3="0"));
+	
+	output_motif_report( tfbs, r.comp.new, file.pdf, report.size, report.title, df.style, "*Ratio: Enrichment ratio for positive reads against negative reads." );
+}

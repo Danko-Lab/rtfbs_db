@@ -2,6 +2,9 @@
 # Test a tfbs.scanTSsite procedure of tfbs class
 #
 
+
+detach("package:rtfbsdb", unload=TRUE);
+
 library(rtfbsdb)
 
 
@@ -15,10 +18,43 @@ tfs <- tfbs.createFromCisBP(db, family_name="AP-2");
 
 dREG_H_change_bed <- read.table(file.dREG.H.change.bed, header=F);
 
-t1.bed <- tfbs.scanTFsite( tfs, 
-   file.twoBit_path, 
-   bed_dat=dREG_H_change_bed, 
-   return_posteriors=FALSE,
-   ncores=21);
+
+t1.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, ncores=3);
     
-save(t1.bed, tfs, file="tfbs.scan.rdata");
+t2.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, return.type="writedb", ncores=3);
+
+t3.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, return.type="posteriors", ncores=1, threshold=8);
+
+t4.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, return.type="maxposterior", ncores=1, threshold=8);
+
+t5.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, ncores=3, file.prefix = "test.tfscan", fdr=0.05);
+
+t6.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, ncores=3, file.prefix = "test.tfscan", fdr=0.05, gc.groups=5, background.order = 3 );
+
+t7.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, ncores=3, threshold=8, gc.groups=4, background.order = 3 );
+
+t8.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, ncores=3, return.type="writedb", file.prefix = "test.tfscan", fdr=0.05, gc.groups=5, background.order = 3 );
+
+t9.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, ncores=3, return.type="matches", file.prefix = "test.tfscan", fdr=0.05, gc.groups=5, background.order = 3 );
+
+
+t1.scan;
+
+t2.scan;
+
+t3.scan;
+
+t4.scan;
+
+t5.scan;
+
+t6.scan;
+
+t7.scan;
+
+t8.scan;
+
+t9.scan;
+
+tfbs.reportFinding(tfs, t9.scan,  file.pdf="test-tfscan.pdf", report.title="AP-2 Results");
+
