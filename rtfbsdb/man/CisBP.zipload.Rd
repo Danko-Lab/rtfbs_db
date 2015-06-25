@@ -14,7 +14,9 @@ CisBP.zipload(zip.file, species = "Homo_sapiens")
   \item{species}{ String, indicating the species name in the CisBP database }
 }
 \details{
+The zip data canbe downloaded from the web site, please check \code{\link{CisBP.download}}.
 }
+
 \value{
 A CisBP object (class name: \code{"\linkS4class{CisBP.db}"}) is returned with four items:
   \item{species}{String indicating the species name}

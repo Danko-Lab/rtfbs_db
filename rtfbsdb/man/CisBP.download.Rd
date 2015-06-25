@@ -10,9 +10,10 @@ CisBP.download(species = "Homo_sapiens",
 }
 \arguments{
   \item{species}{ String, indicating the species name in the CisBP dataset }
-  \item{url}{ String, the URL of bulk dowbnloads from CisBP dataset, \cr default is \code{\link{http://cisbp.ccbr.utoronto.ca/bulk_archive.php}}}
+  \item{url}{ String, the URL of bulk dowbnloads from CisBP dataset, \cr default is \code{http://cisbp.ccbr.utoronto.ca/bulk_archive.php}}
 }
 \details{
+The dowload function has been confirmed in the web site of \emph{cisbp.ccbr.utoronto.ca} o June, 2015.
 }
 \value{
 A CisBP object (class name: \code{"\linkS4class{CisBP.db}"}) is returned with four items:

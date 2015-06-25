@@ -19,6 +19,7 @@ tfbs.createFromCisBP(cisbp.db,
       seq.datatype=NA,
       file.bigwig.plus=NA, 
       file.bigwig.minus=NA, 
+      file.bam=NA, 
       file.twoBit=NA, 
       file.gencode.gtf=NA, 
       ncores = 1 )       
@@ -32,13 +33,14 @@ tfbs.createFromCisBP(cisbp.db,
   \item{msource_id}{String, indicating the MSource_Identifier field will be used to select motifs. }
   \item{tf.information.type}{Number,indicating which TF meta file will be used. Available values are 1 \cr
   for TF_Information.txt, 2 for TF_Information_all_motifs.txt and 3 for \cr
-  F_Information_all_motifs_plus.txt.}
+  TF_Information_all_motifs_plus.txt.}
   \item{expressed.only}{Logical, indicating the only expressed TFs are selected to construct this object based on the gene exprssion values. }
   \item{include.DBID.Missing}{Logical, indicating whether the TFs without association with GENCODE through the DBID are selected. }
   \item{seq.datatype}{String,indicating which kind of seq data is applied to this function, three values are available: GRO-seq, PRO-seq and RNA-seq. Default: GRO-seq}
-  \item{file.bigwig.plus}{String, indicating bigwig file for strand plus(+).}
-  \item{file.bigwig.minus}{String, indicating bigwig file for strand minus(-).}
-  \item{file.twoBit}{String, indicating the binary data of sequence.}
+  \item{file.bigwig.plus}{String, indicating bigwig file for strand plus(+) if \code{seq.datatype} is GRO-seq or PRO-seq.}
+  \item{file.bigwig.minus}{String, indicating bigwig file for strand minus(-) if \code{seq.datatype} is GRO-seq or PRO-seq.}
+  \item{file.bam}{String, indicating BAM file for rna reads if \code{seq.datatype} is RNA-seq.}
+  \item{file.twoBit}{String, indicating the binary data of sequence. (e.g. hg19.2bit, mm10.2bit)}
   \item{file.gencode.gtf}{String,indicating Gencode GTF file downloaded from the Gencode web site.}
   \item{ncores}{Number, comuputing nodes in parallel environment for gencode data converting.}
 }
@@ -46,10 +48,13 @@ tfbs.createFromCisBP(cisbp.db,
 The function includes three steps to build a tfbs object:\cr
 1) Searching the TF information and PWM files in the CisBP dataset according to the criteria specified by 
 the parameters of \emph{tf_name}, \emph{tf_status}, \emph{family_name}, \emph{motif_type} and \emph{msource_id}.\cr
-2) If the bigwig files are provided, the gene expression values are calculated 
-through querying the TREs region from the GENCODE database( for human, gencode.v21.annotation.gtf, for mouse: gencode.vM3.annotation.gtf)
+2) If \code{seq.datatype} is GRO-seq or PRO-seq and the bigwig files are provided, the gene expression values are calculated 
+through querying the TREs region from the GENCODE database( for human, gencode.v21.annotation.gtf, for mouse: gencode.vM3.annotation.gtf)\cr
 and querying the reads count in the plus and minus bigWig files.\cr
-3) If the expressed TFs only is used in the tfbs object, the TFs with p-values less than 0.05 will be selected.\cr
+
+If \code{seq.datatype} is RNA-seq and the BAM file is provided, read counts for each TRE regions will be queried from the BAM file.\cr
+
+3) If the expressed TFs only is used in the tfbs object, the TFs with p-values corrected by Bonfrroni less than 0.05 will be selected.\cr
 
 The following part explains how to calculate the gene expression.\cr
 
@@ -68,7 +73,7 @@ and attached in this package.\cr
 The \code{gencode_transcript_ext} object can be accessed after the following command is 
 executed successfully.\cr
 
-\code{load( system.file("extdata", "gencode_v21_transcript_ext.rdata",\cr
+\code{load( system.file("extdata", "gencode_v21_transcript_ext.rdata",
       package="rtfbsdb"), environment() );}\cr
 
 }

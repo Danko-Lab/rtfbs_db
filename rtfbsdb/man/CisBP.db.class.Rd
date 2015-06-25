@@ -8,7 +8,7 @@
 \title{Class \code{"CisBP.db"}}
 \description{
 The motif library from CisBP web site.\cr
-Link: \code{\link{http://cisbp.ccbr.utoronto.ca/}}
+Link: \code{http://cisbp.ccbr.utoronto.ca/}
 }
 \section{Objects from the Class}{
 Objects can be created by calls of the form \code{\link{CisBP.extdata}}, \code{\link{CisBP.zipload}}, \code{\link{CisBP.download}}.
@@ -35,6 +35,7 @@ Weirauch, M. T., Yang, A., Albu, M., Cote, A. G., Montenegro-Montero, A., Drewe,
 }
 
 \seealso{
+\code{\link{CisBP.group}}, \code{\link{tfbs.createFromCisBP}}
 }
 \examples{
 showClass("CisBP.db")

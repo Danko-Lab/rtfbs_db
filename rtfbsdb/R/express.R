@@ -141,9 +141,21 @@ get_bam_reads<-function(file.bam, df.bed )
 #'
 #' @return: tfbs.db object with changed expressionlevel;
 
-tfbs_getExpression <- function(tfbs, file.plus, file.minus, file.twoBit=NA, file.gencode.gtf=NA,  seq.datatype=NA, ncores = 3 ) 
+tfbs_getExpression <- function(tfbs, file.bigwig.plus, file.bigwig.minus, file.bam=NA, file.twoBit=NA, file.gencode.gtf=NA,  seq.datatype=NA, ncores = 3 ) 
 {
+	# these dummy statements are setup here to pass R CMD check rtfbsdb --as-cran
+	reads <-NA;
+	lambda <- NA;
+	p.pois <-NA;
+	
 	stopifnot(!is.null(tfbs@extra_info));
+	
+	if( missing(seq.datatype) || is.na(seq.datatype)) seq.datatype <- "GRO-seq";
+	if( seq.datatype=="RNA-seq" && is.na(file.bam) ) 
+		stop("Not specify the BAM file for RNA-seq data.");
+
+	if( seq.datatype!="RNA-seq" && ( is.na(file.bigwig.plus) || is.na(file.bigwig.minus))) 
+		stop("Not specify the plus and minus Bigwig files for GRO-seq or PRO-seq data.");
    
     # load gencode RDATA file and set the table of gencode_transcript_ext
     gencode_transcript_ext <- NULL;
@@ -181,8 +193,8 @@ tfbs_getExpression <- function(tfbs, file.plus, file.minus, file.twoBit=NA, file
    	    cat("  For", seq.datatype, ",", NROW(gencode_transcript_ext), "items are selected from GENCODE dataset.\n");
     
 	    # Load bigWig files(minus and plus)
-    	bw.plus  <- try( load.bigWig( file.plus ) );
-    	bw.minus <- try( load.bigWig( file.minus ) );
+    	bw.plus  <- try( load.bigWig( file.bigwig.plus ) );
+    	bw.minus <- try( load.bigWig( file.bigwig.minus ) );
 	
 		if( class(bw.plus)=="try-error" || class(bw.minus)=="try-error" )
     		stop("Failed to load bigwig files.");
@@ -199,8 +211,8 @@ tfbs_getExpression <- function(tfbs, file.plus, file.minus, file.twoBit=NA, file
     	gencode_transcript_ext <- gencode_transcript_ext[ which(gencode_transcript_ext$V3=="exon"),];	
    	    cat("  For", seq.datatype, ",", NROW(gencode_transcript_ext), "items are selected from GENCODE dataset.\n");
 		
-		reads.total <- get_bam_reads( file.plus, NULL );
-	   	cat("*", reads.total, "Reads in", file.plus, ".\n");
+		reads.total <- get_bam_reads( file.bam, NULL );
+	   	cat("*", reads.total, "Reads in", file.bam, ".\n");
 	}
 	else
 	{
@@ -224,8 +236,8 @@ tfbs_getExpression <- function(tfbs, file.plus, file.minus, file.twoBit=NA, file
 		
 	    if(seq.datatype=="GRO-seq" ||seq.datatype=="PRO-seq")
     	{
-    		bw.plus  <- try( load.bigWig( file.plus ) );
-    		bw.minus <- try( load.bigWig( file.minus ) );
+    		bw.plus  <- try( load.bigWig( file.bigwig.plus ) );
+    		bw.minus <- try( load.bigWig( file.bigwig.minus ) );
 		}
 		
 		r.bed.list <- lapply( i.from:i.to, function(i) {
@@ -256,7 +268,7 @@ tfbs_getExpression <- function(tfbs, file.plus, file.minus, file.twoBit=NA, file
 			if(seq.datatype=="GRO-seq" ||seq.datatype=="PRO-seq")
 				r.reads  <- try( bed6.region.bpQuery.bigWig( bw.plus, bw.minus, r.bed ) )
 			else
-				r.reads  <- try( get_bam_reads( file.plus, r.bed ) );
+				r.reads  <- try( get_bam_reads( file.bam, r.bed ) );
 
 			if( class(r.reads) != "try-error")
 			{
@@ -264,27 +276,19 @@ tfbs_getExpression <- function(tfbs, file.plus, file.minus, file.twoBit=NA, file
 				p.pois <- ppois( abs(r.reads[bed.max]), r.lambda*abs(r.bed[bed.max,3] - r.bed[bed.max,2]) , lower.tail=F);
 
 				r.df   <- c( 
-						dbid		= dbid,
-						chr 		= r.bed[bed.max, 1],
-						start   	= r.bed [bed.max,2],
-						end     	= r.bed [bed.max,3],
-						length     	= abs(r.bed [bed.max,3] - r.bed [bed.max,2] ),
-						strand  	= r.bed [bed.max,6],
-						reads	    = abs(r.reads[bed.max]),
-						lambda      = r.lambda,
-						p.pois      = p.pois );
+						"dbid"      = dbid,
+						"chr"       = r.bed[bed.max, 1],
+						"start"     = r.bed [bed.max,2],
+						"end"       = r.bed [bed.max,3],
+						"length"    = abs(r.bed [bed.max,3] - r.bed [bed.max,2] ),
+						"strand"  	= r.bed [bed.max,6],
+						"reads"	    = abs(r.reads[bed.max]),
+						"lambda"    = r.lambda,
+						"p.pois"    = p.pois );
 			}
 			else
-				r.df   <- c( 
-						dbid		= dbid,
-						chr 		= NA,
-						start   	= NA,
-						end     	= NA,
-						length     	= NA,
-						strand  	= NA,
-						reads	    = NA,
-						lambda      = NA,
-						p.pois      = NA );
+				r.df   <- c(dbid, rep(NA, 8));
+				
 			r.df;});  
 			
 		df.exp <- transform( do.call(rbind, r.bed.list) );
@@ -309,12 +313,12 @@ tfbs_getExpression <- function(tfbs, file.plus, file.minus, file.twoBit=NA, file
 	colnames(df.exp) <- c("Motif_ID", "DBID", "chr", "start", "end", "length", "strand", "reads", "lambda", "p.pois" );
 	
 	df.exp <- transform( df.exp, 
-				start  = as.numeric(as.character(start) ),
-				end    = as.numeric(as.character(end) ),
-				length = as.numeric(as.character(length) ),
-				reads  = as.numeric(as.character(reads) ),
-				lambda = as.numeric(as.character(lambda) ),
-				p.pois = as.numeric(as.character(p.pois) ) );
+				"start"  = as.numeric(as.character(start) ),
+				"end"    = as.numeric(as.character(end) ),
+				"length" = as.numeric(as.character(length) ),
+				"reads"  = as.numeric(as.character(reads) ),
+				"lambda" = as.numeric(as.character(lambda) ),
+				"p.pois" = as.numeric(as.character(p.pois) ) );
 	
 	# expressionlevel is data.frame including all information.
 	tfbs@expressionlevel <- df.exp;
@@ -337,8 +341,7 @@ import_gencode <-function( species, file.gencode.gtf, seq.datatype=NA )
 	awk.cmd <- paste( "awk '($3==\"", V3.type, "\"){gsub( /\\\";?/, \"\", $10);print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10}' ", file.gencode.gtf, sep="");
 	
 	# for gzipped GTF file
-	require(tools);
-	if(file_ext(file.gencode.gtf)=="gz" )
+	if(tools::file_ext(file.gencode.gtf)=="gz" )
 		awk.cmd <- paste( "zcat ",file.gencode.gtf," | awk '($3==\"", V3.type, "\"){gsub( /\\\";?/, \"\", $10);gsub( /\\\";?/, \"\", $18);print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$18}' ", sep="");
 		
 	bigdf <- read.table( pipe(awk.cmd), header = F );

@@ -94,13 +94,13 @@ comparative_scan_rtfbs.ms <- function(pwm, positive.ms, negative.ms, background.
 
 # NOTE: empirical p-values are computed under the assumption that the negative set
 #       is not bound by the specified factor (but is accessible)
-comparative_scan_rtfbs <- function(pwm, file.twoBit, positive.bed, negative.bed, fdr.threshold = 0.1, score.threshold = NA, background.order = 2, background.length = 100000, calc.empirical.pvalue = FALSE) {
+comparative_scan_rtfbs <- function(pwm, file.twoBit, positive.bed, negative.bed, fdr.threshold = 0.1, score.threshold = NA, gc.groups=4, background.order = 2, background.length = 100000, calc.empirical.pvalue = FALSE) {
   # read sequences
   positive.ms = read.seqfile.from.bed(positive.bed, file.twoBit)
   negative.ms = read.seqfile.from.bed(negative.bed, file.twoBit)
 
   # compute GC quantile masks
-  gcBins = joint.gc.quantile.bins(positive.ms, negative.ms)
+  gcBins = joint.gc.quantile.bins(positive.ms, negative.ms, n=gc.groups)
 
   # get per GC quantile results
   result.sites = NULL
@@ -109,7 +109,7 @@ comparative_scan_rtfbs <- function(pwm, file.twoBit, positive.bed, negative.bed,
   thresh = NULL
   epvals = NULL
   
-  for (idx in 1:4) 
+  for (idx in 1:gc.groups) 
   {
     # compute background model
     pos.ms.i = positive.ms[gcBins$bins1 == idx]
@@ -183,7 +183,7 @@ write.starchbed <- function(bed, filename) {
 }
 
 comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix = NA, usemotifs = NA, ncores = 3, 
-	negative.correction = FALSE, fdr.threshold = 0.1, score.threshold = NA, background.order = 2, background.length = 100000, pv.adj = NA ) {
+	negative.correction = FALSE, fdr.threshold = 0.1, score.threshold = NA, gc.groups=4, background.order = 2, background.length = 100000, pv.adj = NA ) {
   
   stopifnot(class(tfbs) == "tfbs")
   
@@ -211,10 +211,10 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
   }	
 
   # compute CG quantile masks
-  gcBins = joint.gc.quantile.bins(positive.ms, negative.ms)
+  gcBins = joint.gc.quantile.bins(positive.ms, negative.ms, n=gc.groups)
   
   # partition sequences
-  seqs.subsets = lapply(1:4, function(idx) {
+  seqs.subsets = lapply(1:gc.groups, function(idx) {
     pos.ms.i = positive.ms[gcBins$bins1 == idx]
     neg.ms.i = negative.ms[gcBins$bins2 == idx]
     
@@ -222,14 +222,14 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
   })
   
   # compute background models
-  gcBacks = lapply(1:4, function(idx) {
+  gcBacks = lapply(1:gc.groups, function(idx) {
     both.ms = concat.ms(seqs.subsets[[idx]]$pos, seqs.subsets[[idx]]$neg)
     
     build.mm(both.ms, background.order)
   })
   
   # compute background sequences
-  gcBacks.ms = lapply(1:4, function(idx) {
+  gcBacks.ms = lapply(1:gc.groups, function(idx) {
     simulate.ms(gcBacks[[idx]], background.length)
   })
    
@@ -247,7 +247,7 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
     Npos = 0
     Nneg = 0
   
-    for (idx in 1:4) {
+    for (idx in 1:gc.groups) {
       pos.ms.i = seqs.subsets[[idx]]$pos
       neg.ms.i = seqs.subsets[[idx]]$neg
       bg.i.mm = gcBacks[[idx]]
@@ -283,23 +283,28 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
   	es.ratio <- (Npos.tmp/NROW(positive.bed) )/(Nneg.tmp/NROW(negative.bed));
     
     # return info
-    return(data.frame(tf.name = pwm.name, Npos = Npos, Nneg = Nneg, es.ratio= es.ratio, pvalue = pval, pv.adj=pval, starch = starch.file))
+    return(data.frame('motif.id'="", 'tf.name' = pwm.name, 'Npos' = Npos, 'Nneg' = Nneg, 'es.ratio'= es.ratio, 'pvalue' = pval, 'pv.adj'= pval, 'starch' = starch.file))
   }, mc.cores = ncores)
   
   # recombine results
   r.df <- do.call("rbind", binding_all);
 
+  #put this dummy variable here to pass R CMD check rtfbsdb --as-cran	
+  starch <- NULL;
+  
   if (NROW(r.df)>0)	
   {
-  	 r.df$p.adj <- p.adjust(r.df$pvalue, method=pv.adj);
-     if( missing(file.prefix) || is.na(file.prefix) )  r.df <- subset( r.df, select=-starch);
+  	 r.df$pv.adj <- p.adjust(r.df$pvalue, method=pv.adj);
+  	 
+  	 # the following 'starch' is a column in r.df, not equal NULL;
+     if( missing(file.prefix) || is.na(file.prefix) )  r.df <- subset( r.df, select = -starch);
   }
   
   return(r.df);
 }
 
 tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix = NA, usemotifs = NA, ncores = 3,
-	negative.correction = FALSE, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, pv.adj=p.adjust.methods) 
+	negative.correction = FALSE, fdr = 0.1, threshold = NA, gc.groups=4, background.order = 2, background.length = 100000, pv.adj=p.adjust.methods) 
 {
     stopifnot(class(tfbs) == "tfbs")
   
@@ -325,6 +330,7 @@ tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, fil
 		negative.correction = negative.correction,
 		fdr.threshold = fdr , 
 		score.threshold = threshold , 
+		gc.groups = gc.groups,
 		background.order = background.order, 
 		background.length = background.length, 
 		pv.adj=pv.adj ); 
@@ -457,8 +463,11 @@ background.check<-function( positive.ms, negative.ms, background.correction, fil
 	return( indx.bgnew );
 }
 
-print.tfbs.comparson<-function( r.comp, useS4=FALSE, pv.cutoff=0.05 )
+print.tfbs.comparson<-function( x, ... )
 {
+	r.comp <- x;
+	pv.cutoff <- 0.05;
+
 	cat("Negative correction:", r.comp$parm$negative.correction, "\n");
 	cat("p-value correction:",  r.comp$parm$pv.adj, "\n");
 	cat("Significant p-value:", pv.cutoff, "\n");
@@ -477,8 +486,10 @@ print.tfbs.comparson<-function( r.comp, useS4=FALSE, pv.cutoff=0.05 )
 	show(r.comp.sig);		
 }
 
-summary.tfbs.comparson<-function( r.comp, pv.cutoff=0.05, pv.adj=NA)
+summary.tfbs.comparson<-function( object, pv.cutoff=0.05, pv.adj=NA, ...)
 {
+    r.comp <- object;
+    
 	r <- r.comp$result;
 	if(!is.na(pv.adj))
 		r$pv.adj  <- p.adjust( r$pvalue, pv.adj );
@@ -508,11 +519,11 @@ tfbs.reportComparson<-function( tfbs, r.comp, file.pdf=NA, report.size="letter",
 	
 	if(NROW(r.comp.sel)==0)
 	{
-		cat( "! No summary information for the report.\n" );
-		return;
+		cat( "! No motif information for the report.\n" );
+		return(invisible(NULL));
 	}	
 
-	r.comp.new <- data.frame( No=c(1:NROW(r.comp.sel)), r.comp.sel[, c("motif.id","tf.name","Npos","Nneg","pv.adj","es.ratio","motif.id") ] );
+	r.comp.new <- data.frame( No=c(1:NROW(r.comp.sel)), r.comp.sel[, c("motif.id","tf.name","Npos","Nneg","pv.adj","es.ratio","motif.id"), drop=F ] );
 	
 	df.style <- data.frame(position=numeric(0), width=numeric(0), header=character(0), hjust=character(0), style=character(0), extra1=character(0), extra2=character(0), extra2=character(0));
 	df.style <- rbind(df.style, data.frame(position=0.00, width=0.04, header="No.",        hjust="left",   style="text", extra1="0",  extra2="0",  extra3="0"));
@@ -521,7 +532,7 @@ tfbs.reportComparson<-function( tfbs, r.comp, file.pdf=NA, report.size="letter",
 	df.style <- rbind(df.style, data.frame(position=0.23, width=0.06, header="N. Pos.",    hjust="centre", style="text", extra1="0",  extra2="0",  extra3="0"));
 	df.style <- rbind(df.style, data.frame(position=0.29, width=0.06, header="N. Neg.",    hjust="centre", style="text", extra1="0",  extra2="0",  extra3="0"));
 	df.style <- rbind(df.style, data.frame(position=0.35, width=0.08, header="p-value",    hjust="centre", style="bar",  extra1="1e-6", extra2="1",extra3="1"));
-	df.style <- rbind(df.style, data.frame(position=0.43, width=0.08, header="*Ratio",      hjust="centre", style="bar",  extra1="-10",extra2="10", extra3="0"));
+	df.style <- rbind(df.style, data.frame(position=0.43, width=0.08, header="*Ratio",     hjust="centre", style="bar",  extra1="-10",extra2="10", extra3="0"));
 	df.style <- rbind(df.style, data.frame(position=0.51, width=0.49, header="Motif Logo", hjust="centre", style="logo", extra1="0",  extra2="0",  extra3="0"));
 	
 	output_motif_report( tfbs, r.comp.new, file.pdf, report.size, report.title, df.style, "*Ratio: Enrichment ratio for positive reads against negative reads." );

@@ -56,4 +56,4 @@ t9.comp;
 
 tfbs.reportComparson(tfs, t1.comp, file.pdf="test-tfcomp1.pdf", sig.only=F, report.title="Test Report");
 
-tfbs.reportComparson(tfs, t9.comp, file.pdf="test-tfcomp9.pdf", sig.only=T, report.title="Sig. Test Report", pv.cutoff=0.5, pv.adj="holm");
+tfbs.reportComparson(tfs, t9.comp, file.pdf="test-tfcomp9.pdf", sig.only=T, report.title="Significant Report", pv.cutoff=0.1, pv.adj="fdr");

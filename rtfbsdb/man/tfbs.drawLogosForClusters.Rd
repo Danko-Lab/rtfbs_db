@@ -4,17 +4,18 @@
 Draw the motif logos by clustering.
 }
 \description{
-Draw the motif logos by one group per page.
+Draw the motif logos by one cluster per page.
 }
 \usage{
-tfbs.drawLogosForClusters(tfbs, cluster.mat, pdf.logos)
+tfbs.drawLogosForClusters(tfbs, cluster.mat, file.pdf )
 }
 \arguments{
   \item{tfbs}{A tfbs object(\code{"\linkS4class{tfbs}"}).}
   \item{cluster.mat}{ A matrix with 2 columns returned by \code{\link{tfbs.clusterMotifs}}, 1st column is the index of motifs and 2nd column is the group number of clustering.}
-  \item{pdf.logos}{ String indicating a PDF eilname.}
+  \item{file.pdf }{ String indicating a PDF eilname.}
 }
 \details{
+It is different with \code{\link{tfbs.drawLogo}} which is capable of printing out motif logos in group. This group is calculated by the \code{\link{tfbs.clusterMotifs}}, not is classfied by any group filed.
 }
 \value{
 No return value.

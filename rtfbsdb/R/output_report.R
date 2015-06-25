@@ -189,7 +189,7 @@ output_motif_report<-function( tfbs, df.motif, file.pdf, report.size, report.tit
 
 		pushViewport( viewport(x=0.15, y=0.90, width=0.7, height=0.82, just=c("left","top"), xscale = c(0, 1), yscale = c(0, 1) ) )
 		#grid.rect(x=0, y=0, height=1, width=1, gp=gpar(col="black", fill="white", lwd=0.2), just=c("left", "bottom"));
-		y0 <- draw_item( r.comp[pv.sort$ix, ], (i-1)*view.lines+1, min( i*view.lines, NROW(df.motif) ) );
+		y0 <- draw_item( df.motif, (i-1)*view.lines+1, min( i*view.lines, NROW(df.motif) ) );
 		popViewport();
 
 		pushViewport( viewport(x=0.15, y=0.9-0.82*y0, width=0.7, height=0.04, just=c("left","top"), xscale = c(0, 1), yscale = c(0, 1) ) )

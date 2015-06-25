@@ -26,17 +26,17 @@ extend.bed <- function(bed, len) {
 #` Optionally takes additional parameters passed through to score.ms.
 #`
 #` @param tf_name name of the TF.
-#` @param df.bed bed-formatted peak information.
+#` @param tre.bed bed-formatted peak information.
 #` @param motif_path path to the motif PWM file.
 #` @param divide_num List of parameters for all data types, for the model representing no TF binding.
 #` @return List structure representing the match score to the motif.
-scan_rtfbs <- function(tf_name, file.twoBit, df.bed, motif_path, return.posteriors=TRUE, ...) {
+scan_rtfbs <- function(tf_name, file.twoBit, tre.bed, motif_path, return.posteriors=TRUE, ...) {
   ## Read the pwm and sequence file.
   motif <- read.motif(motif_path, header=TRUE) 
   
   ## Write out new fasta file, adding on half-width of the motif, to correctly align motif center ...
   half_width <- ceiling( (NROW(motif)-1)/2 );
-  extBed = extend.bed( df.bed, half_width - 1 );
+  extBed = extend.bed( tre.bed, half_width - 1 );
   dnase_peaks = read.seqfile.from.bed( extBed, file.twoBit );
 
   ## Swiched rtfbs to returning posteriors.
@@ -117,7 +117,7 @@ get_binding_site <- function( bgModel1, seq.ms, PWM, return.posteriors, score.th
 ## posteriors 	-- returns the posteriors at each position.
 ## maxposterior	-- returns the max(posterior) in each dnase-1 peak.
 
-scanDb_rtfbs <- function(tfbs, file.twoBit, df.bed, return.type = "matches", file.prefix = NA, usemotifs = NA, ncores = 3, fdr.threshold = NA, score.threshold = 6, gc.groups = NA, background.order = 2, background.length = 100000,...) {
+scanDb_rtfbs <- function(tfbs, file.twoBit, tre.bed, return.type = "matches", file.prefix = NA, usemotifs = NA, ncores = 3, fdr.threshold = NA, score.threshold = 6, gc.groups = NA, background.order = 2, background.length = 100000,...) {
   stopifnot(class(tfbs) == "tfbs")
 
   if( !is.na(file.prefix))
@@ -128,7 +128,7 @@ scanDb_rtfbs <- function(tfbs, file.twoBit, df.bed, return.type = "matches", fil
   half_width=15 ## Max size of TF in set of 1800 is 30 (half-width = 15).
   options("scipen"=100, "digits"=4)
 
-  extBed  <- extend.bed( df.bed, half_width - 1)
+  extBed  <- extend.bed( tre.bed, half_width - 1)
   seq.ms  <- read.seqfile.from.bed( extBed, file.twoBit);
   bgModel <- build.mm( seq.ms, 3);
 
@@ -190,7 +190,7 @@ scanDb_rtfbs <- function(tfbs, file.twoBit, df.bed, return.type = "matches", fil
   
   if(return.type == "maxposterior") 
   {
-     binding_all <- matrix(unlist(binding_all), nrow= NROW(df.bed), ncol= NROW(usemotifs))
+     binding_all <- matrix(unlist(binding_all), nrow= NROW(tre.bed), ncol= NROW(usemotifs))
   }
 
   return(binding_all)
@@ -198,17 +198,17 @@ scanDb_rtfbs <- function(tfbs, file.twoBit, df.bed, return.type = "matches", fil
 
 # ncores=3 for 4 cores CPU.
 
-tfbs_scanTFsite<-function( tfbs, file.twoBit, df.bed = NULL, return.type="matches", file.prefix = NA,  usemotifs = NA, ncores = 3, fdr = NA, threshold = 6, gc.groups = NA, background.order = 2, background.length = 100000 )
+tfbs_scanTFsite<-function( tfbs, file.twoBit, tre.bed = NULL, return.type="matches", file.prefix = NA,  usemotifs = NA, ncores = 3, fdr = NA, threshold = 6, gc.groups = NA, background.order = 2, background.length = 100000 )
 {
     stopifnot(class(tfbs) == "tfbs")
 
-	if( missing(df.bed) )
+	if( missing(tre.bed) )
 	{
 		chromInfo <- get_chromosome_size( file.twoBit );
 
 		offset_dist <- 250;
 		chromInfo <- chromInfo[grep("_|chrM|chrY|chrX", chromInfo[,1], invert=TRUE),];
-		df.bed <- data.frame(chrom=chromInfo[,1], chromStart=rep(0)+offset_dist, chromEnd=(chromInfo[,2]-1-offset_dist));
+		tre.bed <- data.frame(chrom=chromInfo[,1], chromStart=rep(0)+offset_dist, chromEnd=(chromInfo[,2]-1-offset_dist));
 	}
 	
 	if( missing(file.prefix) ) file.prefix="scan.db";
@@ -217,7 +217,7 @@ tfbs_scanTFsite<-function( tfbs, file.twoBit, df.bed = NULL, return.type="matche
 	if( missing(threshold) && missing(fdr) ) threshold= 6;
 	if( missing(usemotifs)) usemotifs =c(1:tfbs@ntfs);
 
-	r.ret <- scanDb_rtfbs( tfbs, file.twoBit, df.bed, file.prefix = file.prefix, return.type = return.type, usemotifs = usemotifs, ncores = ncores, 
+	r.ret <- scanDb_rtfbs( tfbs, file.twoBit, tre.bed, file.prefix = file.prefix, return.type = return.type, usemotifs = usemotifs, ncores = ncores, 
 	                       fdr.threshold = fdr, score.threshold = threshold, gc.groups = gc.groups, background.order = background.order, background.length = background.length ); 
 	
 	r.parm <- list(file.twoBit = file.twoBit, 
@@ -247,14 +247,16 @@ tfbs_scanTFsite<-function( tfbs, file.twoBit, df.bed = NULL, return.type="matche
 	}
 
 	
-	r.scan <- list( parm = r.parm, bed = df.bed, result = r.ret, summary=sum.match );
+	r.scan <- list( parm = r.parm, bed = tre.bed, result = r.ret, summary=sum.match );
 	class( r.scan ) <- c( class(r.scan), "tfbs.finding");
 	
 	return( r.scan );
 }
 
-print.tfbs.finding<-function( r.scan, useS4 = FALSE )
+print.tfbs.finding<-function(x, ...)
 {
+	r.scan <- x;
+	 
 	cat("Return type: ", r.scan$parm$return.type, "\n");
 	cat("FDR threshold: ", r.scan$parm$fdr, "\n");
 	cat("Score threshold: ", r.scan$parm$threshold, "\n");
@@ -285,8 +287,10 @@ print.tfbs.finding<-function( r.scan, useS4 = FALSE )
 		cat("Matrix posterior: ", NROW(r.scan$result), "*", NCOL(r.scan$result), "\n");
 }
 
-summary.tfbs.finding<-function( r.scan )
+summary.tfbs.finding<-function( object, ... )
 {
+	r.scan <- object;
+
 	if( r.scan$parm$return.type == "matches" )
 		return( r.scan$summary )
 	else	

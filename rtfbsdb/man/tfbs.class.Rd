@@ -46,6 +46,7 @@ Objects can be created by calls of the function of \code{\link{tfbs.createFromCi
   }
 }
 \seealso{
+The class definition of tfbs.
 }
 \examples{
 showClass("tfbs")

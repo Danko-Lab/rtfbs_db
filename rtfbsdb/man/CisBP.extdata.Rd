@@ -13,6 +13,7 @@ CisBP.extdata(species)
   \item{species}{ String, only valid for human and mouse species, i.e. Homo_sapiens or Mus_musculus }
 }
 \details{
+The CisBP data for Homo_sapiens and Mus_musculus are delivered by this package. When you use the newest dataset, you should download it from the website by \code{\link{CisBP.download}}.
 }
 \value{
 A CisBP object (class name: \code{"\linkS4class{CisBP.db}"}) is returned with four items:

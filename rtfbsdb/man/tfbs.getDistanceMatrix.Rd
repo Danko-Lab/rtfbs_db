@@ -15,12 +15,14 @@ tfbs.getDistanceMatrix(tfbs, ncores = 3, BG = log(c(0.25, 0.25, 0.25, 0.25)))
   \item{BG}{The log value of probabilities for nucleotide A, C, G and T as Backgroud computing.}
 }
 \details{
+Please do it parallel computation if you can use multi-cores because the calculation takes long time.
 }
 
 \value{
 A tfbs object with new distance matrix (@distancematrix).
 }
 \seealso{
+\code{"\linkS4class{tfbs}"}
 }
 \examples{
 

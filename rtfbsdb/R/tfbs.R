@@ -311,15 +311,15 @@ setMethod("tfbs.drawLogo", c(tfbs="tfbs"),
 	  }
 	
 	  tfbs.grpupdby<-c("Family_Name", "TF_Name", "TF_Status", "Motif_Type");
-	  if( !is.na(groupby) && length( which(groupby == tfbs.grpupdby ) ) == 0)
+	  if( !is.null(groupby) && length( which(groupby == tfbs.grpupdby ) ) == 0)
 	  {
 	  	 cat("The availabe value for groupby are Family_Name, TF_Name, TF_Status and Motif_Type.\n");
-	  	 groupby <- NA;
+	  	 groupby <- NULL;
 	  }	 
 
 	  if(!is.na(file.pdf)) pdf(file.pdf); 
 	  
-	  if(is.na(groupby))	
+	  if(is.null(groupby))	
 	  {
 	  	  for(i.motif in idx.select)
 	      {
@@ -387,9 +387,9 @@ setMethod("tfbs.drawLogosForClusters", c(tfbs="tfbs"),
 	    	if( !check_folder_writable( file.pdf ) ) 
 	  		    cat("! Can not create pdf file: ",file.pdf, "\n");
 
-		if(!is.na(pdf.logos))
+		if(!is.na(file.pdf))
 		{
-			r.try <- try ( pdf( pdf.logos ) );	
+			r.try <- try ( pdf( file.pdf ) );	
 			if(class(r.try)=="try-error")
 			{
 				cat("! Failed to create PDF file for motif logos.\n");
@@ -456,7 +456,7 @@ setMethod("tfbs.drawLogosForClusters", c(tfbs="tfbs"),
 			}
 		}
 
-		if(!is.na(pdf.logos))
+		if(!is.na(file.pdf))
 			dev.off();	
 	})
 
@@ -467,7 +467,7 @@ setMethod("tfbs.drawLogosForClusters", c(tfbs="tfbs"),
 ## Gets expression level of target TF.
 ## TODO: Add the MGI symbol to each TF.  Not 100% sure where to do this?!
 setGeneric("tfbs.getExpression", 
-    def=function(tfbs, file.plus, file.minus, file.twoBit=NA, file.gencode.gtf=NA, seq.datatype=NA, ncores = 3) {
+    def=function(tfbs, file.bigwig.plus, file.bigwig.minus, file.bam=NA, file.twoBit=NA, file.gencode.gtf=NA, seq.datatype=NA, ncores = 3) {
 	  stopifnot(class(tfbs) == "tfbs")
 	  standardGeneric("tfbs.getExpression")
 	})
@@ -492,7 +492,7 @@ setMethod("tfbs.getExpression", c(tfbs="tfbs"), tfbs_getExpression );
 ##
 ## see codes in find_sites_rtfbs.R
 setGeneric("tfbs.scanTFsite", 
-    def=function( tfbs, file.twoBit, df.bed = NULL, return.type=c("matches", "posteriors", "maxposterior", "writedb"), file.prefix = NA,  usemotifs = NA, ncores = 3,  
+    def=function( tfbs, file.twoBit, tre.bed = NULL, return.type=c("matches", "posteriors", "maxposterior", "writedb"), file.prefix = NA,  usemotifs = NA, ncores = 3,  
                   fdr = NA, threshold = 6, gc.groups = NA, background.order = 2, background.length = 100000 ) {
 	  stopifnot(class(tfbs) == "tfbs")
 	  standardGeneric("tfbs.scanTFsite")
@@ -509,7 +509,7 @@ setMethod("tfbs.scanTFsite", c(tfbs="tfbs"), tfbs_scanTFsite );
 ## see codes in comp_find_sites_rtfbs.R
 setGeneric("tfbs.compareTFsite", 
     def=function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix = NA, usemotifs = NA, ncores = 3,
-   	              negative.correction = FALSE, fdr = 0.1, threshold = NA, background.order = 2, background.length = 100000, pv.adj=p.adjust.methods) {
+   	              negative.correction = FALSE, fdr = 0.1, threshold = NA, gc.groups=4, background.order = 2, background.length = 100000, pv.adj=p.adjust.methods) {
 	  stopifnot(class(tfbs) == "tfbs")
 	  standardGeneric("tfbs.compareTFsite")
 	})

@@ -20,6 +20,7 @@ tfbs(filenames,
   \item{\dots}{Parameters,such as pseudocount, force_even, and the parameters used in read.table function. }
 }
 \details{
+Load the PWM files to build a \code{"\linkS4class{tfbs}"} object.
 }
 \value{
 A tfbs object (class: \code{"\linkS4class{tfbs}"}) including all PWM matrics.The all attributes are as follows:
@@ -34,9 +35,10 @@ A tfbs object (class: \code{"\linkS4class{tfbs}"}) including all PWM matrics.The
   \item{distancematrix}{Distance matrix between motifs returned by \code{\link{tfbs.getDistanceMatrix}}, default:NULL.}
   \item{expressionlevel}{Data frame indicatig the result of expression level returned by \code{\link{tfbs.getExpression}}, default:NULL. }
 
-The tfbs object can be created by the function of \code{\link{tfbs}}, \code{\link{tfbs.dir}}, \code{\link{tfbs.createFromCisBP}}.
+The tfbs object can be created by the function of \code{\link{tfbs}}, \code{\link{tfbs.dirs}}, \code{\link{tfbs.createFromCisBP}}.
 }
 \seealso{
+\code{\link{tfbs}}, \code{\link{tfbs.dirs}}, \code{\link{tfbs.createFromCisBP}}
 }
 \examples{
 

@@ -42,15 +42,11 @@ tfs <- tfbs.createFromCisBP(db, motif_type="ChIP-seq", tf.information.type=1 );
 tfs <- tfbs.getDistanceMatrix( tfs, ncores=1 );
 
 # Cluster the motifs using the "cors" method
-cluster1 <- tfbs.clusterMotifs(tfs, pdf.heatmap = "test-heatmap1.pdf", method="cors" );
+cluster1 <- tfbs.clusterMotifs(tfs, pdf.heatmap = "test-heatmap1.pdf", method="agnes" );
 show(cluster1);
 
 # draw motif logos on one group per page.
-tfbs.drawLogosForClusters(tfs, cluster1, "test-cluster1.pdf")
-
-# Cluster the motifs using the "agnes" function
-cluster2 <- tfbs.clusterMotifs(tfs, pdf.heatmap = "test-heatmap2.pdf", method="agnes" );
-show(cluster2);
+tfbs.drawLogosForClusters(tfs, cluster1, "test-cluster1.pdf");
 
 }
 

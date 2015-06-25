@@ -10,18 +10,20 @@ USE extra_info$DBID to find gene information encoded by GENCODE V21\cr
 \usage{
 tfbs.getExpression(tfbs, 
       file.bigwig.plus, file.bigwig.minus, 
+      file.bam=NA, 
       file.twoBit=NA, 
       file.gencode.gtf=NA,
       seq.datatype=NA,
-      ncores =1 )
+      ncores =3 )
 }
 \arguments{
   \item{tfbs}{A tfbs object(\code{"\linkS4class{tfbs}"}).}
-  \item{file.bigwig.plus}{String, indicating bigwig file for strand plus(+).}
-  \item{file.bigwig.minus}{String, indicating bigwig file for strand minus(-).}
-  \item{file.twoBit}{String, indicating the binary data of sequence.}
+  \item{file.bigwig.plus}{String, indicating bigwig file for strand plus(+) if \code{seq.datatype} is GRO-seq or PRO-seq.}
+  \item{file.bigwig.minus}{String, indicating bigwig file for strand minus(-) if \code{seq.datatype} is GRO-seq or PRO-seq.}
+  \item{file.bam}{String, indicating BAM file for rna reads if \code{seq.datatype} is RNA-seq.}
+  \item{file.twoBit}{String, indicating the binary data of sequence. (e.g. hg19.2bit, mm10.2bit)}
   \item{file.gencode.gtf}{Gencode RDATA file encoded by ths package.}
-  \item{seq.datatype}{String,indicating which kind of seq data is applied to this function, three values are available: GRO-seq, PRO-seq and RNA-seq. Default: GRO-seq}
+  \item{seq.datatype}{String,indicating which kind of seq data is applied to this function, three values are available: GRO-seq, PRO-seq and RNA-seq. (Default=GRO-seq)}
   \item{ncores}{Number, comupting nodes in parallel environment.}
 }
 
@@ -42,7 +44,7 @@ and attached in this package.\cr
 The \code{gencode_transcript_ext} object can be accessed after the following command is 
 executed successfully.\cr
 
-\code{load( system.file("extdata", "gencode_human21_transcript_ext.rdata", \cr
+\code{load( system.file("extdata", "gencode_human21_transcript_ext.rdata",
       package="rtfbsdb"), environment() );}\cr
 }
 
@@ -61,7 +63,7 @@ A tbfs object with new expression data frame including the follwing columns:
 }
 
 \seealso{
-See Also as \code{"\linkS4class{tfbs}"}, ~~~
+See Also as \code{"\linkS4class{tfbs}"}
 }
 \examples{
 
