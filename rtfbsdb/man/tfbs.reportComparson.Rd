@@ -8,12 +8,12 @@ Output comparson results to a PDF report which includes motif names, counts of T
 }
 \usage{
 tfbs.reportComparson(tfbs, r.comp, 
-	file.pdf = NA, 
-	report.size = "letter", 
-	report.title = "", 
-	sig.only = TRUE, 
-	pv.cutoff = NA, 
-	pv.adj = NA)
+      file.pdf = NA, 
+      report.size = "letter", 
+      report.title = "", 
+      sig.only = TRUE, 
+      pv.cutoff = NA, 
+      pv.adj = NA)
 }
 \arguments{
   \item{tfbs}{A tfbs object, see also \code{"\linkS4class{tfbs}"} }
@@ -40,4 +40,4 @@ No return values.
 }
 
 \keyword{ tfbs object }
-\keyword{ Comparig }
+\keyword{ Comparing }

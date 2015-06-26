@@ -7,7 +7,11 @@ Make report for scanning results.
 Output a PDF report includes motif names, counts of TF site and motif logos. 
 }
 \usage{
-tfbs.reportFinding(tfbs, r.scan, file.pdf = NA, report.size = "letter", report.title = "")
+tfbs.reportFinding(tfbs, 
+      r.scan, 
+      file.pdf = NA, 
+      report.size = "letter", 
+      report.title = "")
 }
 \arguments{
   \item{tfbs}{A tfbs object, see also \code{"\linkS4class{tfbs}"} }

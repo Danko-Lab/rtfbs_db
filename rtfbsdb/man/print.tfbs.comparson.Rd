@@ -29,4 +29,4 @@ See also as \code{\link{tfbs.compareTFsite}}.
 #See example in tfbs.compareTFsite
 }
 \keyword{print}
-\keyword{comparson}
+\keyword{Comparing}

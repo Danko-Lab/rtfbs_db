@@ -32,4 +32,4 @@ The results is a data frame including 6 columns,
 See also as \code{\link{tfbs.compareTFsite}}.
 }
 \keyword{summary}
-\keyword{comparson}
+\keyword{Comparing}

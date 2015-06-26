@@ -1,7 +1,7 @@
 \name{tfbs.compareTFsite}
 \alias{tfbs.compareTFsite}
 \title{
-Comparative TS sites between positive and negative TRE loci for all motifs
+Comparative TS sites between positive and negative TRE loci
 }
 \description{
 Comparative TS sites between positive and negative TRE loci for all motifs.
