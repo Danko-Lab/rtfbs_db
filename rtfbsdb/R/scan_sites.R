@@ -236,6 +236,9 @@ tfbs_scanTFsite<-function( tfbs, file.twoBit, tre.bed = NULL, return.type="match
 	if( return.type == "matches" )
 	{
 		sum.match <- do.call("rbind", lapply(r.ret, function(x){ 
+
+				if (NROW(x)==0) return(NULL);
+
 				tf.name <- "";
 				tf.idx  <- which( as.character(tfbs@extra_info$Motif_ID) == as.character(x$name[1]) );
 				if( length(tf.idx)>0)
