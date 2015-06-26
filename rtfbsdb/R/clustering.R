@@ -10,7 +10,7 @@ tfbs_clusterMotifs <- function(tfbs, subset=NA, pdf.heatmap=NA, method=c("agne",
 		subset <- 1:NROW(mat);
 	
 	if(missing(method)) 
-		method <- "cors";
+		method <- "agne";
 
 	if( !is.na( pdf.heatmap ) )
     	if( !check_folder_writable( pdf.heatmap ) ) 
