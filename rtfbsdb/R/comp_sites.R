@@ -182,7 +182,7 @@ write.starchbed <- function(bed, filename) {
     quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t")
 }
 
-comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix = NA, usecluster = NA, ncores = 3, 
+comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix = NA, use.cluster = NA, ncores = 3, 
 	gc.correction = FALSE, fdr.threshold = 0.1, score.threshold = NA, gc.groups=4, background.order = 2, background.length = 100000, pv.adj = NA ) {
   
   stopifnot(class(tfbs) == "tfbs")
@@ -249,10 +249,10 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
     simulate.ms(gcBacks[[idx]], background.length)
   })
    
-  if(missing(usecluster)) usecluster <- cbind(1:tfbs@ntfs, 1); 
+  if(missing(use.cluster)) use.cluster <- cbind(1:tfbs@ntfs, 1); 
   
   # iterate over TF set
-  binding_all <- mclapply(usecluster[,1], function(i, ...) {
+  binding_all <- mclapply(use.cluster[,1], function(i, ...) {
 	# get PWM information
 	pwm = tfbs@pwm[[i]]
     
@@ -310,7 +310,7 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
   
   if (NROW(r.df)>0)	
   {
-	 r.df$pv.adj <- adjust.pvale( r.df$pvalue, usecluster, pv.adj );
+	 r.df$pv.adj <- adjust.pvale( r.df$pvalue, use.cluster, pv.adj );
   	 
   	 # the following 'starch' is a column in r.df, not equal NULL;
      if( missing(file.prefix) || is.na(file.prefix) )  r.df <- subset( r.df, select = -starch);
@@ -319,7 +319,7 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
   return(r.df);
 }
 
-tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix = NA, usecluster = NA, ncores = 3,
+tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix = NA, use.cluster = NA, ncores = 3,
 	gc.correction = FALSE, fdr = 0.1, threshold = NA, gc.groups=4, background.order = 2, background.length = 100000, pv.adj=p.adjust.methods) 
 {
     stopifnot(class(tfbs) == "tfbs")
@@ -335,12 +335,12 @@ tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, fil
 	if( missing( background.order ) ) background.order <- 2;
 	if( missing( background.length ) ) background.length <- 100000;
 
-	if( !missing( usecluster) ) 
+	if( !missing( use.cluster) ) 
 	{
-		mat.cluster <- as.matrix( usecluster[, c(1,2),drop=F ] );
+		mat.cluster <- as.matrix( use.cluster[, c(1,2),drop=F ] );
 		r.mat <- range( mat.cluster[,1] )
 		if( r.mat[1]<1 || r.mat[2]> tfbs@ntfs )
-			stop("The first column of 'usecluster' exceed the range of motif data set.");
+			stop("The first column of 'use.cluster' exceed the range of motif data set.");
 	}
 	else
 		mat.cluster <- cbind( 1:tfbs@ntfs, NA);
@@ -350,7 +350,7 @@ tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, fil
 		positive.bed, 
 		negative.bed, 
 		file.prefix, 
-		usecluster = mat.cluster,
+		use.cluster = mat.cluster,
 		ncores = ncores,
 		gc.correction = gc.correction,
 		fdr.threshold = fdr , 
@@ -373,7 +373,7 @@ tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, fil
 	
 	r.parm <- list( file.twoBit = file.twoBit, 
 				file.prefix = file.prefix, 
-				usecluster  = mat.cluster, 
+				use.cluster  = mat.cluster, 
 				ncores      = ncores,
 				fdr         = fdr, 
 				threshold   = threshold, 
@@ -509,13 +509,13 @@ print.tfbs.comparson<-function( x, ..., pv.cutoff=0.05, pv.adj=NA )
 	show(r.comp.sig);		
 }
 
-adjust.pvale<-function( r.pvalue, usecluster, pv.adj )
+adjust.pvale<-function( r.pvalue, use.cluster, pv.adj )
 {
-	# If the cluster is used,...No cluster info ==>  usecluster[,2]=NA
-	cluster.id <- unique( usecluster[,2] );
+	# If the cluster is used,...No cluster info ==>  use.cluster[,2]=NA
+	cluster.id <- unique( use.cluster[,2] );
 	for(i in 1:length(cluster.id))
 	{
-		cluster.set <- which( usecluster[,2] == cluster.id[i] )
+		cluster.set <- which( use.cluster[,2] == cluster.id[i] )
 
 		# if the cluster index is called from the compare function, the p.adjust will be used to the cluster range, not all results.
 		r.pvalue[cluster.set] <- p.adjust( r.pvalue[cluster.set], method=pv.adj );
@@ -530,7 +530,7 @@ summary.tfbs.comparson<-function( object, pv.cutoff=0.05, pv.adj=NA, ...)
     
 	r <- r.comp$result;
 	if(!is.na(pv.adj))
-		r$pv.adj <- adjust.pvale( r$pvalue, r.comp$parm$usecluster, pv.adj )
+		r$pv.adj <- adjust.pvale( r$pvalue, r.comp$parm$use.cluster, pv.adj )
 	
 	r.comp.sum <- r[ order( r$pv.adj), c("motif.id","tf.name","Npos","Nneg","pv.adj","es.ratio") ];
 
@@ -540,7 +540,7 @@ summary.tfbs.comparson<-function( object, pv.cutoff=0.05, pv.adj=NA, ...)
 tfbs.reportComparson<-function( tfbs, r.comp, file.pdf=NA, report.size="letter", report.title="", sig.only=TRUE, pv.cutoff=0.05, pv.adj=NA )
 {
 	if(!is.na(pv.adj))  
-		r.comp$result$pv.adj <- adjust.pvale( r.comp$result$pvalue, r.comp$parm$usecluster, pv.adj )
+		r.comp$result$pv.adj <- adjust.pvale( r.comp$result$pvalue, r.comp$parm$use.cluster, pv.adj )
 	
 	r.comp.sel <- r.comp$result;
 	r.comp.sel <- r.comp.sel[ order(r.comp.sel$pvalue), c("motif.id","tf.name","Npos","Nneg","pv.adj","es.ratio"), drop=F ];

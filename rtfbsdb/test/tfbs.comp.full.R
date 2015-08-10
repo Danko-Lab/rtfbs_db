@@ -15,7 +15,7 @@ t <- tfbs.compareTFsite( tfs,
 	file.twoBit_path, 
 	dREG_H_change_bed, 
 	dREG_all_bed, 
-	negative.correct=TRUE,
+	gc.correct=TRUE,
 	ncores = 21);
 
 save(t, tfs, file="tfbs.comp.all.rdata");

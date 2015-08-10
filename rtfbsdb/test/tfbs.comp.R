@@ -37,7 +37,7 @@ t7.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_al
 
 t8.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, gc.correct=TRUE, ncores = 7, threshold=8, background.order = 3 , pv.adj = "fdr");
 
-t9.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, gc.correct=TRUE, usecluster=hcluster, ncores = 7, fdr=0.05, background.order = 3 , pv.adj = "fdr");
+t9.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, gc.correct=TRUE, use.cluster=hcluster, ncores = 7, fdr=0.05, background.order = 3 , pv.adj = "fdr");
 
 save(t1.comp, t2.comp, t3.comp, t4.comp, t5.comp, t6.comp, t7.comp, t8.comp, t9.comp, tfs, file="tfbs.comp.rdata");
 

@@ -12,7 +12,7 @@ tfbs.compareTFsite(tfbs,
       positive.bed, 
       negative.bed, 
       file.prefix=NA, 
-      usecluster=NA,
+      use.cluster=NA,
       ncores=3,
       gc.correction=FALSE, 
       fdr=0.1, 
@@ -28,7 +28,7 @@ tfbs.compareTFsite(tfbs,
   \item{positive.bed}{Data frame, bed-formatted TRE loci.}
   \item{negative.bed}{Data frame, bed-formatted background loci.}
   \item{file.prefix}{String, the prefix for outputted BED file, no bed files output if NA }
-  \item{usecluster}{ Clustering matrix with 2 columns, 1st column is the index of motifs and 2nd column is the group number of clustering. It can be obtained from \code{\link{tfbs.clusterMotifs}}. If no clustering matrix, all motifs are used to do the comparson. see \emph{details} }
+  \item{use.cluster}{ Clustering matrix with 2 columns, 1st column is the index of motifs and 2nd column is the group number of clustering. It can be obtained from \code{\link{tfbs.clusterMotifs}}. If no clustering matrix, all motifs are used to do the comparson. see \emph{details} }
   \item{ncores}{Number, comupting nodes in parallel environment.(default=3)}
   \item{gc.correction}{Logical value, if the difference between positive and negative TREs is significant,the resampling will be applied to the correction for the negative TREs. (default=FALSE) }
   \item{fdr}{Numeric value between 0 and 1, False Discovery Rate (FDR) of possible binding sites in \code{rtfbs} package, only binding sites with FDR less than this value can be selected.(default=0.1)}
