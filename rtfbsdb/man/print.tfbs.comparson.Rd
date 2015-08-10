@@ -7,11 +7,13 @@ Print the brief comparson results
 Print the brief comparson results.
 }
 \usage{
-\method{print}{tfbs.comparson}(x, \dots)
+\method{print}{tfbs.comparson}(x, \dots, pv.cutoff=0.05, pv.adj=NA )
 }
 \arguments{
   \item{x}{The result obtained by \code{\link{tfbs.compareTFsite}}.}
   \item{\dots}{Additional arguments affecting the print produced.}
+  \item{pv.cutoff}{Numeric value,indicating whether the different cutoff of p-value is applied to select the significant motifs. }
+  \item{pv.adj}{String, P-values correct method for \code{p.adjust} function. The available values are "holm", "hochberg", "hommel", "bonferroni", "BH", "BY","fdr" or "none".(default="bonferroni").}
 }
 \details{
 This command shows the calling parameters and significant motifs from the result object.\cr

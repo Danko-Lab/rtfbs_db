@@ -66,7 +66,7 @@ output_motif_report<-function( tfbs, df.motif, file.pdf, report.size, report.tit
 			if(n.log > -2)
 				str <- round(val, digits=2)
 			else
-				str <- sprintf("<10%d", n.log);
+				str <- sprintf("<%.1g", val);
 			if(val>=0.05) str<-"";
 			return(str);
 		}

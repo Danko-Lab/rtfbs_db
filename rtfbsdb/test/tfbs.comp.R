@@ -2,6 +2,7 @@
 # Test a tfbs.scanTSsite procedure of tfbs class
 #
 
+if(require(rtfbsdb))
 detach("package:rtfbsdb", unload=TRUE);
 
 library(rtfbsdb);
@@ -16,23 +17,27 @@ tfs <- tfbs.createFromCisBP(db, family_name="AP-2");
 dREG_H_change_bed <- read.table(file.dREG.H.change.bed, header=F);
 dREG_all_bed <- read.table(file.dREG.all.bed, header=F);
 
+tfs <- tfbs.getDistanceMatrix(tfs, ncores=5);
+
+hcluster <- tfbs.clusterMotifs(tfs, pdf.heatmap="correlationMatrix.pdf")
+
 t1.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, ncores = 7);
 
-t2.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, negative.correct=TRUE, ncores = 7);
+t2.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, gc.correct=TRUE, ncores = 7);
 
-t3.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, negative.correct=TRUE, file.prefix="test.db", ncores = 7, fdr=0.05);
+t3.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, gc.correct=TRUE, file.prefix="test.db", ncores = 7, fdr=0.05);
 
-t4.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, negative.correct=TRUE, file.prefix="test.db", ncores = 7, threshold=8);
+t4.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, gc.correct=TRUE, file.prefix="test.db", ncores = 7, threshold=8);
 
-t5.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, negative.correct=TRUE, file.prefix="test.db", ncores = 7, fdr=0.05, background.order = 3 );
+t5.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, gc.correct=TRUE, file.prefix="test.db", ncores = 7, fdr=0.05, background.order = 3 );
 
-t6.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, negative.correct=TRUE, file.prefix="test.db", );
+t6.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, gc.correct=TRUE, file.prefix="test.db", );
 
-t7.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, negative.correct=FALSE, ncores = 7, fdr=0.05, background.order = 3 , pv.adj = "fdr");
+t7.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, gc.correct=FALSE, ncores = 7, fdr=0.05, background.order = 3 , pv.adj = "fdr");
 
-t8.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, negative.correct=TRUE, ncores = 7, threshold=8, background.order = 3 , pv.adj = "fdr");
+t8.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, gc.correct=TRUE, ncores = 7, threshold=8, background.order = 3 , pv.adj = "fdr");
 
-t9.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, negative.correct=TRUE, usemotifs=c(1:13), ncores = 7, fdr=0.05, background.order = 3 , pv.adj = "fdr");
+t9.comp <- tfbs.compareTFsite( tfs, file.twoBit_path, dREG_H_change_bed, dREG_all_bed, gc.correct=TRUE, usecluster=hcluster, ncores = 7, fdr=0.05, background.order = 3 , pv.adj = "fdr");
 
 save(t1.comp, t2.comp, t3.comp, t4.comp, t5.comp, t6.comp, t7.comp, t8.comp, t9.comp, tfs, file="tfbs.comp.rdata");
 

@@ -508,8 +508,8 @@ setMethod("tfbs.scanTFsite", c(tfbs="tfbs"), tfbs_scanTFsite );
 ##
 ## see codes in comp_find_sites_rtfbs.R
 setGeneric("tfbs.compareTFsite", 
-    def=function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix = NA, usemotifs = NA, ncores = 3,
-   	              negative.correction = FALSE, fdr = 0.1, threshold = NA, gc.groups=4, background.order = 2, background.length = 100000, pv.adj=p.adjust.methods) {
+    def=function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix = NA, usecluster = NA, ncores = 3,
+   	              gc.correction = FALSE, fdr = 0.1, threshold = NA, gc.groups=4, background.order = 2, background.length = 100000, pv.adj=p.adjust.methods) {
 	  stopifnot(class(tfbs) == "tfbs")
 	  standardGeneric("tfbs.compareTFsite")
 	})

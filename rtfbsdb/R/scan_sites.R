@@ -175,6 +175,8 @@ scanDb_rtfbs <- function(tfbs, file.twoBit, tre.bed, return.type = "matches", fi
 				return(paste(file.prefix,i,".bed.tmp.starch ", sep=""))
 			 }
 		 }
+		 else
+		 	binding <- NULL;
 	  }
 	  
 	  return(binding);

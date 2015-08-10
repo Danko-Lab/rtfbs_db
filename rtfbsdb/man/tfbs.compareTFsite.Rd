@@ -12,9 +12,9 @@ tfbs.compareTFsite(tfbs,
       positive.bed, 
       negative.bed, 
       file.prefix=NA, 
-      usemotifs=NA,
+      usecluster=NA,
       ncores=3,
-      negative.correction=FALSE, 
+      gc.correction=FALSE, 
       fdr=0.1, 
       threshold=NA, 
       gc.groups=4, 
@@ -28,21 +28,24 @@ tfbs.compareTFsite(tfbs,
   \item{positive.bed}{Data frame, bed-formatted TRE loci.}
   \item{negative.bed}{Data frame, bed-formatted background loci.}
   \item{file.prefix}{String, the prefix for outputted BED file, no bed files output if NA }
-  \item{usemotifs}{Vector of index, the index of which motifs are used to compare. All motifs are used if NA. }
+  \item{usecluster}{ Clustering matrix with 2 columns, 1st column is the index of motifs and 2nd column is the group number of clustering. It can be obtained from \code{\link{tfbs.clusterMotifs}}. If no clustering matrix, all motifs are used to do the comparson. see \emph{details} }
   \item{ncores}{Number, comupting nodes in parallel environment.(default=3)}
-  \item{negative.correction}{Logical value, if the difference between positive and negative TREs is significant,the resampling will be applied to the correction for the negative TREs. (default=FALSE) }
+  \item{gc.correction}{Logical value, if the difference between positive and negative TREs is significant,the resampling will be applied to the correction for the negative TREs. (default=FALSE) }
   \item{fdr}{Numeric value between 0 and 1, False Discovery Rate (FDR) of possible binding sites in \code{rtfbs} package, only binding sites with FDR less than this value can be selected.(default=0.1)}
   \item{threshold}{Numeric value, only sites with scores above this threshold are returned, not be used if NA. (default = NA)}
   \item{gc.groups}{Numeric value,indicating number of quantiles to group sequences into in \code{rtfbs} package. (default = 4)}
   \item{background.order}{Number, order of Markov model to build background.(default=2).}
   \item{background.length}{Number, length of the sequence to simulate background.(default=100000).}
-  \item{pv.adj}{String, P-values correct method for \code{p.adjust} function. The available values are "holm", "hochberg", "hommel", "bonferroni", "BH", "BY","fdr" or "none".(default="bonferroni").}
+  \item{pv.adj}{String, P-values correct method for \code{p.adjust} function. The available values are "holm", "hochberg", "hommel", "bonferroni", "BH", "BY","fdr" or "none". (default="bonferroni").}
 }
 \details{
 The difference of GC contents between positive.bed and negative.bed is checked before the comparson. The p-value of Wilcox test and a vioplot figure 
 show this difference and help the user to determine whether the correction is necessary. If the difference is very significant, please set 
 \emph{background.correction} to do background correction by resampling the TREs from negative bed data based on the frequency of TREs in 
-negative bed data.
+negative bed data. \cr
+
+The clustering matix indicates which motifs in the 1st column are slected to do comparson and which clustering group in the 2nd columns are applied to adjust p-values for multiple comparsons. 
+The function applys the p-values adjust for each clustering group. If no clustering information, all motifs in the tfbs object will be selected and adjusted as one group, which is the most conservative method.
 
 }
 \value{
@@ -97,7 +100,7 @@ t1 <- tfbs.compareTFsite( tfs,
       file.twoBit, 
       pos.bed, 
       neg.bed, 
-      negative.correction=TRUE,
+      gc.correction=TRUE,
       ncores = 1); #ncores=3
 
 #Show a brief result

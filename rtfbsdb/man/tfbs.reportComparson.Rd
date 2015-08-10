@@ -12,7 +12,7 @@ tfbs.reportComparson(tfbs, r.comp,
       report.size = "letter", 
       report.title = "", 
       sig.only = TRUE, 
-      pv.cutoff = NA, 
+      pv.cutoff = 0.05, 
       pv.adj = NA)
 }
 \arguments{
