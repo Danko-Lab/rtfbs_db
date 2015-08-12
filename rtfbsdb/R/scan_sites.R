@@ -212,6 +212,10 @@ tfbs_scanTFsite<-function( tfbs, file.twoBit, tre.bed = NULL, return.type="match
 		chromInfo <- chromInfo[grep("_|chrM|chrY|chrX", chromInfo[,1], invert=TRUE),];
 		tre.bed <- data.frame(chrom=chromInfo[,1], chromStart=rep(0)+offset_dist, chromEnd=(chromInfo[,2]-1-offset_dist));
 	}
+	else
+		if( !is.valid.bed(tre.bed) )
+			stop("Wrong format in the parameter of 'tre.bed', at least three columns including chromosome, strat, stop.");
+		
 	
 	if( missing(file.prefix) ) file.prefix="scan.db";
 	if( missing(return.type) ) return.type="matches";
@@ -323,3 +327,40 @@ tfbs.reportFinding<-function( tfbs, r.scan, file.pdf = NA, report.size = "letter
 	}
 }
 
+is.valid.bed<-function( df.bed )
+{
+	if (NCOL(df.bed)<3 )
+	{
+		warning("At least 3 columns in BED file.");
+		return (FALSE);
+	}	
+
+	if (any(is.na(df.bed[,c(1:3)]))) 
+	{
+		warning("NA values in first three columns in BED file.");
+		return (FALSE);
+	}	
+
+	if ( class(df.bed[,3]) != "integer" || class(df.bed[,2]) != "integer" ) 
+	{
+		warning("The 2nd column or 3rd column are not integer in BED file.");
+		return (FALSE);
+	}	
+	
+	if ( any(df.bed[,2] > df.bed[,3])) 
+	{
+		warning("The 2nd column is greater than the 3rd column in BED file.");
+		return (FALSE);
+	}	
+	
+	if ( NCOL(df.bed)==6 )
+	{
+		if (!(unique(df.bed[,6]) %in% c("+", "-", ".")))
+		{
+			warning("Three values are avalaible for the 6th column in BED file, '+', '-' or '.'.");
+			return (FALSE);
+		}	
+	}	
+	
+	return(TRUE);
+}

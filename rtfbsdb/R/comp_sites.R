@@ -324,6 +324,9 @@ tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, fil
 {
     stopifnot(class(tfbs) == "tfbs")
   
+ 	if( !is.valid.bed( positive.bed ) ) stop("Wrong format in the parameter of 'positive.bed', at least three columns including chromosome, strat, stop.");
+    if( !is.valid.bed( negative.bed ) ) stop("Wrong format in the parameter of 'negative.bed', at least three columns including chromosome, strat, stop.");
+ 
     if( !missing(pv.adj)) pv.adj <- match.arg(pv.adj)
     if( missing(pv.adj) ) pv.adj <- "bonferroni";
     if( pv.adj == "fdr" ) pv.adj <- "BH";
