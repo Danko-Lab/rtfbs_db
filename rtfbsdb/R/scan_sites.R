@@ -62,6 +62,9 @@ scan_rtfbs <- function(tf_name, file.twoBit, tre.bed, motif_path, return.posteri
 
 get_binding_site <- function( bgModel1, seq.ms, PWM, return.posteriors, score.threshold=6, fdr.threshold=NA, gc.groups=NA, background.order = 2, background.length = 100000)
 {
+	if ( is.na(score.threshold) &&  is.na(fdr.threshold)) score.threshold <- 6;
+	if (!is.na(score.threshold) && !is.na(fdr.threshold)) score.threshold <- NA;
+
     if( is.na( gc.groups) )	
     {
 	    if(is.na(fdr.threshold))
@@ -77,8 +80,6 @@ get_binding_site <- function( bgModel1, seq.ms, PWM, return.posteriors, score.th
     }
     else
     {
-		if( is.na(score.threshold) ) score.threshold <- 6;
-
         msGroups <- groupByGC.ms( seq.ms, gc.groups);
 
 		bgModels <- lapply(1:length(msGroups), 
@@ -87,7 +88,11 @@ get_binding_site <- function( bgModel1, seq.ms, PWM, return.posteriors, score.th
 		seq.score <- lapply(1:length(msGroups),
 						function(i) { score.ms(msGroups[[i]], PWM, bgModels[[i]], return_posteriors=return.posteriors, threshold=ifelse(!is.na(fdr.threshold), 0, score.threshold));});
 
-		if(!is.na(fdr.threshold))
+		if(is.na(fdr.threshold))
+		{
+			binding <- do.call("rbind", seq.score);
+		}
+		else
 		{
 			simu.ms <- lapply( 1:length(msGroups), 
 							function(i){ simulate.ms(bgModels[[i]], background.length)});
@@ -99,10 +104,6 @@ get_binding_site <- function( bgModel1, seq.ms, PWM, return.posteriors, score.th
 							function(i) { output.sites(seq.score[[i]], fdrScoreMap  = fdrMap[[i]], fdrThreshold = fdr.threshold);} );
 
 			binding <- do.call("rbind", binding);
-		}
-		else
-		{
-			binding <- do.call("rbind", seq.score);
 		}
 	
 	}
@@ -216,13 +217,18 @@ tfbs_scanTFsite<-function( tfbs, file.twoBit, tre.bed = NULL, return.type="match
 		if( !is.valid.bed(tre.bed) )
 			stop("Wrong format in the parameter of 'tre.bed', at least three columns including chromosome, strat, stop.");
 		
-	
+	if( missing(usemotifs)) usemotifs =c(1:tfbs@ntfs);
 	if( missing(file.prefix) ) file.prefix="scan.db";
 	if( missing(return.type) ) return.type="matches";
 	if( missing(ncores) ) ncores= 3;
-	if( missing(threshold) && missing(fdr) ) threshold= 6;
-	if( missing(usemotifs)) usemotifs =c(1:tfbs@ntfs);
 
+	if( missing( fdr) && missing( threshold ) ) threshold <- 6;
+	if( !is.na(fdr) && !is.na( threshold ) )
+	{
+		cat("! Only one of two thresholds is allowed, fdr('fdr') or score('threshold'). The 'fdr' will be effective if both are used.\n");
+		threshold <- NA;
+	}	
+	
 	r.ret <- scanDb_rtfbs( tfbs, file.twoBit, tre.bed, file.prefix = file.prefix, return.type = return.type, usemotifs = usemotifs, ncores = ncores, 
 	                       fdr.threshold = fdr, score.threshold = threshold, gc.groups = gc.groups, background.order = background.order, background.length = background.length ); 
 	

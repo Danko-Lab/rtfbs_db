@@ -15,9 +15,9 @@ tfbs.compareTFsite(tfbs,
       use.cluster=NA,
       ncores=3,
       gc.correction=FALSE, 
-      fdr=0.1, 
-      threshold=NA, 
-      gc.groups=4, 
+      fdr=NA, 
+      threshold=6, 
+      gc.groups=1, 
       background.order=2, 
       background.length=100000, 
       pv.adj = p.adjust.methods)
@@ -31,9 +31,9 @@ tfbs.compareTFsite(tfbs,
   \item{use.cluster}{ Clustering matrix with 2 columns, 1st column is the index of motifs and 2nd column is the group number of clustering. It can be obtained from \code{\link{tfbs.clusterMotifs}}. If no clustering matrix, all motifs are used to do the comparson. see \emph{details} }
   \item{ncores}{Number, comupting nodes in parallel environment.(default=3)}
   \item{gc.correction}{Logical value, if the difference between positive and negative TREs is significant,the resampling will be applied to the correction for the negative TREs. (default=FALSE) }
-  \item{fdr}{Numeric value between 0 and 1, False Discovery Rate (FDR) of possible binding sites in \code{rtfbs} package, only binding sites with FDR less than this value can be selected.(default=0.1)}
-  \item{threshold}{Numeric value, only sites with scores above this threshold are returned, not be used if NA. (default = NA)}
-  \item{gc.groups}{Numeric value,indicating number of quantiles to group sequences into in \code{rtfbs} package. (default = 4)}
+  \item{fdr}{Numeric value between 0 and 1, False Discovery Rate (FDR) of possible binding sites in \code{rtfbs} package, only binding sites with FDR less than this value can be selected.(default=NA)}
+  \item{threshold}{Numeric value, only sites with scores above this threshold are returned, not be used if NA. (default = 6)}
+  \item{gc.groups}{Numeric value,indicating number of quantiles to group sequences into in \code{rtfbs} package. (default = 1)}
   \item{background.order}{Number, order of Markov model to build background.(default=2).}
   \item{background.length}{Number, length of the sequence to simulate background.(default=100000).}
   \item{pv.adj}{String, P-values correct method for \code{p.adjust} function. The available values are "holm", "hochberg", "hommel", "bonferroni", "BH", "BY","fdr" or "none". (default="bonferroni").}

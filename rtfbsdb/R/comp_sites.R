@@ -27,7 +27,7 @@ joint.gc.quantile.bins <- function(set1.ms, set2.ms, n = 4) {
 
 # NOTE: empirical p-values are computed under the assumption that the negative set
 #       is not bound by the specified factor (but is accessible)
-comparative_scan_rtfbs.ms <- function(pwm, positive.ms, negative.ms, background.ms, background.mm, fdr.threshold = 0.1, score.threshold = NA, calc.empirical.pvalue = FALSE) 
+comparative_scan_rtfbs.ms <- function(pwm, positive.ms, negative.ms, background.ms, background.mm, fdr.threshold = NA, score.threshold = NA, calc.empirical.pvalue = FALSE) 
 {
   if (!is.na(fdr.threshold)) 
   {
@@ -94,7 +94,7 @@ comparative_scan_rtfbs.ms <- function(pwm, positive.ms, negative.ms, background.
 
 # NOTE: empirical p-values are computed under the assumption that the negative set
 #       is not bound by the specified factor (but is accessible)
-comparative_scan_rtfbs <- function(pwm, file.twoBit, positive.bed, negative.bed, fdr.threshold = 0.1, score.threshold = NA, gc.groups=4, background.order = 2, background.length = 100000, calc.empirical.pvalue = FALSE) {
+comparative_scan_rtfbs <- function(pwm, file.twoBit, positive.bed, negative.bed, fdr.threshold = NA, score.threshold = NA, gc.groups=1, background.order = 2, background.length = 100000, calc.empirical.pvalue = FALSE) {
   # read sequences
   positive.ms = read.seqfile.from.bed(positive.bed, file.twoBit)
   negative.ms = read.seqfile.from.bed(negative.bed, file.twoBit)
@@ -183,7 +183,7 @@ write.starchbed <- function(bed, filename) {
 }
 
 comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix = NA, use.cluster = NA, ncores = 3, 
-	gc.correction = FALSE, fdr.threshold = 0.1, score.threshold = NA, gc.groups=4, background.order = 2, background.length = 100000, pv.adj = NA ) {
+	gc.correction = FALSE, fdr.threshold = NA, score.threshold = NA, gc.groups=1, background.order = 2, background.length = 100000, pv.adj = NA ) {
   
   stopifnot(class(tfbs) == "tfbs")
   
@@ -320,7 +320,7 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
 }
 
 tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix = NA, use.cluster = NA, ncores = 3,
-	gc.correction = FALSE, fdr = 0.1, threshold = NA, gc.groups=4, background.order = 2, background.length = 100000, pv.adj=p.adjust.methods) 
+	gc.correction = FALSE, fdr = NA, threshold = 6, gc.groups=1, background.order = 2, background.length = 100000, pv.adj=p.adjust.methods) 
 {
     stopifnot(class(tfbs) == "tfbs")
   
@@ -332,11 +332,17 @@ tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, fil
     if( pv.adj == "fdr" ) pv.adj <- "BH";
 
 	if( missing( ncores) ) ncores <- 3;
+	if( missing( gc.groups) ) gc.groups <- 1;
 	if( missing( gc.correction) ) gc.correction <- FALSE;
-	if( missing( fdr) ) fdr <- 0.1;
-	if( missing( threshold ) ) threshold <- NA;
 	if( missing( background.order ) ) background.order <- 2;
 	if( missing( background.length ) ) background.length <- 100000;
+
+	if( missing( fdr) && missing( threshold ) ) threshold <- 6;
+	if( !is.na(fdr) && !is.na( threshold ) )
+	{
+		cat("! Only one of two thresholds is allowed, fdr('fdr') or score('threshold'). The 'fdr' will be effective if both are used.\n");
+		threshold <- NA;
+	}	
 
 	if( !missing( use.cluster) ) 
 	{
