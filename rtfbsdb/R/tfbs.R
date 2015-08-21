@@ -317,7 +317,7 @@ setMethod("tfbs.drawLogo", c(tfbs="tfbs"),
 	  	 groupby <- NULL;
 	  }	 
 
-	  if(!is.na(file.pdf)) pdf(file.pdf); 
+	  if( !is.null(file.pdf) && !is.na(file.pdf) ) pdf(file.pdf); 
 	  
 	  if(is.null(groupby))	
 	  {
@@ -370,7 +370,7 @@ setMethod("tfbs.drawLogo", c(tfbs="tfbs"),
           }
       }
 
-	  if(!is.na(file.pdf)) dev.off(); 
+	  if( !is.null(file.pdf) && !is.na(file.pdf) ) dev.off(); 
 	
 	})
 
@@ -383,11 +383,11 @@ setGeneric("tfbs.drawLogosForClusters",
 setMethod("tfbs.drawLogosForClusters", c(tfbs="tfbs"),
     function(tfbs, cluster.mat, file.pdf=NULL) {
 
-		if( !is.na( file.pdf ) )
+		if(  !is.null(file.pdf) && !is.na(file.pdf) )
 	    	if( !check_folder_writable( file.pdf ) ) 
 	  		    cat("! Can not create pdf file: ",file.pdf, "\n");
 
-		if(!is.na(file.pdf))
+		if( !is.null(file.pdf) && !is.na(file.pdf) )
 		{
 			r.try <- try ( pdf( file.pdf ) );	
 			if(class(r.try)=="try-error")
@@ -456,7 +456,7 @@ setMethod("tfbs.drawLogosForClusters", c(tfbs="tfbs"),
 			}
 		}
 
-		if(!is.na(file.pdf))
+		if( !is.null(file.pdf) && !is.na(file.pdf) )
 			dev.off();	
 	})
 
@@ -487,10 +487,8 @@ setMethod("tfbs.getExpression", c(tfbs="tfbs"), tfbs_getExpression );
 ####################################################
 
 ## find TF sites in the BED range from sequence data file(hg19/hg19.2bit);
+## see codes in scan_sites.R
 ##
-## hg19.2bit : contains the complete hg19 Human Genome
-##
-## see codes in find_sites_rtfbs.R
 setGeneric("tfbs.scanTFsite", 
     def=function( tfbs, file.twoBit, tre.bed = NULL, return.type=c("matches", "posteriors", "maxposterior", "writedb"), file.prefix = NA,  usemotifs = NA, ncores = 3,  
                   fdr = NA, threshold = 6, gc.groups = NA, background.order = 2, background.length = 100000 ) {
@@ -502,14 +500,11 @@ setMethod("tfbs.scanTFsite", c(tfbs="tfbs"), tfbs_scanTFsite );
 
 
 ## Comparative TFBS search between positive BED and negative BED
+## see codes in comp_sites.R
 ##
-##
-## hg19.2bit : contains the complete hg19 Human Genome
-##
-## see codes in comp_find_sites_rtfbs.R
 setGeneric("tfbs.compareTFsite", 
     def=function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix = NA, use.cluster = NA, ncores = 3,
-   	              gc.correction = FALSE, fdr = NA, threshold = 6, gc.groups=1, background.order = 2, background.length = 100000, pv.adj=p.adjust.methods) {
+   	              gc.correction = TRUE, gc.correction.pdf=NA, fdr = NA, threshold = 6, gc.groups=1, background.order = 2, background.length = 100000, pv.adj=p.adjust.methods) {
 	  stopifnot(class(tfbs) == "tfbs")
 	  standardGeneric("tfbs.compareTFsite")
 	})

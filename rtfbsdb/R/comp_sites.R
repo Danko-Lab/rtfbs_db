@@ -183,7 +183,7 @@ write.starchbed <- function(bed, filename) {
 }
 
 comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix = NA, use.cluster = NA, ncores = 3, 
-	gc.correction = FALSE, fdr.threshold = NA, score.threshold = NA, gc.groups=1, background.order = 2, background.length = 100000, pv.adj = NA ) {
+	gc.correction = TRUE, gc.correction.pdf = NA, fdr.threshold = NA, score.threshold = NA, gc.groups=1, background.order = 2, background.length = 100000, pv.adj = NA ) {
   
   stopifnot(class(tfbs) == "tfbs")
   
@@ -220,7 +220,7 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
   # if the difference is significant, make a correction for the negative TREs 
   # based on the resampling method.	
   
-  r.bgchk <- background.check( gc.pos, gc.neg, gc.correction, file.prefix )
+  r.bgchk <- background.check( gc.pos, gc.neg, gc.correction, gc.correction.pdf )
   if(!is.null(r.bgchk))
   {
      gc.neg <- gc.neg[ r.bgchk ];
@@ -320,7 +320,7 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, positive.bed, negative.
 }
 
 tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, file.prefix = NA, use.cluster = NA, ncores = 3,
-	gc.correction = FALSE, fdr = NA, threshold = 6, gc.groups=1, background.order = 2, background.length = 100000, pv.adj=p.adjust.methods) 
+	gc.correction = TRUE, gc.correction.pdf=NA, fdr = NA, threshold = 6, gc.groups=1, background.order = 2, background.length = 100000, pv.adj=p.adjust.methods) 
 {
     stopifnot(class(tfbs) == "tfbs")
   
@@ -352,7 +352,7 @@ tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, fil
 			stop("The first column of 'use.cluster' exceed the range of motif data set.");
 	}
 	else
-		mat.cluster <- cbind( 1:tfbs@ntfs, NA);
+		mat.cluster <- cbind( 1:tfbs@ntfs, 1);
 	
 	ret <- comparative_scanDb_rtfbs( tfbs, 
 		file.twoBit, 
@@ -362,6 +362,7 @@ tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, fil
 		use.cluster = mat.cluster,
 		ncores = ncores,
 		gc.correction = gc.correction,
+		gc.correction.pdf = gc.correction.pdf, 
 		fdr.threshold = fdr , 
 		score.threshold = threshold , 
 		gc.groups = gc.groups,
@@ -398,39 +399,49 @@ tfbs_compareTFsite<-function( tfbs, file.twoBit, positive.bed, negative.bed, fil
 	return(r);
 }
 
-background.check<-function( gc.pos, gc.neg, gc.correction, file.prefix=NA )
+background.check<-function( gc.pos, gc.neg, gc.correction, file.pdf.vioplot=NA )
 {
+	pdf.output <- FALSE;
 	gc.test <- wilcox.test(gc.pos, gc.neg, conf.int=TRUE, conf.level=0.9 );
 	
 	# Actually 0.01 is not good for wilcox.test, 
-	if(gc.test$p.value<0.01 )
+	if( gc.test$p.value<0.01 )
 	{
-		cat("! The difference between negative and positive TREs is significant, p-value of Wilcox test:", gc.test$p.value, "\n" );
+		cat("! Difference between GC content in negative and positive TREs (use 'gc.correction.pdf' to see pdf figure):\n"); 
+		cat("  p-value (Wilcoxon-Mann-Whitney test) =", gc.test$p.value, "\n"); 
+		cat("  median/sample size of GC positive =", median(gc.pos), "/", length(gc.pos), "\n"); 
+		cat("  median/sample size of GC negative =", median(gc.neg), "/", length(gc.neg), "\n");
 		
-		if( require(vioplot) )
+		if( !is.null(file.pdf.vioplot) && !is.na( file.pdf.vioplot) && require(vioplot) )
 		{
-			pdf.file <- paste("vioplot.before.correct", file.prefix, "pdf", sep=".");
-			cat("* Please check the vioplot figure to make sure, the vioplot figure: ", pdf.file, "\n" );
-
-			r.try <- try ( pdf(pdf.file) );
+			r.try <- try ( pdf(file.pdf.vioplot) );
 			if( class(r.try) != "try-error" )
 			{
-				vioplot(gc.pos, gc.neg, names=c("Positive", "Negative"));
-				abline(h=median(gc.pos), lty="dotted")
-				dev.off();
+				vioplot( gc.pos, gc.neg, names=c("Positive", "Negative") );
+				abline(h=median(gc.pos), lty="dotted");
+				pdf.output <- TRUE;
 			}
 			else
 				cat("  Failed to output the vioplot figure for the results.\n");
 		}
+		
 	}
 	
-	#No need to do sampling the background data.
-	if( gc.correction==FALSE || gc.test$p.value > 0.01)
+	# No need to do sampling the background data.
+	if( gc.test$p.value > 0.01 || gc.correction==FALSE )
+	{
+		# PDF has not been finished until dev.off(); 
+		if( pdf.output )
+		{
+			dev.off();
+			cat("* Please check the vioplot figure to make sure, the vioplot figure: ", file.pdf.vioplot, "\n" );
+		}
 		return(NULL);
-
+	}
+	
 	if( length(gc.neg)< 5000 )
 	{
-		cat("! Failed to make background correction due to small bed data(size<5000).\n");
+		cat("! Failed to make GC correction due to small bed data(size<5000).\n");
 		return(NULL);
 	}
 	
@@ -471,25 +482,19 @@ background.check<-function( gc.pos, gc.neg, gc.correction, file.prefix=NA )
 
 	indx.bgnew <- resample( gc.pos, gc.neg, n=n.sample)
 	gc.test2 <- wilcox.test(gc.pos, gc.neg[indx.bgnew], conf.int=TRUE, conf.level=0.9 );
-	cat("* After the resampling from negative TREs, sampe size:", n.sample, "p-value of Wilcox test:", gc.test2$p.value, "\n" );
 
-	if( require(vioplot) )
+	cat("* After the resampling from negative TREs:\n"); 
+	cat("  p-value (Wilcoxon-Mann-Whitney test) =", gc.test2$p.value, "\n"); 
+	cat("  median/sample size of GC negative =", median(gc.neg[indx.bgnew]), "/", length(indx.bgnew), "\n");
+
+	if( pdf.output )
 	{
-		pdf.file <- paste("vioplot.after.correct", file.prefix, "pdf", sep=".");
-		cat("* The vioplot figure after correction:", pdf.file, "\n" );
-
-		r.try <- try ( pdf(pdf.file) );
-		if( class(r.try) != "try-error")
-		{
-			vioplot(gc.pos, gc.neg, gc.neg[indx.bgnew], names=c("Positive", "Negative", "Negative.resample")); 
-			abline(h=median(gc.pos), lty="dotted")
-			dev.off()
-		}
-		else
-			cat("  Failed to output the vioplot figure for the results of correction.\n");
-		
+		vioplot(gc.pos, gc.neg, gc.neg[indx.bgnew], names=c("Positive", "Negative", "Negative.resample")); 
+		abline(h=median(gc.pos), lty="dotted")
+		dev.off();
+		cat("* Please check the vioplot figure to make sure, the vioplot figure: ", file.pdf.vioplot, "\n" );
 	}
-	
+
 	## return sampling background.
 	return( indx.bgnew );
 }
@@ -520,7 +525,7 @@ print.tfbs.comparson<-function( x, ..., pv.cutoff=0.05, pv.adj=NA )
 
 adjust.pvale<-function( r.pvalue, use.cluster, pv.adj )
 {
-	# If the cluster is used,...No cluster info ==>  use.cluster[,2]=NA
+	# If the cluster is used,...No cluster info ==>  use.cluster[,2]=1
 	cluster.id <- unique( use.cluster[,2] );
 	for(i in 1:length(cluster.id))
 	{
