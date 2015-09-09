@@ -3,11 +3,12 @@
 \docType{class}
 \alias{tfbs-class}
 \alias{tfbs.clusterMotifs,tfbs-method}
-\alias{tfbs.compareTFsite,tfbs-method}
 \alias{tfbs.drawLogo,tfbs-method}
 \alias{tfbs.drawLogosForClusters,tfbs-method}
-\alias{tfbs.getDistanceMatrix,tfbs-method}
+\alias{tfbs.enrichmentTest,tfbs-method}
 \alias{tfbs.getExpression,tfbs-method}
+\alias{tfbs.importMotifs,tfbs-method}
+\alias{tfbs.selectExpressedMotifs,tfbs-method}
 \alias{tfbs.scanTFsite,tfbs-method}
 \alias{tfbs.selectByGeneExp,tfbs-method}
 \alias{tfbs.selectByRandom,tfbs-method}
@@ -27,18 +28,21 @@ Objects can be created by calls of the function of \code{\link{tfbs.createFromCi
   \item{pwm}{A list including PWM matics.}
   \item{filename}{Vector of PWM filename.}
   \item{mgisymbols}{Unique gene symbols for TF.}
-  \item{extra_info}{Data frame, including extra information for PWMs, it maybe different with motif dataset, default:NULL.}
-  \item{distancematrix}{Distance matrix between motifs returned by \code{\link{tfbs.getDistanceMatrix}}, default:NULL.}
-  \item{expressionlevel}{Data frame indicatig the result of expression level returned by \code{\link{tfbs.getExpression}}, default:NULL. }
+  \item{tf_info}{Data frame, including extra information for all existing PWMs, it maybe different with motif dataset, default:NULL.}
+  \item{tf_missing}{Data frame, including extra information for missing PWMs, it maybe different with motif dataset, default:NULL.}
+  \item{distancematrix}{Distance matrix between motifs returned by \code{\link{tfbs.clusterMotifs}}, default:NULL.}
+  \item{expressionlevel}{Data frame indicatig the result of expression level returned by \code{\link{tfbs.selectExpressedMotifs}} or \code{\link{tfbs.getExpression}}, default:NULL. }
+  \item{cluster}{Matrix with 2 columns returned by \code{\link{tfbs.clusterMotifs}}, 1st column is the index of motifs and 2nd column is the group number of clustering, default:NULL. }
   }
 }
 \section{Methods}{
   \describe{
-    \item{tfbs.getDistanceMatrix}{Calcuate a distance matrix with Pearson's R values}
+    \item{tfbs.importMotifs}{Import the licensed motifs or other missing motifs for tfbs object}
     \item{tfbs.getExpression}{Estimate gene expression of target TF.}
+    \item{tfbs.selectExpressedMotifs}{Select the expressed motifs in GRO-seq, PRO-seq or RNA-seq experimental data.}
     \item{tfbs.clusterMotifs}{Cluster the specified motifs and drawing the heatmap.}
     \item{tfbs.scanTFsite}{Find TF sites from genome data within the BED ranges.}
-    \item{tfbs.compareTFsite}{Comparative TFBS search with the BED ranges}
+    \item{tfbs.enrichmentTest}{Comparative TFBS search with the BED ranges}
     \item{tfbs.selectByGeneExp}{Select the motifs with minimum p-value from each group of clustering.}
     \item{tfbs.selectByRandom}{Select the motifs randomly from each group of clustering.}
     \item{tfbs.drawLogosForClusters}{Draw the motif logos by one group per page. }

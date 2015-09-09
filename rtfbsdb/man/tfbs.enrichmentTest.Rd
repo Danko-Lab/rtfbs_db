@@ -1,5 +1,5 @@
-\name{tfbs.compareTFsite}
-\alias{tfbs.compareTFsite}
+\name{tfbs.enrichmentTest}
+\alias{tfbs.enrichmentTest}
 \title{
 Comparative TS sites between positive and negative TRE loci
 }
@@ -7,17 +7,17 @@ Comparative TS sites between positive and negative TRE loci
 Comparative TS sites between positive and negative TRE loci for all motifs.
 }
 \usage{
-tfbs.compareTFsite(tfbs, 
+tfbs.enrichmentTest(tfbs, 
       file.twoBit, 
       positive.bed, 
       negative.bed, 
       file.prefix=NA, 
-      use.cluster=NA,
-      ncores=3,
+      use.cluster=FALSE,
+      ncores=1,
       gc.correction=TRUE, 
       gc.correction.pdf=NA, 
-      fdr=NA, 
-      threshold=6, 
+      threshold = 6, 
+      threshold.type = c("score", "fdr"),
       gc.groups=1, 
       background.order=2, 
       background.length=100000, 
@@ -30,11 +30,12 @@ tfbs.compareTFsite(tfbs,
   \item{negative.bed}{Data frame, bed-formatted background loci.}
   \item{file.prefix}{String, the prefix for outputted BED file, no bed files output if NA }
   \item{use.cluster}{ Clustering matrix with 2 columns, 1st column is the index of motifs and 2nd column is the group number of clustering. It can be obtained from \code{\link{tfbs.clusterMotifs}}. If no clustering matrix, all motifs are used to do the comparson. see \emph{details} }
-  \item{ncores}{Number, comupting nodes in parallel environment.(default=3)}
+  \item{ncores}{Number, comupting nodes in parallel environment.(default=1)}
   \item{gc.correction}{Logical value, if the difference between positive and negative TREs is significant,the resampling will be applied to the correction for the negative TREs. (default=TRUE) }
   \item{gc.correction.pdf}{String, indicating th pdf file name if the GC correction is checked. (default=NA) }
-  \item{fdr}{Numeric value between 0 and 1, False Discovery Rate (FDR) of possible binding sites in \code{rtfbs} package, only binding sites with FDR less than this value can be selected.(default=NA)}
-  \item{threshold}{Numeric value, only sites with scores above this threshold are returned, not be used if NA. (default = 6)}
+  \item{threshold}{Numeric value, if 'score' is specified in \code{threshold.type}, only binding sites with scores above this threshold are returned, 
+  if 'fdr' is specified in \code{threshold.type}, only binding sites with FDR (False Discovery Rate) less than this value can be selected. Default value is 6 for 'score' and 0.1 for 'fdr'.} 
+  \item{threshold.type}{String value, two options are available. only sites with scores above this threshold are returned, not be used if NA. (default = 'score')}
   \item{gc.groups}{Numeric value,indicating number of quantiles to group sequences into in \code{rtfbs} package. (default = 1)}
   \item{background.order}{Number, order of Markov model to build background.(default=2).}
   \item{background.length}{Number, length of the sequence to simulate background.(default=100000).}
@@ -51,31 +52,32 @@ The function applys the p-values adjust for each clustering group. If no cluster
 
 }
 \value{
-A object with the class name of "tfbs.comparson" will be resturned in this comparson function. It includes one list of parameters \code{parm} and one data frame of results \code{result}.\cr
+A object with the class name of "tfbs.enrichment" will be resturned in this comparson function. It includes one list of parameters \code{parm} and one data frame of results \code{result}.\cr
 
 
 \code{result} is a data frame with the following columns: 
   \item{motif.id}{Motif ID.}
   \item{tf.name}{TF name.}
   \item{Npos}{TF site count found in positive ranges.}
-  \item{Nneg}{TF site count found in negative ranges.}
-  \item{es.ratio}{Enrichment score.}
+  \item{Expected}{TF site count found in negative ranges.}
+  \item{fe.ratio}{Ratio of fold enrichment.}
   \item{pvalue}{p-value calculated by fisher test.}
   \item{pv.adj}{p-value corrected by the multiple correction.}
   \item{starch}{Binary filename of detected TF sites.}
   
-The \code{result} can be outputted to a report by the function \code{\link{tfbs.reportComparson}}. 
+The \code{result} can be outputted to a report by the function \code{\link{tfbs.reportEnrichment}}. 
 
 }
 \seealso{
-\code{\link{print.tfbs.comparson}}, \code{\link{summary.tfbs.comparson}}, \code{\link{tfbs.reportComparson}}.
+\code{\link{print.tfbs.enrichment}}, \code{\link{summary.tfbs.enrichment}}, \code{\link{tfbs.reportEnrichment}}.
 }
 
 \examples{
 
 library(rtfbsdb);
 
-file.twoBit     <- "/local/storage/data/hg19/hg19.2bit"
+#file.twoBit     <- "/local/storage/data/hg19/hg19.2bit"
+file.twoBit     <- "/work/03350/tg826494/data/hg19/hg19.2bit"
 
 db <- CisBP.extdata("Homo_sapiens");
 tfs <- tfbs.createFromCisBP(db, family_name="AP-2");
@@ -83,22 +85,22 @@ tfs <- tfbs.createFromCisBP(db, family_name="AP-2");
 
 #make two dummy BED data frame for positive loci and negative loci
 pos.bed <- data.frame(chr="chr1", 
-		start=round(runif(100,1000000, 2000000)), 
+		start=round(runif(1000,1000000, 2000000)), 
 		stop=0, 
 		name="", 
 		score=0, 
 		strand=".");
-pos.bed$stop <- pos.bed$start + 3000;
+pos.bed$stop <- pos.bed$start + round(runif(1000, 20, 30));
 
 neg.bed <- data.frame(chr="chr1", 
-		start=round(runif(200, 800000, 1800000)), 
+		start=round(runif(8000, 800000, 1800000)), 
 		stop=0, 
 		name="", 
 		score=0, 
 		strand=".");
-neg.bed$stop <- neg.bed$start + round(runif(200, 1000, 3000));
+neg.bed$stop <- neg.bed$start + round(runif(8000, 20, 30));
 
-t1 <- tfbs.compareTFsite( tfs, 
+t1 <- tfbs.enrichmentTest( tfs, 
       file.twoBit, 
       pos.bed, 
       neg.bed, 
@@ -112,10 +114,18 @@ t1;
 show(t1$result);
 
 #Output the result to one pdf report. 
-tfbs.reportComparson(tfs, t1, file.pdf="test-tfbs-comp.pdf", sig.only=FALSE);
+tfbs.reportEnrichment(tfs, t1, file.pdf="test-tfbs-enrich.pdf", sig.only=FALSE);
+
+t2 <- tfbs.enrichmentTest( tfs, 
+      file.twoBit, 
+      pos.bed, 
+      neg.bed, 
+      gc.correction=TRUE,
+      robust.test=3,
+      ncores = 1); #ncores=3
 
 
 }
 \keyword{tfbs object}
-\keyword{Comparing}
+\keyword{Enrichment}
 

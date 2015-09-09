@@ -4,6 +4,7 @@
 \alias{CisBP.db-class}
 \alias{tfbs.createFromCisBP,CisBP.db-method}
 \alias{CisBP.group,CisBP.db-method}
+\alias{CisBP.getTFinformation,CisBP.db-method}
 
 \title{Class \code{"CisBP.db"}}
 \description{
@@ -18,6 +19,7 @@ Objects can be created by calls of the form \code{\link{CisBP.extdata}}, \code{\
     \item{\code{species}:}{String indicating the species name defined in the CisBP dataset.}
     \item{\code{zip.file}:}{String indicating the filename of temporary data file.}
     \item{\code{zip.url}:}{String indicating the download source.}
+    \item{\code{zip.date}:}{String indicating the download date.}
     \item{\code{file.tfinfo}:}{String indicating the TF filename, defulat is TF_Information.txt.}
   }
 }
@@ -28,6 +30,7 @@ Class \code{"\linkS4class{tfbs.db}"}, directly.
   \describe{
     \item{\link{tfbs.createFromCisBP}}{Build a tfbs object by querying the meta file of CisBP dataset and subsetting the results.}
     \item{\link{CisBP.group}}{Get the statistical summary by grouping the field in the CisBP dataset.}
+    \item{\link{CisBP.getTFinformation}}{Get the TF Information stored in the CisBP dataset.}
 	 }
 }
 \references{
@@ -35,7 +38,7 @@ Weirauch, M. T., Yang, A., Albu, M., Cote, A. G., Montenegro-Montero, A., Drewe,
 }
 
 \seealso{
-\code{\link{CisBP.group}}, \code{\link{tfbs.createFromCisBP}}
+\code{\link{CisBP.getTFinformation}}, \code{\link{CisBP.group}}, \code{\link{tfbs.createFromCisBP}}
 }
 \examples{
 showClass("CisBP.db")

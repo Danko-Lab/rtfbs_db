@@ -14,7 +14,7 @@ tfbs.getExpression(tfbs,
       file.twoBit=NA, 
       file.gencode.gtf=NA,
       seq.datatype=NA,
-      ncores =3 )
+      ncores =1 )
 }
 \arguments{
   \item{tfbs}{A tfbs object(\code{"\linkS4class{tfbs}"}).}

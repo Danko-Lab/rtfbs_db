@@ -1,28 +1,3 @@
-# save the chromosme size into one ftable file
-#
-# save_chromosome_size("mm10.2bit", "chrom_info_mm19.tab")
-#
-save_chromosome_size <- function( file.twoBit, file.tab)
-{
-	write.table(get_chromosome_size(file.twoBit), file=file.tab, row.names=F, col.names=F, quote=F);
-}
-
-
-# get chromosome size based on genemo data of 2 bit file.
-#
-# @file.twoBit, e.g. hh19.2bit, mm10.2bit
-#
-get_chromosome_size <- function(file.twoBit)
-{
-	file.tmp <- tempfile();
-
-	system(paste("twoBitInfo", file.twoBit, file.tmp, sep=" "));
-	chromInfo <- read.table( file.tmp );
-	unlink( file.tmp );
-
-	return(chromInfo);
-}
-
 # query read counts of all chromosomes from bigWig file.
 #
 # @bw.plus,     bigWig object
@@ -30,6 +5,7 @@ get_chromosome_size <- function(file.twoBit)
 # @chromInfo    data.frame with 2 columns(chr, size);
 #
 # @return       vector of reads in plus and minus file.
+
 get_reads_from_bigwig <- function( bw.plus, bw.minus, chromInfo )
 {
 	offset_dist <- 250;
@@ -37,24 +13,24 @@ get_reads_from_bigwig <- function( bw.plus, bw.minus, chromInfo )
 	chromInfo <- data.frame(chrom=chromInfo[,1], chromStart=rep(0)+offset_dist, chromEnd=(chromInfo[,2]-1-offset_dist))
 
 	r.bed <- data.frame( seqnames=chromInfo[,1],
-	  	starts=chromInfo[,2],
-	  	ends=chromInfo[,3],
-	  	names=".",
-	  	scores=".",
-	  	strands="+")
-	  	
-   r.plus <- sum(abs(bed6.region.bpQuery.bigWig( bw.plus, bw.minus, r.bed)));
+		starts=chromInfo[,2],
+		ends=chromInfo[,3],
+		names=".",
+		scores=".",
+		strands="+")
+		
+	r.plus <- sum(abs(bed6.region.bpQuery.bigWig( bw.plus, bw.minus, r.bed)));
 
-   r.bed <- data.frame( seqnames=chromInfo[,1],
-	  	starts=chromInfo[,2],
-	  	ends=chromInfo[,3],
-	  	names=".",
-	  	scores=".",
-	  	strands="-")
+	r.bed <- data.frame( seqnames=chromInfo[,1],
+		starts=chromInfo[,2],
+		ends=chromInfo[,3],
+		names=".",
+		scores=".",
+		strands="-")
 
-   r.minus <- sum(abs(bed6.region.bpQuery.bigWig( bw.plus, bw.minus, r.bed)));
+	r.minus <- sum(abs(bed6.region.bpQuery.bigWig( bw.plus, bw.minus, r.bed)));
 
-   return(c(r.plus,r.minus));	  	
+	return(c(r.plus,r.minus));	  	
 }
 
 simple_reduce_bed<-function( r.bed )
@@ -111,7 +87,10 @@ get_bam_reads<-function(file.bam, df.bed )
 		if(class(ts)!="try-error")
 			return(ts[1,1])
 		else	
+		{
+			cat("! Failed to call the samtools command to the read counts.\n");
 			return(NA);
+		}	
 	}
 	else
 	{
@@ -122,12 +101,15 @@ get_bam_reads<-function(file.bam, df.bed )
 		if(class(ts)!="try-error")
 			return(ts[,4])
 		else
+		{
+			cat("! Failed to call the bedtools and sort-bed command to the read counts.\n");
 			return(rep(NA, NROW(df.bed)));
+		}	
 	}
 }
 
 #' Gets expression level of target TF.
-#' USE extra_info$DBID to find gene information encoded by GENCODE V21
+#' USE tf_info$DBID to find gene information encoded by GENCODE V21
 #'
 #' @param tfbs: tfbs object
 #' @param file.bigwig.plus:  bigwig file for strand plus(+)
@@ -141,14 +123,14 @@ get_bam_reads<-function(file.bam, df.bed )
 #'
 #' @return: tfbs.db object with changed expressionlevel;
 
-tfbs_getExpression <- function(tfbs, file.bigwig.plus, file.bigwig.minus, file.bam=NA, file.twoBit=NA, file.gencode.gtf=NA,  seq.datatype=NA, ncores = 3 ) 
+tfbs_getExpression <- function(tfbs, file.bigwig.plus, file.bigwig.minus, file.bam=NA, file.twoBit=NA, file.gencode.gtf=NA,  seq.datatype=NA, ncores = 1 ) 
 {
 	# these dummy statements are setup here to pass R CMD check rtfbsdb --as-cran
 	reads <-NA;
 	lambda <- NA;
 	p.pois <-NA;
 	
-	stopifnot(!is.null(tfbs@extra_info));
+	stopifnot( NROW(tfbs@tf_info)>0 );
 	
 	if( missing(seq.datatype) || is.na(seq.datatype)) seq.datatype <- "GRO-seq";
 	if( seq.datatype=="RNA-seq" && is.na(file.bam) ) 
@@ -156,76 +138,76 @@ tfbs_getExpression <- function(tfbs, file.bigwig.plus, file.bigwig.minus, file.b
 
 	if( seq.datatype!="RNA-seq" && ( is.na(file.bigwig.plus) || is.na(file.bigwig.minus))) 
 		stop("Not specify the plus and minus Bigwig files for GRO-seq or PRO-seq data.");
-   
-    # load gencode RDATA file and set the table of gencode_transcript_ext
-    gencode_transcript_ext <- NULL;
-    if( missing(file.gencode.gtf) || is.na(file.gencode.gtf) )
-    {
-	    # load pre-installed database(GENCODE HUMAN V21)
-	    if (tfbs@species=="Homo_sapiens" || tfbs@species=="human" || tfbs@species=="Human" )
-	    {
-	    	cat("* For Homo_sapiens species, the pre-installed Gencode V21 is used to find expresed TFs.\n");
-	    	load( system.file("extdata", "gencode_v21_transcript_ext.rdata", package="rtfbsdb"), environment() )
-	    }
-	    # load pre-installed database(GENCODE MOUSE V3)
-	    else if (tfbs@species=="Mus_musculus" || tfbs@species=="mouse"  || tfbs@species=="Mouse" )
-	    {
-	    	cat("* For Mus_musculus species, the pre-installed Gencode vM3 is used to find expresed TFs.\n");
-	    	load( system.file("extdata", "gencode_vM3_transcript_ext.rdata", package="rtfbsdb"), environment() )
-	    }
-	    else
-	    	stop("The tfbs object is not calculated from human or mouse data, you need to provide the gencode data for this species.");
-    }
-    else
-    {
-		gencode_transcript_ext <- try( import_gencode( tfbs@species, file.gencode.gtf, seq.datatype=seq.datatype) );
-    	if(is.null(gencode_transcript_ext) || class(gencode_transcript_ext)=="try-error")
-    		stop("Gencode data can not be found in the GTF file specified by the parameter of file.gencode.gtf.");
 
-    	cat("  Gencode file (", file.gencode.gtf, ") has been loaded.\n")
-    }
+	# load gencode RDATA file and set the table of gencode_transcript_ext
+	gencode_transcript_ext <- NULL;
+	if( missing(file.gencode.gtf) || is.na(file.gencode.gtf) )
+	{
+		# load pre-installed database(GENCODE HUMAN V21)
+		if (tfbs@species=="Homo_sapiens" || tfbs@species=="human" || tfbs@species=="Human" )
+		{
+			cat("* For Homo_sapiens species, the pre-installed Gencode V21 is used to find expresed TFs.\n");
+			load( system.file("extdata", "gencode_v21_transcript_ext.rdata", package="rtfbsdb"), environment() )
+		}
+		# load pre-installed database(GENCODE MOUSE V3)
+		else if (tfbs@species=="Mus_musculus" || tfbs@species=="mouse"  || tfbs@species=="Mouse" )
+		{
+			cat("* For Mus_musculus species, the pre-installed Gencode vM3 is used to find expresed TFs.\n");
+			load( system.file("extdata", "gencode_vM3_transcript_ext.rdata", package="rtfbsdb"), environment() )
+		}
+		else
+			stop("The tfbs object is not calculated from human or mouse data, you need to provide the gencode data for this species.");
+	}
+	else
+	{
+		gencode_transcript_ext <- try( import_gencode( tfbs@species, file.gencode.gtf, seq.datatype=seq.datatype) );
+		if(is.null(gencode_transcript_ext) || class(gencode_transcript_ext)=="try-error")
+			stop("Gencode data can not be found in the GTF file specified by the parameter of file.gencode.gtf.");
+
+		cat("  Gencode file (", file.gencode.gtf, ") has been loaded.\n")
+	}
 
 	reads.total <- 0;
 	
-    if(seq.datatype=="GRO-seq" ||seq.datatype=="PRO-seq")
-    {
-    	gencode_transcript_ext <- gencode_transcript_ext[ which(gencode_transcript_ext$V3=="transcript"),];	
-   	    cat("  For", seq.datatype, ",", NROW(gencode_transcript_ext), "items are selected from GENCODE dataset.\n");
-    
-	    # Load bigWig files(minus and plus)
-    	bw.plus  <- try( load.bigWig( file.bigwig.plus ) );
-    	bw.minus <- try( load.bigWig( file.bigwig.minus ) );
+	if(seq.datatype=="GRO-seq" ||seq.datatype=="PRO-seq")
+	{
+		gencode_transcript_ext <- gencode_transcript_ext[ which(gencode_transcript_ext$V3=="transcript"),];	
+		cat("  For", seq.datatype, ",", NROW(gencode_transcript_ext), "items are selected from GENCODE dataset.\n");
+	
+		# Load bigWig files(minus and plus)
+		bw.plus  <- try( load.bigWig( file.bigwig.plus ) );
+		bw.minus <- try( load.bigWig( file.bigwig.minus ) );
 	
 		if( class(bw.plus)=="try-error" || class(bw.minus)=="try-error" )
-    		stop("Failed to load bigwig files.");
+			stop("Failed to load bigwig files.");
 	
 		reads.total <- sum(abs(c(bw.plus$primaryDataSize, bw.minus$primaryDataSize)) );
 
 		if( !is.null(bw.plus) )	try( unload.bigWig( bw.plus ) );
-	    if( !is.null(bw.minus) ) try( unload.bigWig( bw.minus ) );
+		if( !is.null(bw.minus) ) try( unload.bigWig( bw.minus ) );
 		
-	   	cat("*", reads.total, "Reads in", file.bigwig.plus, "and", file.bigwig.minus,"\n");
-    }
+		cat("*", reads.total, "Reads in", file.bigwig.plus, "and", file.bigwig.minus,"\n");
+	}
 	else if(seq.datatype=="RNA-seq")
 	{
-    	gencode_transcript_ext <- gencode_transcript_ext[ which(gencode_transcript_ext$V3=="exon"),];	
-   	    cat("  For", seq.datatype, ",", NROW(gencode_transcript_ext), "items are selected from GENCODE dataset.\n");
+		gencode_transcript_ext <- gencode_transcript_ext[ which(gencode_transcript_ext$V3=="exon"),];	
+		cat("  For", seq.datatype, ",", NROW(gencode_transcript_ext), "items are selected from GENCODE dataset.\n");
 		
 		reads.total <- get_bam_reads( file.bam, NULL );
-	   	cat("*", reads.total, "Reads in", file.bam, ".\n");
+		cat("*", reads.total, "Reads in", file.bam, ".\n");
 	}
 	else
 	{
-   	    cat("!  The function tfbs.getExpression only supports GRO-seq, PRO-seq an RNA-seq data.\n");
+		cat("!  The function tfbs.getExpression only supports GRO-seq, PRO-seq an RNA-seq data.\n");
 		return(tfbs);
 	}
 	
 	r.lambda <- 0.04 * reads.total/10751533/1000 ;
 
-	DBIDs <- unique( as.character(tfbs@extra_info$DBID) );
+	DBIDs <- unique( as.character(tfbs@tf_info$DBID) );
 	if( length(DBIDs)==0 )
 	{
-   	    cat("!  No DBID found in the Gencode file.\n");
+		cat("!  No DBID found in the Gencode file.\n");
 		return(tfbs);
 	}
 	
@@ -234,10 +216,10 @@ tfbs_getExpression <- function(tfbs, file.bigwig.plus, file.bigwig.minus, file.b
 		bw.plus  <- NULL;
 		bw.minus <- NULL;
 		
-	    if(seq.datatype=="GRO-seq" ||seq.datatype=="PRO-seq")
-    	{
-    		bw.plus  <- try( load.bigWig( file.bigwig.plus ) );
-    		bw.minus <- try( load.bigWig( file.bigwig.minus ) );
+		if(seq.datatype=="GRO-seq" ||seq.datatype=="PRO-seq")
+		{
+			bw.plus  <- try( load.bigWig( file.bigwig.plus ) );
+			bw.minus <- try( load.bigWig( file.bigwig.minus ) );
 		}
 		
 		r.bed.list <- lapply( i.from:i.to, function(i) {
@@ -295,8 +277,8 @@ tfbs_getExpression <- function(tfbs, file.bigwig.plus, file.bigwig.minus, file.b
 		colnames(df.exp) <- c("dbid", "chr", "start", "end", "length", "strand", "reads","lambda", "p.pois");
 
 		if( !is.null(bw.plus) )	try( unload.bigWig( bw.plus ) );
-	    if( !is.null(bw.minus) ) try( unload.bigWig( bw.minus ) );
-	    
+		if( !is.null(bw.minus) ) try( unload.bigWig( bw.minus ) );
+		
 		return( df.exp );	
 	}
 
@@ -308,8 +290,8 @@ tfbs_getExpression <- function(tfbs, file.bigwig.plus, file.bigwig.minus, file.b
 	}, mc.cores = ncores )
 
 	df.exp0 <- do.call( rbind, df.exp );
-	df.idx  <- match( as.character(tfbs@extra_info$DBID), as.character(df.exp0$dbid) )
-	df.exp  <- cbind( tfbs@extra_info$Motif_ID, df.exp0[df.idx,,drop=F] );
+	df.idx  <- match( as.character(tfbs@tf_info$DBID), as.character(df.exp0$dbid) )
+	df.exp  <- cbind( tfbs@tf_info$Motif_ID, df.exp0[df.idx,,drop=F] );
 	colnames(df.exp) <- c("Motif_ID", "DBID", "chr", "start", "end", "length", "strand", "reads", "lambda", "p.pois" );
 	
 	df.exp <- transform( df.exp, 
@@ -345,9 +327,17 @@ import_gencode <-function( species, file.gencode.gtf, seq.datatype=NA )
 		awk.cmd <- paste( "zcat ",file.gencode.gtf," | awk '($3==\"", V3.type, "\"){gsub( /\\\";?/, \"\", $10);gsub( /\\\";?/, \"\", $18);print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$18}' ", sep="");
 		
 	bigdf <- read.table( pipe(awk.cmd), header = F );
-	colnames(bigdf) <- c("V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "same", "gene_id");
-	
-	return(bigdf);
+
+	if( exists("bigdf") && !is.null(bigdf) && !is.na(bigdf) )
+	{
+		colnames(bigdf) <- c("V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "same", "gene_id");
+		return(bigdf);
+	}
+	else
+	{
+		cat("! Failed to call awk command to get the reduced gencode file.\n");	
+		return(NULL);
+	}
 }
 
 # make_gencode_rdata( "human", "gencode.v22.annotation.gtf", "gencode.v22.rdata")
@@ -441,29 +431,66 @@ make_gencode_rdata <-function( species, file.gencode.gtf, ncores = 1)
 	return(gencode_transcript_ext);
 }
 
-
-tfbs.selectExpressed<-function( tfs, prob.sig=0.05, include.DBID.Missing=FALSE )
+tfbs_selectExpressedMotifs <- function( tfbs, file.bigwig.plus, 
+							file.bigwig.minus, 
+							file.bam = NA, 
+							file.twoBit = NA, 
+							file.gencode.gtf = NA, 
+							seq.datatype = NA, 
+							pvalue.threshold = 0.05, 
+							include.DBID.missing = TRUE, 
+							ncores = 1)
 {
-	if( include.DBID.Missing )
-		tf.expresed <- which( tfs@expressionlevel$p.pois<=prob.sig | is.na(tfs@expressionlevel$p.pois) )
-	else
-		tf.expresed <- which( tfs@expressionlevel$p.pois<=prob.sig );
-		
-	if(length(tf.expresed)>0)
+	selectExpressed<-function( tfs, prob.sig=0.05, include.DBID.Missing=FALSE )
 	{
-		tfs@expressionlevel <- tfs@expressionlevel[ tf.expresed,,drop=F ];
-		tfs@extra_info      <- tfs@extra_info[ tf.expresed,,drop=F ];
-		tfs@mgisymbols      <- tfs@mgisymbols[ tf.expresed ];
-		tfs@filename        <- tfs@filename[ tf.expresed ];
-		tfs@pwm             <- tfs@pwm[ tf.expresed ];
-		tfs@TFID            <- tfs@TFID[ tf.expresed ];
-		tfs@distancematrix  <- tfs@distancematrix[ tf.expresed, tf.expresed, drop=F];
+		if( include.DBID.Missing )
+			tf.expresed <- which( tfs@expressionlevel$p.pois<=prob.sig | is.na(tfs@expressionlevel$p.pois) )
+		else
+			tf.expresed <- which( tfs@expressionlevel$p.pois<=prob.sig );
 
-		cat("* After filtering by the gene expression,", length(tf.expresed), "expressed TFs are selected from", tfs@ntfs, "PWM files.\n"); 
-		tfs@ntfs            <- length(tf.expresed);
-		
-		
+		if(length(tf.expresed)>0)
+		{
+			tfs@expressionlevel <- tfs@expressionlevel[ tf.expresed,,drop=F ];
+			tfs@tf_info         <- tfs@tf_info[ tf.expresed,,drop=F ];
+			tfs@mgisymbols      <- tfs@mgisymbols[ tf.expresed ];
+			tfs@filename        <- tfs@filename[ tf.expresed ];
+			tfs@pwm             <- tfs@pwm[ tf.expresed ];
+			# tfs@TFID          <- tfs@TFID[ tf.expresed ];
+			tfs@distancematrix  <- tfs@distancematrix[ tf.expresed, tf.expresed, drop=F];
+			tfs@cluster         <- matrix(, nrow=0, ncol=0);
+
+			cat("* After filtering by the gene expression,", length(tf.expresed), 
+				"expressed TFs are selected from", tfs@ntfs, "PWM files.\n"); 
+				
+			tfs@ntfs            <- length(tf.expresed);
+		}
+
+		return(tfs);
 	}
-	
-	return(tfs);
+
+	if( missing(seq.datatype)) seq.datatype <- "GRO-seq";
+	if( !(seq.datatype %in% c("GRO-seq", "PRO-seq", "RNA-seq") ) )
+		stop("Only GRO-seq, PRO-seq and RNA-seq data can use this package.");
+
+	if( seq.datatype != "RNA-seq" && ( missing(file.bigwig.plus) || missing(file.bigwig.minus) ) )
+		stop("Bigwig files are necessary for GRO-seq and PRO-seq.");
+
+	if( seq.datatype == "RNA-seq" && missing(file.bam) )
+		stop("Indexed Bam file is necessary for RNA-seq.");
+
+	tfs <- tfbs.getExpression( tfs, 
+								file.bigwig.plus, 
+								file.bigwig.minus, 
+								file.bam = file.bam, 
+								file.twoBit = file.twoBit, 
+								file.gencode.gtf = file.gencode.gtf, 
+								seq.datatype = seq.datatype, 
+								ncores = ncores  );
+								
+	if( NROW( tfs@expressionlevel ) > 0 )
+		tfs <- selectExpressed( tfs, pvalue.threshold, include.DBID.missing )
+	else
+		cat("! Failed to calculate the gene expression and select expressed TFs.\n");
+		
+	return(tfs);	
 }

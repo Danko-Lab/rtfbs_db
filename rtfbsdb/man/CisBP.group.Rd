@@ -10,7 +10,7 @@ Get the statistical summary by grouping the field in the CisBP dataset.
 CisBP.group(cisbp.db, 
       group.by=c("tf_name", "tf_species", "tf_status", "family_name", 
             "motif_type", "msource_id"), 
-      tf.information.type=1)
+      tf.information.type=NA )
 }
 \arguments{
   \item{cisbp.db}{ A CisBP object (\code{"\linkS4class{CisBP.db}"}) including the TF_Information.txt.}

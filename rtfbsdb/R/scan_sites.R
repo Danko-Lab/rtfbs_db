@@ -9,16 +9,18 @@
 #' @param bed data.frame with bed regions
 #' @param len extension in bp
 #' @return extended bed data.frame
-extend.bed <- function(bed, len) {
-  starts = as.integer(bed[,2] - len)
-  ends = as.integer(bed[,3] + len)
-  
-  N = dim(bed)[2]
-  if (N == 3) {
-    data.frame(bed[,1], starts, ends)
-  } else {
-    data.frame(bed[,1], starts, ends, bed[, 4:N])
-  }
+
+extend.bed <- function( bed, len ) 
+{
+	starts = as.integer(bed[,2] - len)
+	ends = as.integer(bed[,3] + len)
+
+	N = dim(bed)[2]
+	if (N == 3) {
+		data.frame(bed[,1], starts, ends)
+	} else {
+		data.frame(bed[,1], starts, ends, bed[, 4:N])
+	}
 }
 
 #` Returns the posterior probability of TF binding, conditional on the data passed as part of the function.
@@ -26,67 +28,83 @@ extend.bed <- function(bed, len) {
 #` Optionally takes additional parameters passed through to score.ms.
 #`
 #` @param tf_name name of the TF.
-#` @param tre.bed bed-formatted peak information.
+#` @param gen.bed bed-formatted peak information.
 #` @param motif_path path to the motif PWM file.
 #` @param divide_num List of parameters for all data types, for the model representing no TF binding.
 #` @return List structure representing the match score to the motif.
-scan_rtfbs <- function(tf_name, file.twoBit, tre.bed, motif_path, return.posteriors=TRUE, ...) {
-  ## Read the pwm and sequence file.
-  motif <- read.motif(motif_path, header=TRUE) 
-  
-  ## Write out new fasta file, adding on half-width of the motif, to correctly align motif center ...
-  half_width <- ceiling( (NROW(motif)-1)/2 );
-  extBed = extend.bed( tre.bed, half_width - 1 );
-  dnase_peaks = read.seqfile.from.bed( extBed, file.twoBit );
 
-  ## Swiched rtfbs to returning posteriors.
-  bgModel <- build.mm(dnase_peaks, 3);
+scan_rtfbs <- function( tf_name, file.twoBit, gen.bed, motif_path, return.posteriors=TRUE, ...) 
+{
+	## Read the pwm and sequence file.
+	motif <- read.motif(motif_path, header=TRUE) 
 
-  ## Switch to rtfbsPost to return proper data structure.
-  binding <- score.ms(dnase_peaks, motif, bgModel, return_posteriors=return.posteriors, ...) ;
-  
-  if(return.posteriors == FALSE) { ## Parse binding site into genomic coordinates.
-    spl <- strsplit(as.character(binding$seqname), ":|-")
-    peak_chrom <- as.character(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[1]]}))
-    peak_start <- as.integer(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[2]]}))
-	binding <- data.frame(chrom= peak_chrom, 
-							chromStart= peak_start+ binding$start, 
-							chromEnd= peak_start+ binding$end, 
-							name= binding$seqname,
-							score= binding$score,
-							strand= binding$strand);
-  }
-  
-  return(binding);
+	## Write out new fasta file, adding on half-width of the motif, to correctly align motif center ...
+	half_width <- ceiling( (NROW(motif)-1)/2 );
+	extBed = extend.bed( gen.bed, half_width - 1 );
+	dnase_peaks = read.seqfile.from.bed( extBed, file.twoBit );
+
+	## Swiched rtfbs to returning posteriors.
+	bgModel <- build.mm(dnase_peaks, 3);
+
+	## Switch to rtfbsPost to return proper data structure.
+	binding <- score.ms(dnase_peaks, motif, bgModel, return_posteriors=return.posteriors, ...) ;
+
+	## Parse binding site into genomic coordinates.
+	if(return.posteriors == FALSE) 
+	{ 
+		spl <- strsplit(as.character(binding$seqname), ":|-")
+		peak_chrom <- as.character(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[1]]}))
+		peak_start <- as.integer(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[2]]}))
+		binding <- data.frame(  chrom      = peak_chrom, 
+								chromStart = peak_start+ binding$start, 
+								chromEnd   = peak_start+ binding$end, 
+								name       = binding$seqname,
+								score      = binding$score,
+								strand     = binding$strand);
+	}
+
+	return(binding);
 }
 
-get_binding_site <- function( bgModel1, seq.ms, PWM, return.posteriors, score.threshold=6, fdr.threshold=NA, gc.groups=NA, background.order = 2, background.length = 100000)
+get_binding_site <- function( bgModel1, 
+							seq.ms, 
+							PWM, 
+							return.posteriors, 
+							score.threshold = 6, 
+							fdr.threshold = NA, 
+							gc.groups = NA, 
+							background.order = 2, 
+							background.length = 100000)
 {
 	if ( is.na(score.threshold) &&  is.na(fdr.threshold)) score.threshold <- 6;
 	if (!is.na(score.threshold) && !is.na(fdr.threshold)) score.threshold <- NA;
 
-    if( is.na( gc.groups) )	
-    {
-	    if(is.na(fdr.threshold))
-            binding <- score.ms( seq.ms, PWM, bgModel1, return_posteriors=return.posteriors, threshold=score.threshold )
-	    else
-	    {
-            seq.score <- score.ms( seq.ms, PWM, bgModel1, return_posteriors=return.posteriors, threshold=0 );	    
+	if( is.na( gc.groups) )	
+	{
+		if(is.na(fdr.threshold))
+			binding <- score.ms( seq.ms, PWM, bgModel1, return_posteriors=return.posteriors, threshold=score.threshold )
+		else
+		{
+			seq.score <- score.ms( seq.ms, PWM, bgModel1, return_posteriors=return.posteriors, threshold=0 );	    
 			simu.ms   <- simulate.ms( bgModel1, background.length );
 			simu.score<- score.ms( simu.ms, PWM, bgModel1, threshold=0 );		
-            fdrMap    <- calc.fdr( seq.ms, seq.score, simu.ms, simu.score );
-            binding   <- output.sites( seq.score, fdrScoreMap  = fdrMap, fdrThreshold = fdr.threshold);
-	    }	    	
-    }
-    else
-    {
-        msGroups <- groupByGC.ms( seq.ms, gc.groups);
+			fdrMap    <- calc.fdr( seq.ms, seq.score, simu.ms, simu.score );
+			binding   <- output.sites( seq.score, fdrScoreMap  = fdrMap, fdrThreshold = fdr.threshold);
+		}	    	
+	}
+	else
+	{
+		msGroups <- groupByGC.ms( seq.ms, gc.groups);
 
 		bgModels <- lapply(1:length(msGroups), 
 						function(i) { build.mm(msGroups[[i]], background.order) } );
 
 		seq.score <- lapply(1:length(msGroups),
-						function(i) { score.ms(msGroups[[i]], PWM, bgModels[[i]], return_posteriors=return.posteriors, threshold=ifelse(!is.na(fdr.threshold), 0, score.threshold));});
+						function(i) { score.ms(msGroups[[i]], 
+												PWM, 
+												bgModels[[i]], 
+												return_posteriors=return.posteriors, 
+												threshold=ifelse(!is.na(fdr.threshold), 0, score.threshold));});
 
 		if(is.na(fdr.threshold))
 		{
@@ -118,131 +136,184 @@ get_binding_site <- function( bgModel1, seq.ms, PWM, return.posteriors, score.th
 ## posteriors 	-- returns the posteriors at each position.
 ## maxposterior	-- returns the max(posterior) in each dnase-1 peak.
 
-scanDb_rtfbs <- function(tfbs, file.twoBit, tre.bed, return.type = "matches", file.prefix = NA, usemotifs = NA, ncores = 3, fdr.threshold = NA, score.threshold = 6, gc.groups = NA, background.order = 2, background.length = 100000,...) {
-  stopifnot(class(tfbs) == "tfbs")
+scanDb_rtfbs <- function(tfbs, 
+						file.twoBit, 
+						gen.bed, 
+						return.type = "matches", 
+						file.prefix = NA, 
+						usemotifs = NA, 
+						ncores = 1, 
+						fdr.threshold = NA, 
+						score.threshold = 6, 
+						gc.groups = NA, 
+						background.order = 2, 
+						background.length = 100000,...) 
+{
+	stopifnot(class(tfbs) == "tfbs")
 
-  if( !is.na(file.prefix))
-  	if( !check_folder_writable( file.prefix ) ) 
-  	  stop(paste("Can not create files starting with the prefix:", file.prefix));
+	if( !is.na(file.prefix))
+		if( !check_folder_writable( file.prefix ) ) 
+			stop(paste("Can not create files starting with the prefix:", file.prefix));
 
-  ## Read in the DNAse-1 peaks ...
-  half_width=15 ## Max size of TF in set of 1800 is 30 (half-width = 15).
-  options("scipen"=100, "digits"=4)
+	## Read in the DNAse-1 peaks ...
+	half_width = 15 ## Max size of TF in set of 1800 is 30 (half-width = 15).
+	options("scipen"=100, "digits"=4)
 
-  extBed  <- extend.bed( tre.bed, half_width - 1)
-  seq.ms  <- read.seqfile.from.bed( extBed, file.twoBit);
-  bgModel <- build.mm( seq.ms, 3);
+	extBed  <- extend.bed( gen.bed, half_width - 1)
+	seq.ms  <- read.seqfile.from.bed( extBed, file.twoBit);
+	bgModel <- build.mm( seq.ms, 3);
 
-  ## Swiched rtfbs to returning posteriors.
-  return.posteriors <- ( return.type=="posteriors" | return.type=="maxposterior" )
+	## Swiched rtfbs to returning posteriors.
+	return.posteriors <- ( return.type=="posteriors" | return.type=="maxposterior" )
 
-  binding_all <- mclapply(usemotifs, function(i, ...) {
-	  
-	  binding<- NULL;
-	  
-	  ## Read the pwm and sequence file.
-	  PWM <- tfbs@pwm[[i]];
+	binding_all <- mclapply(usemotifs, function(i, ...) {
+		binding<- NULL;
+	
+		## Read the pwm and sequence file.
+		PWM <- tfbs@pwm[[i]];
 		
-	  ## Parse binding site into genomic coordinates.	
-      if( return.type == "maxposterior" || return.type == "posteriors") 
-      { 
-         binding <- score.ms( seq.ms, PWM, bgModel, return_posteriors=TRUE, threshold = score.threshold );
+		## Parse binding site into genomic coordinates.	
+		if( return.type == "maxposterior" || return.type == "posteriors") 
+		{ 
+			binding <- score.ms( seq.ms, PWM, bgModel, return_posteriors=TRUE, threshold = score.threshold );
 
-    	 if( return.type == "maxposterior"&& NROW(binding) > 0)
-	    	 return(sapply(1:NROW(binding), function(x) { 
-	        	max(c(binding[[x]]$MotifModel$Forward - binding[[x]]$Background, binding[[x]]$MotifModel$Reverse - binding[[x]]$Background)) }));
-      }
+			if( return.type == "maxposterior"&& NROW(binding) > 0)
+				return(sapply(1:NROW(binding), function(x) { 
+					max(c(binding[[x]]$MotifModel$Forward - binding[[x]]$Background, binding[[x]]$MotifModel$Reverse - binding[[x]]$Background)) }));
+		}
 
-	  ## Parse binding site into genomic coordinates.
-	  if(return.posteriors == FALSE ) 
-	  { 
-		 binding <- get_binding_site( bgModel, seq.ms, PWM, FALSE, score.threshold = score.threshold, fdr.threshold = fdr.threshold, gc.groups=gc.groups, background.order = 2, background.length = 100000 );
+		## Parse binding site into genomic coordinates.
+		if(return.posteriors == FALSE ) 
+		{ 
+			binding <- get_binding_site( bgModel, 
+							seq.ms, 
+							PWM, 
+							FALSE, 
+							score.threshold = score.threshold, 
+							fdr.threshold = fdr.threshold, 
+							gc.groups = gc.groups, 
+							background.order = 2, 
+							background.length = 100000 );
 
-         if( NROW(binding) > 0 )
-         {
-			 spl <- strsplit(as.character(binding$seqname), ":|-")
-			 peak_chrom <- as.character(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[1]]}))
-			 peak_start <- as.integer(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[2]]}))
+			if( NROW(binding) > 0 )
+			{
+				spl <- strsplit(as.character(binding$seqname), ":|-")
+				peak_chrom <- as.character(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[1]]}))
+				peak_start <- as.integer(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[2]]}))
 
-			 binding <- data.frame(chrom= peak_chrom, 
-									chromStart= peak_start+ binding$start- 1,  ## -1 determined empirically.
-									chromEnd= peak_start+ binding$end, 
-									name= tfbs@mgisymbols[i], # binding$motif_id
-									score= binding$score,
-									strand= binding$strand)
+				binding <- data.frame(  chrom      = peak_chrom, 
+										chromStart = peak_start+ binding$start- 1,  ## -1 determined empirically.
+										chromEnd   = peak_start+ binding$end, 
+										name       = tfbs@mgisymbols[i], # binding$motif_id
+										score      = binding$score,
+										strand     = binding$strand)
 
-			 if(return.type == "writedb") {
-				write.table(binding, file= pipe(paste(" sort-bed - | starch - > ",file.prefix,i,".bed.tmp.starch", sep="")),  quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t")
-				return(paste(file.prefix,i,".bed.tmp.starch ", sep=""))
-			 }
-		 }
-		 else
-		 	binding <- NULL;
-	  }
-	  
-	  return(binding);
-  }, mc.cores= ncores)
+				if(return.type == "writedb") {
+					file.starch <- paste(file.prefix,i,".bed.tmp.starch", sep="");
+					write.starchbed(binding, file.starch);
+					return(file.starch);
+				}
+			}
+			else
+				binding <- NULL;
+		}
+	
+		return(binding);
+	}, mc.cores= ncores)
 
-  if(return.type == "writedb") 
-  {
-     cat_files <- paste(unlist(binding_all), collapse=" ")
-     system(paste("starchcat ", cat_files, " > ",file.prefix,".db.starch", sep=""))
-     system(paste("rm ",file.prefix,"*.bed.tmp.starch",sep=""))
-     binding_all <- paste(file.prefix,".db.starch", sep="")
-  }
-  
-  if(return.type == "maxposterior") 
-  {
-     binding_all <- matrix(unlist(binding_all), nrow= NROW(tre.bed), ncol= NROW(usemotifs))
-  }
+	if(return.type == "writedb") 
+	{
+		cat_files <- paste(unlist(binding_all), collapse=" ");
+		binding_all <- paste(file.prefix,".db.starch", sep="");
 
-  return(binding_all)
+		err_code <- system(paste("starchcat ", cat_files, " > ", binding_all, sep=""));
+		if( err_code != 0 )
+			warning("Failed to call the starchcat command to generate starch file.\n");
+
+		system(paste("rm ",file.prefix,"*.bed.tmp.starch",sep=""))
+	}
+
+	if(return.type == "maxposterior") 
+	{
+		binding_all <- matrix(unlist(binding_all), nrow= NROW(gen.bed), ncol= NROW(usemotifs))
+	}
+
+	return(binding_all)
 }
 
 # ncores=3 for 4 cores CPU.
 
-tfbs_scanTFsite<-function( tfbs, file.twoBit, tre.bed = NULL, return.type="matches", file.prefix = NA,  usemotifs = NA, ncores = 3, fdr = NA, threshold = 6, gc.groups = NA, background.order = 2, background.length = 100000 )
+tfbs_scanTFsite<-function( tfbs, file.twoBit, 
+							gen.bed = NULL, 
+							return.type="matches", 
+							file.prefix = NA,  
+							usemotifs = NA, 
+							ncores = 1, 
+							threshold = 6, 
+							threshold.type = c("score", "fdr"), 
+							gc.groups = NA, 
+							background.order = 2, 
+							background.length = 100000 )
 {
-    stopifnot(class(tfbs) == "tfbs")
+	stopifnot(class(tfbs) == "tfbs")
 
-	if( missing(tre.bed) )
+	if( missing(gen.bed) && (return.type == "posteriors" || return.type == "maxposterior" ) )
+		stop("The option 'posteriors' or 'maxposterior' need a specified genomic location.");
+
+	if( missing(gen.bed) )
 	{
 		chromInfo <- get_chromosome_size( file.twoBit );
 
 		offset_dist <- 250;
 		chromInfo <- chromInfo[grep("_|chrM|chrY|chrX", chromInfo[,1], invert=TRUE),];
-		tre.bed <- data.frame(chrom=chromInfo[,1], chromStart=rep(0)+offset_dist, chromEnd=(chromInfo[,2]-1-offset_dist));
+		gen.bed <- data.frame(chrom=chromInfo[,1], chromStart=rep(0)+offset_dist, chromEnd=(chromInfo[,2]-1-offset_dist));
 	}
 	else
-		if( !is.valid.bed(tre.bed) )
-			stop("Wrong format in the parameter of 'tre.bed', at least three columns including chromosome, strat, stop.");
+		if( !check_bed(gen.bed) )
+			stop("Wrong format in the parameter of 'gen.bed', at least three columns including chromosome, strat, stop.");
 		
 	if( missing(usemotifs)) usemotifs =c(1:tfbs@ntfs);
 	if( missing(file.prefix) ) file.prefix="scan.db";
 	if( missing(return.type) ) return.type="matches";
-	if( missing(ncores) ) ncores= 3;
+	if( missing(ncores) ) ncores= 1;
 
-	if( missing( fdr) && missing( threshold ) ) threshold <- 6;
-	if( !is.na(fdr) && !is.na( threshold ) )
-	{
-		cat("! Only one of two thresholds is allowed, fdr('fdr') or score('threshold'). The 'fdr' will be effective if both are used.\n");
-		threshold <- NA;
-	}	
+	score.threshold <- NA;
+	fdr.threshold   <- NA;
+	if( missing( threshold.type ) ) threshold.type <- "score";
+	if( threshold.type == "score" )
+		if( missing( threshold ) ) 
+			score.threshold <- 6
+		else
+			score.threshold <- threshold ;
+			
+	if( threshold.type == "fdr" )
+		if( missing( threshold ) ) 
+			fdr.threshold <- 0.1
+		else
+			fdr.threshold <- threshold ;
+
+	r.ret <- scanDb_rtfbs( tfbs, file.twoBit,
+					gen.bed, 
+					file.prefix      = file.prefix, 
+					return.type      = return.type, 
+					usemotifs        = usemotifs, 
+					ncores           = ncores, 
+					fdr.threshold    = fdr.threshold, 
+					score.threshold  = score.threshold, 
+					gc.groups        = gc.groups, 
+					background.order = background.order, 
+					background.length = background.length ); 
 	
-	r.ret <- scanDb_rtfbs( tfbs, file.twoBit, tre.bed, file.prefix = file.prefix, return.type = return.type, usemotifs = usemotifs, ncores = ncores, 
-	                       fdr.threshold = fdr, score.threshold = threshold, gc.groups = gc.groups, background.order = background.order, background.length = background.length ); 
-	
-	r.parm <- list(file.twoBit = file.twoBit, 
-				  file.prefix = file.prefix,  
-				  return.type = return.type, 
-				  usemotifs   = usemotifs, 
-				  ncores      = ncores,  
-				  fdr         = fdr, 
-				  threshold   = threshold, 
-				  gc.groups   = gc.groups, 
-				  background.order = background.order, 
-				  background.length = background.length);
-	
+	r.parm <- list(file.twoBit       = file.twoBit, 
+					file.prefix      = file.prefix,  
+					return.type      = return.type, 
+					usemotifs        = usemotifs, 
+					ncores           = ncores,  
+					gc.groups        = gc.groups, 
+					threshold        = ifelse(threshold.type=="score", score.threshold, fdr.threshold ),
+					threshold.type   = threshold.type, 
+					background.order = background.order, 
+					background.length = background.length);
 	
 	sum.match <- NULL;
 	if( return.type == "matches" )
@@ -252,17 +323,16 @@ tfbs_scanTFsite<-function( tfbs, file.twoBit, tre.bed = NULL, return.type="match
 				if (NROW(x)==0) return(NULL);
 
 				tf.name <- "";
-				tf.idx  <- which( as.character(tfbs@extra_info$Motif_ID) == as.character(x$name[1]) );
+				tf.idx  <- which( as.character(tfbs@tf_info$Motif_ID) == as.character(x$name[1]) );
 				if( length(tf.idx)>0)
-					tf.name <- tfbs@extra_info$TF_Name[tf.idx[1]];
+					tf.name <- tfbs@tf_info$TF_Name[tf.idx[1]];
 				return( data.frame( x$name[1], tf.name, NROW(x) ) );
 		} ) );
 		
 		colnames(sum.match) <- c("TF_Name", "Motif_ID", "Count");
 	}
 
-	
-	r.scan <- list( parm = r.parm, bed = tre.bed, result = r.ret, summary=sum.match );
+	r.scan <- list( parm = r.parm, bed = gen.bed, result = r.ret, summary=sum.match );
 	class( r.scan ) <- c( class(r.scan), "tfbs.finding");
 	
 	return( r.scan );
@@ -273,8 +343,8 @@ print.tfbs.finding<-function(x, ...)
 	r.scan <- x;
 	 
 	cat("Return type: ", r.scan$parm$return.type, "\n");
-	cat("FDR threshold: ", r.scan$parm$fdr, "\n");
-	cat("Score threshold: ", r.scan$parm$threshold, "\n");
+	cat("Threshold Type: ", r.scan$parm$threshold.type, "\n");
+	cat("Threshold: ",   r.scan$parm$threshold, "\n");
 
 	if( r.scan$parm$return.type == "matches" )
 	{
@@ -322,51 +392,67 @@ tfbs.reportFinding<-function( tfbs, r.scan, file.pdf = NA, report.size = "letter
 
 		r.scan.sum <- data.frame( No=c(1:NROW(summary)), summary, summary[,1] );
 
-		df.style <- data.frame(position=numeric(0), width=numeric(0), header=character(0), hjust=character(0), style=character(0), extra1=character(0), extra2=character(0), extra2=character(0));
-		df.style <- rbind(df.style, data.frame( position=0.00, width=0.04, header="No.",       hjust="left",   style="text", extra1="0",  extra2="0",  extra3="0" ) );
-		df.style <- rbind(df.style, data.frame( position=0.04, width=0.10, header="Motif ID",  hjust="left",   style="text", extra1="0",  extra2="0",  extra3="0" ) );
-		df.style <- rbind(df.style, data.frame( position=0.14, width=0.10, header="TF Name",   hjust="left",   style="text", extra1="0",  extra2="0",  extra3="0" ) );
-		df.style <- rbind(df.style, data.frame( position=0.24, width=0.10, header="Count",     hjust="centre", style="text", extra1="0",  extra2="0",  extra3="0" ) );
-		df.style <- rbind(df.style, data.frame( position=0.34, width=0.49, header="Motif Logo",hjust="centre", style="logo", extra1="0",  extra2="0",  extra3="0" ) );
+		df.style <- data.frame( position = numeric(0), 
+								width    = numeric(0), 
+								header   = character(0), 
+								hjust    = character(0), 
+								style    = character(0), 
+								extra1   = character(0), 
+								extra2   = character(0), 
+								extra3   = character(0),
+								extra4   = character(0));
+		df.style <- rbind( df.style, 
+					data.frame( position = 0.00, 
+								width    = 0.04, 
+								header   = "No.",       
+								hjust    = "left",   
+								style    = "text", 
+								extra1   = "0",  
+								extra2   = "0",  
+								extra3   = "0",
+								extra4   = "0") );
+		df.style <- rbind( df.style, 
+					data.frame( position = 0.04, 
+								width    = 0.10, 
+								header   = "Motif ID",  
+								hjust    = "left",   
+								style    = "text", 
+								extra1   = "0",  
+								extra2   = "0",  
+								extra3   = "0",
+								extra4   = "0") );
+		df.style <- rbind( df.style, 
+					data.frame( position = 0.14, 
+								width    = 0.10, 
+								header   = "TF Name",   
+								hjust    = "left",   
+								style    = "text", 
+								extra1   = "0",  
+								extra2   = "0",  
+								extra3   = "0",
+								extra4   = "0") );
+		df.style <- rbind( df.style, 
+					data.frame( position = 0.24, 
+								width    = 0.10, 
+								header   = "Count",     
+								hjust    = "centre", 
+								style    = "text", 
+								extra1   = "0",  
+								extra2   = "0",  
+								extra3   = "0",
+								extra4   = "0") );
+		df.style <- rbind( df.style, 
+					data.frame( position = 0.34, 
+								width    = 0.49, 
+								header   = "Motif Logo",
+								hjust    = "centre", 
+								style    = "logo", 
+								extra1   = "0",  
+								extra2   = "0",  
+								extra3   = "0",
+								extra4   = "0") );
 
 		output_motif_report( tfbs, r.scan.sum, file.pdf, report.size, report.title, df.style );
 	}
 }
 
-is.valid.bed<-function( df.bed )
-{
-	if (NCOL(df.bed)<3 )
-	{
-		warning("At least 3 columns in BED file.");
-		return (FALSE);
-	}	
-
-	if (any(is.na(df.bed[,c(1:3)]))) 
-	{
-		warning("NA values in first three columns in BED file.");
-		return (FALSE);
-	}	
-
-	if ( class(df.bed[,3]) != "integer" || class(df.bed[,2]) != "integer" ) 
-	{
-		warning("The 2nd column or 3rd column are not integer in BED file.");
-		return (FALSE);
-	}	
-	
-	if ( any(df.bed[,2] > df.bed[,3])) 
-	{
-		warning("The 2nd column is greater than the 3rd column in BED file.");
-		return (FALSE);
-	}	
-	
-	if ( NCOL(df.bed)==6 )
-	{
-		if (!(unique(df.bed[,6]) %in% c("+", "-", ".")))
-		{
-			warning("Three values are avalaible for the 6th column in BED file, '+', '-' or '.'.");
-			return (FALSE);
-		}	
-	}	
-	
-	return(TRUE);
-}

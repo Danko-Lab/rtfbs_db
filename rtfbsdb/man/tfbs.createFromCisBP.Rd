@@ -13,16 +13,7 @@ tfbs.createFromCisBP(cisbp.db,
       family_name = NULL, 
       motif_type = NULL, 
       msource_id = NULL, 
-      tf.information.type = 1,
-      expressed.only=TRUE, 
-      include.DBID.Missing=TRUE, 
-      seq.datatype=NA,
-      file.bigwig.plus=NA, 
-      file.bigwig.minus=NA, 
-      file.bam=NA, 
-      file.twoBit=NA, 
-      file.gencode.gtf=NA, 
-      ncores = 1 )       
+      tf.information.type = 1)       
 }
 \arguments{
   \item{cisbp.db}{A CisBP object(\code{"\linkS4class{CisBP.db}"}), including the file of TF_Information.txt.}
@@ -34,15 +25,6 @@ tfbs.createFromCisBP(cisbp.db,
   \item{tf.information.type}{Number,indicating which TF meta file will be used. Available values are 1 \cr
   for TF_Information.txt, 2 for TF_Information_all_motifs.txt and 3 for \cr
   TF_Information_all_motifs_plus.txt.}
-  \item{expressed.only}{Logical, indicating the only expressed TFs are selected to construct this object based on the gene exprssion values. }
-  \item{include.DBID.Missing}{Logical, indicating whether the TFs without association with GENCODE through the DBID are selected. }
-  \item{seq.datatype}{String,indicating which kind of seq data is applied to this function, three values are available: GRO-seq, PRO-seq and RNA-seq. Default: GRO-seq}
-  \item{file.bigwig.plus}{String, indicating bigwig file for strand plus(+) if \code{seq.datatype} is GRO-seq or PRO-seq.}
-  \item{file.bigwig.minus}{String, indicating bigwig file for strand minus(-) if \code{seq.datatype} is GRO-seq or PRO-seq.}
-  \item{file.bam}{String, indicating BAM file for rna reads if \code{seq.datatype} is RNA-seq.}
-  \item{file.twoBit}{String, indicating the binary data of sequence. (e.g. hg19.2bit, mm10.2bit)}
-  \item{file.gencode.gtf}{String,indicating Gencode GTF file downloaded from the Gencode web site.}
-  \item{ncores}{Number, comuputing nodes in parallel environment for gencode data converting.}
 }
 \details{
 The function includes three steps to build a tfbs object:\cr

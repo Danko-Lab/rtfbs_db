@@ -10,13 +10,13 @@ does not provided genome data such as hg19.2bit, mm10.2bit.
 \usage{
 tfbs.scanTFsite(tfbs, 
       file.twoBit, 
-      tre.bed, 
+      gen.bed, 
       return.type=c("matches", "posteriors", "maxposterior", "writedb"), 
       file.prefix=NA, 
       usemotifs = NA,
-      ncores = 3, 
-      fdr = NA, 
+      ncores = 1, 
       threshold = 6, 
+      threshold.type = c("score", "fdr"), 
       gc.groups = NA, 
       background.order = 2,
       background.length = 100000)
@@ -25,13 +25,14 @@ tfbs.scanTFsite(tfbs,
 \arguments{
   \item{tfbs}{A tfbs object (\code{"\linkS4class{tfbs}"}) returned by \code{\link{tfbs.createFromCisBP}}, \code{\link{tfbs}}, \code{\link{tfbs.dirs}}. }
   \item{file.twoBit}{String, the file name of genome data( e.g. hg19.2bit or mm10.2bit) }
-  \item{tre.bed}{Data frame, bed-formatted loci information with 6 columns}
+  \item{gen.bed}{Data frame, bed-formatted loci information with 6 columns}
   \item{return.type}{String, four available values explained in th details(default = "matches")}
   \item{file.prefix}{String, the prefix for outputted file, only used when the return.type is \emph{writedb}}
   \item{usemotifs}{Vector indicating indexes of motif to be used in scanning.}
-  \item{ncores}{Number, computing nodes in parallel environment (default = 3).}
-  \item{fdr}{Numeric value between 0 and 1, False Discovery Rate (FDR) of possible binding sites in \code{rtfbs} package, only binding sites with FDR less than this value can be selected. If fdr value is assigned, the \code{threshold} will be ignored.}
-  \item{threshold}{Numeric value, only sites with scores above this threshold are returned in \code{rtfbs} package (default = 6).}
+  \item{ncores}{Number, computing nodes in parallel environment (default = 1).}
+  \item{threshold}{Numeric value, if 'score' is specified in \code{threshold.type}, only binding sites with scores above this threshold are returned, 
+  if 'fdr' is specified in \code{threshold.type}, only binding sites with FDR (False Discovery Rate) less than this value can be selected. Default value is 6 for 'score' and 0.1 for 'fdr'.} 
+  \item{threshold.type}{String value, two options are available. only sites with scores above this threshold are returned, not be used if NA. (default = 'score')}
   \item{gc.groups}{Numeric value,indicating number of quantiles to group sequences into in \code{rtfbs} package (default = 1).}
   \item{background.order}{Numeric value,indicating the order of Markov model to build in \code{rtfbs} package (default = 2).}
   \item{background.length}{Numeric value, indicating length of the sequence to simulate in \code{rtfbs} package (default = 100000)}
@@ -113,7 +114,7 @@ show(t1$summary);
 show(t1$result[[1]]);
 
 #Output a PDF report for all motifs.
-tfbs.reportFinding(tfs, t1, file.pdf="Test Results");
+tfbs.reportFinding(tfs, t1, file.pdf="test-stfbs-scan.pdf");
 
 t2 <- tfbs.scanTFsite( tfs, 
 	file.twoBit, 

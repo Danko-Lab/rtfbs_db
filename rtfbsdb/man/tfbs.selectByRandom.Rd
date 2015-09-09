@@ -7,14 +7,13 @@ Random motif selection
 Select the motifs randomly from each group of clustering.
 }
 \usage{
-tfbs.selectByRandom(tfbs, cluster.mat)
+tfbs.selectByRandom(tfbs)
 }
 \arguments{
   \item{tfbs}{A tfbs object(\code{"\linkS4class{tfbs}"}).}
-  \item{cluster.mat}{ A matrix with 2 columns returned by \code{\link{tfbs.clusterMotifs}}, 1st column is the index of motifs and 2nd column is the group number of clustering.}
 }
 \details{
-The indexes of selected motifs can be used in the function of \code{\link{tfbs.compareTFsite}} or \code{\link{tfbs.scanTFsite}}. 
+The indexes of selected motifs can be used in the function of \code{\link{tfbs.enrichmentTest}} or \code{\link{tfbs.scanTFsite}}. 
 }
 \value{
 A vector of motif indices is returned.
@@ -28,11 +27,9 @@ db <- CisBP.extdata("Homo_sapiens");
 
 tfs <- tfbs.createFromCisBP(db, family_name="AP-2");
 
-tfs <- tfbs.getDistanceMatrix(tfs, ncores=1);
- 
-cluster1 <- tfbs.clusterMotifs(tfs, pdf.heatmap="test-AP2-heatmap.pdf" );
+tfs <- tfbs.clusterMotifs(tfs, pdf.heatmap="test-AP2-heatmap.pdf" );
 
-usemotif <- tfbs.selectByRandom(tfs, cluster1);
+usemotif <- tfbs.selectByRandom(tfs );
 
 show(usemotif);
 

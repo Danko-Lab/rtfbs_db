@@ -10,13 +10,15 @@ Create a tfbs object from the supplied PWM files.
 tfbs(filenames, 
       names, 
       species="Homo_sapiens", 
-      extra_info = NULL, ...)
+      tf_info = NULL,
+      tf_missing = NULL, ...)
 }
 \arguments{
   \item{filenames}{ Vector of PWM files }
   \item{names}{Vector of unique gene symbols. }
   \item{species}{String indicating species name }
-  \item{extra_info}{Data frame including meta information for all motifs., Default: NULL}
+  \item{tf_info}{Data frame including meta information copied from CisBP data file for all existing motifs., Default: NULL}
+  \item{tf_missing}{Data frame including meta information copied from CisBP data file for missing motifs., Default: NULL}
   \item{\dots}{Parameters,such as pseudocount, force_even, and the parameters used in read.table function. }
 }
 \details{
@@ -31,9 +33,11 @@ A tfbs object (class: \code{"\linkS4class{tfbs}"}) including all PWM matrics.The
   \item{pwm}{A list including PWM matics.}
   \item{filename}{Vector of PWM filename.}
   \item{mgisymbols}{Unique gene symbols for TF.}
-  \item{extra_info}{Data frame, including extra information for PWMs, it maybe different with motif dataset, default:NULL.}
-  \item{distancematrix}{Distance matrix between motifs returned by \code{\link{tfbs.getDistanceMatrix}}, default:NULL.}
+  \item{tf_info}{Data frame, including extra information for all existing PWMs, it maybe different with motif dataset, default:NULL.}
+  \item{tf_missing}{Data frame, including extra information for missing PWMs, it maybe different with motif dataset, default:NULL.}
+  \item{distancematrix}{Distance matrix between motifs returned by \code{\link{tfbs.clusterMotifs}}, default:NULL.}
   \item{expressionlevel}{Data frame indicatig the result of expression level returned by \code{\link{tfbs.getExpression}}, default:NULL. }
+  \item{cluster}{Matrix with 2 columns returned by \code{\link{tfbs.clusterMotifs}}, 1st column is the index of motifs and 2nd column is the group number of clustering, default:NULL. }
 
 The tfbs object can be created by the function of \code{\link{tfbs}}, \code{\link{tfbs.dirs}}, \code{\link{tfbs.createFromCisBP}}.
 }

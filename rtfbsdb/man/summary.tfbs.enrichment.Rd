@@ -1,18 +1,18 @@
-\name{summary.tfbs.comparson}
-\alias{summary.tfbs.comparson}
+\name{summary.tfbs.enrichment}
+\alias{summary.tfbs.enrichment}
 \title{
-Summarize the comparson result
+Summarize the enrichment result
 }
 \description{
 Return the significant motifs based on the adjust p-values using multiple comparisons.
 }
 \usage{
-\method{summary}{tfbs.comparson}(object, pv.cutoff = 0.05, pv.adj = NA, \dots)
+\method{summary}{tfbs.enrichment}(object, pv.threshold = 0.05, pv.adj = NA, \dots)
 }
 
 \arguments{
-  \item{object}{The result obtained by \code{\link{tfbs.compareTFsite}}.}
-  \item{pv.cutoff}{The p-value cutoff for significant motifs.}
+  \item{object}{The result obtained by \code{\link{tfbs.enrichmentTest}}.}
+  \item{pv.threshold}{The p-value threshold for significant motifs.}
   \item{pv.adj}{P-values adjust method for \code{p.adjust} function. The available values are "holm", "hochberg", "hommel", "bonferroni", "BH", "BY","fdr" or "none".}
   \item{\dots}{Additional arguments affecting the summary produced.}
 }
@@ -29,7 +29,7 @@ The results is a data frame including 6 columns,
 \item{es.ratio}{The ratio of read counts between positive loci and negative loci. }
 }
 \seealso{
-See also as \code{\link{tfbs.compareTFsite}}.
+See also as \code{\link{tfbs.enrichmentTest}}.
 }
 \keyword{summary}
-\keyword{Comparing}
+\keyword{Enrichment}

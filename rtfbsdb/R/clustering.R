@@ -1,31 +1,86 @@
-tfbs_clusterMotifs <- function(tfbs, subset=NA, pdf.heatmap=NA, method=c("agne", "cors"), group.k=NA)
+#setMethod("tfbs.clusterMotifs", c(tfbs="tfbs"), 
+#    function(tfbs, n_motifs, draw_heatmap= FALSE, subset=NULL) {
+#      mat <- tfbs@distancematrix
+#      if(!is.null(subset)) 
+#         mat <- tfbs@distancematrix[subset,subset,drop=F];
+#         
+#      hc1 <- agnes(as.dist((1-mat)^5), diss=TRUE)
+#      cuth <- cutree(hc1, k=n_motifs)
+#
+#      if(draw_heatmap) {
+#        hc1 <- as.dendrogram(hc1)
+#        ord.hc1 <- order.dendrogram(hc1)
+#        hc2 <- reorder(hc1, mat[ord.hc1])
+#        ord.hc2 <- order.dendrogram(hc2)
+#
+#        pal100 <- c("#7E291B","#66E52C","#8F66F0","#58DBE8","#396526","#EAABC1","#E1C33C","#3E3668","#EB3F90","#C3E6A8","#E74618","#66A2E9","#3E7774","#DF9056","#3C2C21","#DF40D7","#6CEF92","#8C5A6B","#BC8AE2","#A03B99","#56AC2D","#389C6C","#E26B7E","#706B4B","#D2E374","#A0A560","#7B1C3E","#49F7DB","#C8C6E9","#414FA2","#95A590","#8A669A","#98A62F","#9E792C","#D69489","#547FE5","#DF6340","#849BAB","#E63A61","#8A386D","#DAE338","#263715","#BBDEE3","#3F1324","#A1E03B","#383544","#76C2E8","#794D38","#DD74E2","#D7BF8E","#E366B9","#894D19","#D57221","#D9B764","#B0303D","#D6BFBC","#757A28","#D991CC","#356344","#E3A22D","#223C36","#83B664","#D8E4C5","#AE9ED9","#37576D","#CF7398","#6BEAB2","#6C9266","#B33662","#4B340E","#57E65B","#E23635","#9B464B","#757089","#578BBA","#A6311B","#B2714E","#457F20","#4EA3B1","#B93286","#73D463","#531914","#6B78C2","#E07467","#8D786E","#515018","#361E40","#AA4FCC","#90D2C4","#71469B","#419C4C","#37558A","#B393B0","#9BE090","#856BDA","#66B593","#47CA84","#5D205B","#672F3F","#59D8C2")
+#        pal500 <- rep(pal100, 5)
+#
+#        #pl <- levelplot((mat)[ord.hc2, ord.hc2], col.regions= yb.sig.pal(100, scale=3), xlab="", ylab="",
+#        print( levelplot((mat)[ord.hc2, ord.hc2], col.regions= yb.sig.pal(100, scale=3), xlab="", ylab="",
+#        colorkey = list(space="left", labels=list(cex=1.5)), 
+#        legend = list(
+#          top = list(fun = dendrogramGrob,
+#          args = list(x = hc2, ord = ord.hc2, side = "top", #lwd=2,
+#          size = 7, size.add = 0.5, 
+#          add = list(rect = list(col = "transparent", fill = pal500[cuth])),
+#          type = "rectangle")))) );
+#      }
+#	  tfbs@cluster <- cbind(subset, cuth);
+#	  return(tfbs);
+#})
+
+tfbs_clusterMotifs <- function(tfbs, method=c("agne", "apcluster"), pdf.heatmap=NA, group.k=NA, apcluster.q=0.95, ncores=3, BG=log(c(0.25, 0.25, 0.25, 0.25) ) )
 {
-	mat <- tfbs@distancematrix;
-	if (is.null(mat) || all(mat==0))
-		stop("The distance matrix is not available, run tfbs.getDistanceMatrix firstly.");
-	
-	if(!missing(subset)) 
-		mat <- tfbs@distancematrix[subset,subset,drop=F]
-	else
-		subset <- 1:NROW(mat);
-	
-	if(missing(method)) 
-		method <- "agne";
+	if( missing(method) ) 
+		method <- "apcluster";
 
 	if( !is.na( pdf.heatmap ) )
-    	if( !check_folder_writable( pdf.heatmap ) ) 
-  		    cat("! Can not create pdf file: ", pdf.heatmap, "\n");
-		
-	if(method=="cors")
+		if( !check_folder_writable( pdf.heatmap ) ) 
+			cat("! Can not create pdf file: ", pdf.heatmap, "\n");
+
+	mat <- tfbs@distancematrix;
+	if ( is.null(mat) || NROW(mat)==0 )
 	{
-		opt_list <- tfbs_corclustering_bic_optim(mat);
-
-		bics <- lapply(opt_list, function(l)return(l$BIC) );
-		min.grps <- which.min( bics);
-		clusters <- opt_list[[min.grps]]$clusters;
-
-cat("MIN CLUSRERS=", min.grps, max( opt_list[[min.grps]]$clusters))	
+		tfbs@distancematrix <- matrix( 0, nrow=tfbs@ntfs, ncol=tfbs@ntfs); 
+		for(i in 1:tfbs@ntfs) 
+			tfbs@distancematrix[i, ] <- unlist(mclapply(1:tfbs@ntfs, function(j) {compare.motifs(tfbs@pwm[[i]], tfbs@pwm[[j]], BG=BG)}, mc.cores= ncores))
+	
+		mat <- tfbs@distancematrix;
+	}
+	
+	subset <- 1:NROW(mat);
+	
+#	if(method=="cors")
+#	{
+#		opt_list <- tfbs_corclustering_bic_optim(mat);
+#
+#		bics <- lapply(opt_list, function(l)return(l$BIC) );
+#		min.grps <- which.min( bics);
+#		clusters <- opt_list[[min.grps]]$clusters;
+#
+#		cat("MIN CLUSRERS=", min.grps, max( opt_list[[min.grps]]$clusters))	
+#		
+#		if(!is.na( pdf.heatmap ))
+#		{
+#			r.try <- try ( pdf( pdf.heatmap ) );
+#			if( class(r.try) == "try-error")
+#				cat("! Failed to write PDF file:", pdf.heatmap, "\n")
+#			else
+#			{
+#				tfbs_drawheatmapForClusters(tfbs, mat, clusters);
+#				dev.off(); 
+#			}
+#		}
+#	}
+	if(method=="apcluster")
+	{
+		r.ap <- apcluster(mat, q = apcluster.q );
 		
+		clusters <- rep(NA, length(subset));
+		for(i in 1:length(r.ap@clusters))
+			clusters[ r.ap@clusters[[i]] ] <- i;
+
 		if(!is.na( pdf.heatmap ))
 		{
 			r.try <- try ( pdf( pdf.heatmap ) );
@@ -33,10 +88,12 @@ cat("MIN CLUSRERS=", min.grps, max( opt_list[[min.grps]]$clusters))
 				cat("! Failed to write PDF file:", pdf.heatmap, "\n")
 			else
 			{
-				tfbs_drawheatmapForClusters(tfbs, mat, clusters);
+				try(apcluster::heatmap( r.ap, mat ));
+				
 				dev.off(); 
 			}
 		}
+			
 	}
 	else
 	{
@@ -53,40 +110,74 @@ cat("MIN CLUSRERS=", min.grps, max( opt_list[[min.grps]]$clusters))
 				cat("! Failed to write PDF file:", pdf.heatmap, "\n")
 			else
 			{
-           		hc1 <- as.dendrogram(hc1)
-           		ord.hc1 <- order.dendrogram(hc1)
-           		hc2 <- reorder(hc1, mat[ord.hc1])
-           		ord.hc2 <- order.dendrogram(hc2)
+				hc1 <- as.dendrogram(hc1)
+				ord.hc1 <- order.dendrogram(hc1)
+				hc2 <- reorder(hc1, mat[ord.hc1])
+				ord.hc2 <- order.dendrogram(hc2)
 
-           		pal100 <- c("#7E291B","#66E52C","#8F66F0","#58DBE8","#396526","#EAABC1","#E1C33C","#3E3668","#EB3F90","#C3E6A8","#E74618","#66A2E9","#3E7774","#DF9056","#3C2C21","#DF40D7","#6CEF92","#8C5A6B","#BC8AE2","#A03B99","#56AC2D","#389C6C","#E26B7E","#706B4B","#D2E374","#A0A560","#7B1C3E","#49F7DB","#C8C6E9","#414FA2","#95A590","#8A669A","#98A62F","#9E792C","#D69489","#547FE5","#DF6340","#849BAB","#E63A61","#8A386D","#DAE338","#263715","#BBDEE3","#3F1324","#A1E03B","#383544","#76C2E8","#794D38","#DD74E2","#D7BF8E","#E366B9","#894D19","#D57221","#D9B764","#B0303D","#D6BFBC","#757A28","#D991CC","#356344","#E3A22D","#223C36","#83B664","#D8E4C5","#AE9ED9","#37576D","#CF7398","#6BEAB2","#6C9266","#B33662","#4B340E","#57E65B","#E23635","#9B464B","#757089","#578BBA","#A6311B","#B2714E","#457F20","#4EA3B1","#B93286","#73D463","#531914","#6B78C2","#E07467","#8D786E","#515018","#361E40","#AA4FCC","#90D2C4","#71469B","#419C4C","#37558A","#B393B0","#9BE090","#856BDA","#66B593","#47CA84","#5D205B","#672F3F","#59D8C2")
-           		pal500 <- rep(pal100, 5)
+				pal100 <- c("#7E291B","#66E52C","#8F66F0","#58DBE8","#396526","#EAABC1","#E1C33C","#3E3668","#EB3F90","#C3E6A8","#E74618","#66A2E9","#3E7774","#DF9056","#3C2C21","#DF40D7","#6CEF92","#8C5A6B","#BC8AE2","#A03B99","#56AC2D","#389C6C","#E26B7E","#706B4B","#D2E374","#A0A560","#7B1C3E","#49F7DB","#C8C6E9","#414FA2","#95A590","#8A669A","#98A62F","#9E792C","#D69489","#547FE5","#DF6340","#849BAB","#E63A61","#8A386D","#DAE338","#263715","#BBDEE3","#3F1324","#A1E03B","#383544","#76C2E8","#794D38","#DD74E2","#D7BF8E","#E366B9","#894D19","#D57221","#D9B764","#B0303D","#D6BFBC","#757A28","#D991CC","#356344","#E3A22D","#223C36","#83B664","#D8E4C5","#AE9ED9","#37576D","#CF7398","#6BEAB2","#6C9266","#B33662","#4B340E","#57E65B","#E23635","#9B464B","#757089","#578BBA","#A6311B","#B2714E","#457F20","#4EA3B1","#B93286","#73D463","#531914","#6B78C2","#E07467","#8D786E","#515018","#361E40","#AA4FCC","#90D2C4","#71469B","#419C4C","#37558A","#B393B0","#9BE090","#856BDA","#66B593","#47CA84","#5D205B","#672F3F","#59D8C2")
+				pal500 <- rep(pal100, 5)
 
-		   		cuth <- clusters[ ord.hc2 ];
+				cuth <- clusters[ ord.hc2 ];
 
-		   		fill.col<- rep("white", length(ord.hc2));
-		   		fill.col[ord.hc2] <- pal500[ clusters ];
+				fill.col<- rep("white", length(ord.hc2));
+				fill.col[ord.hc2] <- pal500[ clusters ];
 
-           		#pl <- levelplot((mat)[ord.hc2, ord.hc2], col.regions= yb.sig.pal(100, scale=3), xlab="", ylab="",
-           		print( levelplot((mat)[ord.hc2, ord.hc2], col.regions= yb.sig.pal(100, scale=3), xlab="", ylab="",
-           			colorkey = list(space="left", labels=list(cex=1.5)), 
-           			legend = list(
-           			    top = list(fun = dendrogramGrob,
-           			    args = list(x = hc2, ord = ord.hc2, side = "top", #lwd=2,
-           			    size = 7, size.add = 0.5, 
-           			    add = list(rect = list(col = "transparent", fill = fill.col )),
-           			    type = "rectangle")))) );
+				#pl <- levelplot((mat)[ord.hc2, ord.hc2], col.regions= yb.sig.pal(100, scale=3), xlab="", ylab="",
+				print( levelplot((mat)[ord.hc2, ord.hc2], col.regions= yb.sig.pal(100, scale=3), xlab="", ylab="",
+					colorkey = list(space="left", labels=list(cex=1.5)), 
+					legend = list(
+						top = list(fun = dendrogramGrob,
+						args = list(x = hc2, ord = ord.hc2, side = "top", #lwd=2,
+						size = 7, size.add = 0.5, 
+						add = list(rect = list(col = "transparent", fill = fill.col )),
+						type = "rectangle")))) );
 
-		   		dev.off();               
-		   }
-      }
+				dev.off();               
+			}
+		}
 	}
 	
-	return( cbind(subset, clusters) );
+	tfbs@cluster <- cbind(subset, clusters);
+	
+	return( tfbs );
 }
-
 
 tfbs_corclustering_bic_optim<-function( obs_mat )
 {
+	d_cor_dist_F<-function(a, b, c, z, N)
+	{
+		r  <- 1
+		rn <- a * b * z / c / 1
+
+		for(i in 1:N)
+		{
+			r  <- r + rn;
+			rn <- rn* (a + i) * (b + i) * z / (c + i) / (1 + i);
+		}        
+
+		return(r);
+	}
+
+	d_cor_dist_log<-function( x, rho.true, N.sample)
+	{
+		N <- N.sample;
+		rho <- rho.true;
+
+		if(length(which(rho==1))>0) rho[which(rho==1)] <- 1 - 10^(-10);
+		if(length(which(x==1))>0) x[which(x==1)] <- 1 - 10^(-10);
+
+		x1 <- log(N-2) + ((N-1)/2)*log(1-rho^2) + ((N-4)/2)*log(1-x^2);
+		x2 <- log( sqrt(2*pi)) + (N-1.5)* log(1-rho*x)
+
+		gama.log <- lgamma(N-1) - lgamma(N-0.5);
+		F  <- d_cor_dist_F( 0.5, 0.5, N - 0.5, (rho * x + 1) / 2, N );
+
+		r.log <- gama.log + x1- x2 + log(F);
+
+		return( r.log )
+	}
+	
 	get_LR2<-function(obs_mat, clustering_mat, clusters)
 	{
 		N.sample <- NROW(obs_mat);
@@ -175,51 +266,51 @@ tfbs_corclustering_core<-function( obs_mat, var.range=0.95, peak.range=0.9 )
 
 	find.correlate.close<- function()
 	{
-	  pool.idx <- c(1:NROW(mat));	
-	  rem.idx <- c();
+		pool.idx <- c(1:NROW(mat));	
+		rem.idx <- c();
 
-	  for(i in 1:NROW(mat) )
-		 if( max(mat[i,]) < max(mat) * var.range ) rem.idx <- c(rem.idx, i);
-		 
-	  mat.rem <- mat;	 
-	  if(length( rem.idx)>0) 	 
-	  {
-	  	mat.rem <- mat.rem[-rem.idx, -rem.idx,drop = F];
-	    pool.idx <- pool.idx[-rem.idx];
-	  }
-	  
-	  sel.idx <- which(mat.rem == max(mat.rem), arr.ind = TRUE)[1,];
+		for(i in 1:NROW(mat) )
+			if( max(mat[i,]) < max(mat) * var.range ) rem.idx <- c(rem.idx, i);
+			
+		mat.rem <- mat;	 
+		if(length( rem.idx)>0) 	 
+		{
+			mat.rem <- mat.rem[-rem.idx, -rem.idx,drop = F];
+			pool.idx <- pool.idx[-rem.idx];
+		}
+		
+		sel.idx <- which(mat.rem == max(mat.rem), arr.ind = TRUE)[1,];
 
-	  loop.add <- 1
-	  while(loop.add>0)
-	  {
-	  	  loop.add <- 0;
-		  for(i in 1:NROW(mat.rem) )
-		  {
-		     if( i %in% sel.idx) next;
+		loop.add <- 1
+		while(loop.add>0)
+		{
+			loop.add <- 0;
+			for(i in 1:NROW(mat.rem) )
+			{
+				if( i %in% sel.idx) next;
 
-			 if(max(mat.rem)>1)
-	     	 	if ( (max(mat.rem[i,]) -1 )/( max(mat.rem) - 1 ) < var.range ) next;
-	     	
-			 mat0 <- mat.rem[ c(sel.idx, i), c(sel.idx, i) ];
+				if( max(mat.rem)>1)
+					if ( (max(mat.rem[i,]) -1 )/( max(mat.rem) - 1 ) < var.range ) next;
+			
+				mat0 <- mat.rem[ c(sel.idx, i), c(sel.idx, i) ];
 
-			 for(k in 1:NROW(mat0)) mat0[k,k] <- max(mat0);
-			 
-			 if( min(mat0) != max(mat.rem) )
-				 if( (min(mat0)-1)/(max(mat.rem)-1) < var.range ) next;
+				for(k in 1:NROW(mat0)) mat0[k,k] <- max(mat0);
+			
+				if( min(mat0) != max(mat.rem) )
+					if( (min(mat0)-1)/(max(mat.rem)-1) < var.range ) next;
 
-			 r.ix.unsel <- mat.rem[ i, -sel.idx ] ;
-			 r.ix.sel <- mat.rem[ i, sel.idx ] ;
+				r.ix.unsel <- mat.rem[ i, -sel.idx ] ;
+				r.ix.sel <- mat.rem[ i, sel.idx ] ;
 
 
-			 sel.idx <- c(sel.idx, i );
-	  	     loop.add <- loop.add + 1;
-		  }
-	  }
-	  
-	  sel.idx <- pool.idx[ sel.idx ];
+				sel.idx <- c(sel.idx, i );
+				loop.add <- loop.add + 1;
+			}
+		}
 
-	  return(unique(sel.idx));
+		sel.idx <- pool.idx[ sel.idx ];
+
+		return(unique(sel.idx));
 	}
 
 	grp<- list()
@@ -229,20 +320,20 @@ tfbs_corclustering_core<-function( obs_mat, var.range=0.95, peak.range=0.9 )
 
 	while(NROW(mat)>1)
 	{
-	   	peak.val  <- max( mat - 1 ) * peak.range + 1;
-	   	peak.num  <- apply( mat, 1, find.peaks );
-	   	
+		peak.val  <- max( mat - 1 ) * peak.range + 1;
+		peak.num  <- apply( mat, 1, find.peaks );
+		
 		inner.idx <- find.correlate.close();
 	
-	   	grp[[ loop ]]  <- subset.id [ inner.idx ];
-	   	subset.id <- subset.id[ -inner.idx ];
+		grp[[ loop ]]  <- subset.id [ inner.idx ];
+		subset.id <- subset.id[ -inner.idx ];
 
 		mat0 <- mat[ inner.idx, inner.idx, drop=F ];
-	   	mat <- mat[ -inner.idx, -inner.idx ];
+		mat <- mat[ -inner.idx, -inner.idx ];
 
 		for( mm in 1:NROW(mat0))  mat0[mm,mm]<-max(mat0);
 
-	   	loop <- loop + 1;
+		loop <- loop + 1;
 	}
 
 	if(NROW(mat)==1)
@@ -257,39 +348,6 @@ tfbs_corclustering_core<-function( obs_mat, var.range=0.95, peak.range=0.9 )
 	}
 
 	return(clusters);
-}
-
-d_cor_dist_F<-function(a, b, c, z, N)
-{
-	r  <- 1
-	rn <- a * b * z / c / 1
-
-   	for(i in 1:N)
-   	{
-        r  <- r + rn;
-		rn <- rn* (a + i) * (b + i) * z / (c + i) / (1 + i);
-	}        
-	
-	return(r);
-}
-
-d_cor_dist_log<-function( x, rho.true, N.sample)
-{
-	N <- N.sample;
-	rho <- rho.true;
-	
-	if(length(which(rho==1))>0) rho[which(rho==1)] <- 1 - 10^(-10);
-	if(length(which(x==1))>0) x[which(x==1)] <- 1 - 10^(-10);
-	
-	x1 <- log(N-2) + ((N-1)/2)*log(1-rho^2) + ((N-4)/2)*log(1-x^2);
-	x2 <- log( sqrt(2*pi)) + (N-1.5)* log(1-rho*x)
-
-    gama.log <- lgamma(N-1) - lgamma(N-0.5);
-    F  <- d_cor_dist_F( 0.5, 0.5, N - 0.5, (rho * x + 1) / 2, N );
-
-	r.log <- gama.log + x1- x2 + log(F);
-	
-   	return( r.log )
 }
 
 clusterCorr_fast <- function( observed_cor_matrix, cluster_vector, return.grp=F ) 
@@ -349,7 +407,6 @@ clusterCorr_fast <- function( observed_cor_matrix, cluster_vector, return.grp=F 
 		return(grp.mat);
 	}
 }
-
 
 extend_hcluster<-function(hc, clusters, mat)
 {
@@ -434,7 +491,6 @@ tfbs_drawheatmapForClusters<-function( tfbs, mat, clusters )
 		c(rgb(1, 1, YW), rgb(1-WB, 1-WB, 1))
 	}
 
-
 	mat.grp <- clusterCorr_fast(mat, clusters, T );
 	hc0 <- agnes(as.dist((1-mat.grp)^5), diss=TRUE)
 
@@ -442,7 +498,7 @@ tfbs_drawheatmapForClusters<-function( tfbs, mat, clusters )
 	hc1 <- as.dendrogram(hc)
 	ord.hc1 <- order.dendrogram(hc1)
 
-    wts <-  diag(mat.grp)[clusters[hc$order]]
+	wts <-  diag(mat.grp)[clusters[hc$order]]
 	hc2 <- reorder(hc1, wts)
 	ord.hc2 <- order.dendrogram(hc2)
 
@@ -456,9 +512,9 @@ tfbs_drawheatmapForClusters<-function( tfbs, mat, clusters )
 	print( levelplot((mat)[ord.hc2, ord.hc2], col.regions= yb.sig.pal(100, scale=3), xlab="", ylab="",
 		colorkey = list(space="left", labels=list(cex=1.5)), 
 		legend = list(
-          top = list(fun = dendrogramGrob,
-          args = list(x = hc2, side = "top", #ord = ord.hc2, #lwd=2,
-          size = 7, size.add = 0.5, 
-          add = list(rect = list(col = "transparent", fill= fill.col )),
-          type = "rectangle")))) );
+			top = list(fun = dendrogramGrob,
+			args = list(x = hc2, side = "top", #ord = ord.hc2, #lwd=2,
+			size = 7, size.add = 0.5, 
+			add = list(rect = list(col = "transparent", fill= fill.col )),
+			type = "rectangle")))) );
 }

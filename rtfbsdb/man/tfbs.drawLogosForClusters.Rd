@@ -7,11 +7,10 @@ Draw the motif logos by clustering.
 Draw the motif logos by one cluster per page.
 }
 \usage{
-tfbs.drawLogosForClusters(tfbs, cluster.mat, file.pdf )
+tfbs.drawLogosForClusters(tfbs, file.pdf )
 }
 \arguments{
   \item{tfbs}{A tfbs object(\code{"\linkS4class{tfbs}"}).}
-  \item{cluster.mat}{ A matrix with 2 columns returned by \code{\link{tfbs.clusterMotifs}}, 1st column is the index of motifs and 2nd column is the group number of clustering.}
   \item{file.pdf }{ String indicating a PDF eilname.}
 }
 \details{
@@ -30,15 +29,12 @@ db <- CisBP.extdata("Homo_sapiens");
 # Create a tfbs object by querying the meta file of CisBP dataset. 
 tfs <- tfbs.createFromCisBP(db, motif_type="ChIP-seq", tf.information.type=1 );
 
-# Calculate the distance matrix 
-tfs <- tfbs.getDistanceMatrix( tfs, ncores=1);
-
 # Cluster the motifs using the "cors" method
-cluster1 <- tfbs.clusterMotifs(tfs, pdf.heatmap = "test-heatmap1.pdf", method="cors" );
-show(cluster1);
+tfs <- tfbs.clusterMotifs(tfs, method="apcluster" , pdf.heatmap = "test-heatmap1.pdf" );
+show(tfs@cluster);
 
 # draw motif logos on one group per page.
-tfbs.drawLogosForClusters(tfs, cluster1, "test-cluster1.pdf")
+tfbs.drawLogosForClusters(tfs, "test-cluster1.pdf")
 
 
 }
