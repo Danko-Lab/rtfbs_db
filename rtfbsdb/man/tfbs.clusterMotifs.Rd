@@ -8,7 +8,7 @@ Clustering the specified motifs and drawing the heatmap.
 }
 \usage{
 tfbs.clusterMotifs(tfbs, 
-      method = c("agne", "apcluster"), 
+      method = c("agnes", "apcluster"), 
       pdf.heatmap = NA, 
       group.k = NA,
       apcluster.q = 0.95,
@@ -46,7 +46,7 @@ db <- CisBP.extdata("Homo_sapiens");
 tfs <- tfbs.createFromCisBP(db, motif_type="ChIP-seq", tf.information.type=1 );
 
 # Cluster the motifs using the "agnes" method
-tfs <- tfbs.clusterMotifs(tfs, method="agnes", pdf.heatmap = "test-heatmap1-agnes.pdf" );
+tfs <- tfbs.clusterMotifs(tfs, method="agnes", pdf.heatmap = "test-heatmap-agnes.pdf" );
 show(tfs@cluster);
 
 # Cluster the motifs using the "apcluster" method
@@ -54,7 +54,7 @@ tfs <- tfbs.clusterMotifs(tfs, method="apcluster", pdf.heatmap = "test-heatmap-a
 show(tfs@cluster);
 
 # draw motif logos on one group per page.
-tfbs.drawLogosForClusters(tfs, "test-cluster1.pdf");
+tfbs.drawLogosForClusters(tfs, file.pdf = "test-cluster-logos.pdf");
 
 }
 

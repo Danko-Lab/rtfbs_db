@@ -333,7 +333,7 @@ tfbs_scanTFsite<-function( tfbs, file.twoBit,
 	}
 
 	r.scan <- list( parm = r.parm, bed = gen.bed, result = r.ret, summary=sum.match );
-	class( r.scan ) <- c( class(r.scan), "tfbs.finding");
+	class( r.scan ) <- c( "tfbs.finding" );
 	
 	return( r.scan );
 }
@@ -384,6 +384,8 @@ summary.tfbs.finding<-function( object, ... )
 
 tfbs.reportFinding<-function( tfbs, r.scan, file.pdf = NA, report.size = "letter", report.title = "" )
 {
+	stopifnot(class(tfbs) == "tfbs" && class(r.scan) == "tfbs.finding")
+
 	if( r.scan$parm$return.type != "matches" )
 		cat( "! No summary information for the report.\n" )
 	else	

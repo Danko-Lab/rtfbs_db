@@ -30,34 +30,6 @@ tfbs.createFromCisBP(cisbp.db,
 The function includes three steps to build a tfbs object:\cr
 1) Searching the TF information and PWM files in the CisBP dataset according to the criteria specified by 
 the parameters of \emph{tf_name}, \emph{tf_status}, \emph{family_name}, \emph{motif_type} and \emph{msource_id}.\cr
-2) If \code{seq.datatype} is GRO-seq or PRO-seq and the bigwig files are provided, the gene expression values are calculated 
-through querying the TREs region from the GENCODE database( for human, gencode.v21.annotation.gtf, for mouse: gencode.vM3.annotation.gtf)\cr
-and querying the reads count in the plus and minus bigWig files.\cr
-
-If \code{seq.datatype} is RNA-seq and the BAM file is provided, read counts for each TRE regions will be queried from the BAM file.\cr
-
-3) If the expressed TFs only is used in the tfbs object, the TFs with p-values corrected by Bonfrroni less than 0.05 will be selected.\cr
-
-The following part explains how to calculate the gene expression.\cr
-
-For each motif, the occurance ranges can be queried by the gene ID  
-After the searching, one range obtained from the merge of the multiple ranges will be 
-used to detect the reads count in the specified  bigwig files(including plus and minus). 
-The probability of each motif can be calcuated by the reads count and lambda.\cr
-
-The lambda is determined by the following formulation:\cr
-
-\code{r.lambda = 0.04 * sum(reads_in_all_chromosomes)/10751533/1000.}\cr
-
-The dataset of GENECODE v21 (human) and vM3 (mouse) have been compiled into RDATA file 
-and attached in this package.\cr
-
-The \code{gencode_transcript_ext} object can be accessed after the following command is 
-executed successfully.\cr
-
-\code{load( system.file("extdata", "gencode_v21_transcript_ext.rdata",
-      package="rtfbsdb"), environment() );}\cr
-
 }
 \value{
 A tfbs object is returned with PWM matrices, see Also as \code{"\linkS4class{tfbs}"}

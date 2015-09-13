@@ -154,8 +154,10 @@ CisBP.zipload <- function( zip.file, species="Homo_sapiens" )
 #' find matched zip file and return the create date.
 #' 
 #'
-zipfile.match <- function( file.wildcard )
+zipfile.match <- function( species )
 {
+	file.wildcard <- paste( species, "_ver_*.zip", sep="");
+	
 	path <- system.file("extdata", package="rtfbsdb");
 	files <- list.files( path, glob2rx( file.wildcard ) );
 	
@@ -165,7 +167,13 @@ zipfile.match <- function( file.wildcard )
 	{
 		zip.file <- system.file("extdata", files[1], package="rtfbsdb");
 		r <- file.info( zip.file );
-		return( list( name=zip.file, date=format( r$mtime, "%m/%d/%Y") ) );
+
+		zip.base <- basename(zip.file);	
+		zip.ver <- regexpr("ver_", zip.base, fixed=T)[1];
+		zip.date <- substring(zip.base, zip.ver + 4, zip.ver + 13 )
+
+		#return( list( name=zip.file, date=format( r$mtime, "%m/%d/%Y") ) );
+		return( list( name=zip.file, date=zip.date ) );
 	}
 }
 
@@ -181,17 +189,17 @@ CisBP.extdata<-function( species )
 	zip.file <- "";	
 	if ( species=="Homo_sapiens" ||  species=="Human" ||  species=="human") 
 	{
-		zip.file <- zipfile.match( "Homo_sapiens_ver_*.zip" );
+		zip.file <- zipfile.match( "Homo_sapiens" );
 		species <- "Homo_sapiens";
 	}
 	else if ( species=="Mus_musculus" || species=="Mouse" || species=="mouse") 
 	{
-		zip.file <- zipfile.match( "Mus_musculus_ver_*.zip" );
+		zip.file <- zipfile.match( "Mus_musculus" );
 		species <- "Mus_musculus";
 	}
 	else if ( species=="Drosophila_melanogaster" || species=="dm3" ) 
 	{
-		zip.file <- zipfile.match( "Drosophila_melanogaster_ver_*.zip" );
+		zip.file <- zipfile.match( "Drosophila_melanogaster" );
 		species <- "Drosophila_melanogaster";
 	}
 	else
@@ -210,7 +218,8 @@ CisBP.extdata<-function( species )
 		return(NULL);
 	}
 
-	unlink(r.file);
+	# dont delete this file, the following functions will use it!
+	# unlink(r.file);
 
 	new("CisBP.db", 
 		species = species, 

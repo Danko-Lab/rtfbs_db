@@ -10,12 +10,13 @@ Comparative TS sites between positive and negative TRE loci for all motifs.
 tfbs.enrichmentTest(tfbs, 
       file.twoBit, 
       positive.bed, 
-      negative.bed, 
+      negative.bed=NA, 
       file.prefix=NA, 
       use.cluster=FALSE,
       ncores=1,
       gc.correction=TRUE, 
       gc.correction.pdf=NA, 
+      gc.robust.rep=NA, 
       threshold = 6, 
       threshold.type = c("score", "fdr"),
       gc.groups=1, 
@@ -27,12 +28,13 @@ tfbs.enrichmentTest(tfbs,
   \item{tfbs}{A tfbs object, see also \code{"\linkS4class{tfbs}"} }
   \item{file.twoBit}{String, the file name of genome data( e.g. hg19.2bit, mm10.2bit) }
   \item{positive.bed}{Data frame, bed-formatted TRE loci.}
-  \item{negative.bed}{Data frame, bed-formatted background loci.}
+  \item{negative.bed}{Data frame, bed-formatted background loci. If not specified, the genomic loci adjacent to positive one are randomly extracted as the negative bed. }
   \item{file.prefix}{String, the prefix for outputted BED file, no bed files output if NA }
   \item{use.cluster}{ Clustering matrix with 2 columns, 1st column is the index of motifs and 2nd column is the group number of clustering. It can be obtained from \code{\link{tfbs.clusterMotifs}}. If no clustering matrix, all motifs are used to do the comparson. see \emph{details} }
   \item{ncores}{Number, comupting nodes in parallel environment.(default=1)}
   \item{gc.correction}{Logical value, if the difference between positive and negative TREs is significant,the resampling will be applied to the correction for the negative TREs. (default=TRUE) }
-  \item{gc.correction.pdf}{String, indicating th pdf file name if the GC correction is checked. (default=NA) }
+  \item{gc.correction.pdf}{String, indicating the pdf file name if the GC correction is checked. (default=NA) }
+  \item{gc.robust.rep}{Number, indicating whether resampling background set multiple times is applied to get the median of binding sites. (default=NA) }
   \item{threshold}{Numeric value, if 'score' is specified in \code{threshold.type}, only binding sites with scores above this threshold are returned, 
   if 'fdr' is specified in \code{threshold.type}, only binding sites with FDR (False Discovery Rate) less than this value can be selected. Default value is 6 for 'score' and 0.1 for 'fdr'.} 
   \item{threshold.type}{String value, two options are available. only sites with scores above this threshold are returned, not be used if NA. (default = 'score')}
@@ -59,7 +61,7 @@ A object with the class name of "tfbs.enrichment" will be resturned in this comp
   \item{motif.id}{Motif ID.}
   \item{tf.name}{TF name.}
   \item{Npos}{TF site count found in positive ranges.}
-  \item{Expected}{TF site count found in negative ranges.}
+  \item{expected}{TF site count found in negative ranges.}
   \item{fe.ratio}{Ratio of fold enrichment.}
   \item{pvalue}{p-value calculated by fisher test.}
   \item{pv.adj}{p-value corrected by the multiple correction.}
@@ -76,15 +78,14 @@ The \code{result} can be outputted to a report by the function \code{\link{tfbs.
 
 library(rtfbsdb);
 
-#file.twoBit     <- "/local/storage/data/hg19/hg19.2bit"
-file.twoBit     <- "/work/03350/tg826494/data/hg19/hg19.2bit"
+file.twoBit <- system.file("extdata","hg19.chr19.2bit", package="rtfbsdb")
 
 db <- CisBP.extdata("Homo_sapiens");
 tfs <- tfbs.createFromCisBP(db, family_name="AP-2");
 
 
 #make two dummy BED data frame for positive loci and negative loci
-pos.bed <- data.frame(chr="chr1", 
+pos.bed <- data.frame(chr="chr19", 
 		start=round(runif(1000,1000000, 2000000)), 
 		stop=0, 
 		name="", 
@@ -92,7 +93,7 @@ pos.bed <- data.frame(chr="chr1",
 		strand=".");
 pos.bed$stop <- pos.bed$start + round(runif(1000, 20, 30));
 
-neg.bed <- data.frame(chr="chr1", 
+neg.bed <- data.frame(chr="chr19", 
 		start=round(runif(8000, 800000, 1800000)), 
 		stop=0, 
 		name="", 
@@ -113,17 +114,39 @@ t1;
 #Show the comparson results of all motifs 
 show(t1$result);
 
+summary(t1);
+
 #Output the result to one pdf report. 
-tfbs.reportEnrichment(tfs, t1, file.pdf="test-tfbs-enrich.pdf", sig.only=FALSE);
+tfbs.reportEnrichment(tfs, t1, file.pdf="test-tfbs-enrich-all.pdf", sig.only=FALSE);
+
+file.ELF1 <- system.file("extdata","Chipseq-k562-chr19-ELF1.bed", package="rtfbsdb")
+pos.bed<- read.table(file.ELF1)
+
+tfs <- tfbs.createFromCisBP(db, family_name="Ets");
 
 t2 <- tfbs.enrichmentTest( tfs, 
       file.twoBit, 
       pos.bed, 
       neg.bed, 
       gc.correction=TRUE,
-      robust.test=3,
+      gc.robust.rep=5,
       ncores = 1); #ncores=3
 
+show(t2)
+
+#Output the result to one pdf report. 
+tfbs.reportEnrichment(tfs, t2, file.pdf="test-tfbs-enrich-both.pdf", sig.only=TRUE, enrichment.type="both");
+
+t3 <- tfbs.enrichmentTest( tfs, 
+      file.twoBit, 
+      pos.bed, 
+      gc.correction=TRUE,
+      gc.robust.rep=5,
+      ncores = 1); #ncores=3
+
+show(t3)
+
+tfbs.reportEnrichment(tfs, t3, file.pdf="test-elf1-enrich-depleted.pdf", sig.only=TRUE, enrichment.type="depleted");
 
 }
 \keyword{tfbs object}

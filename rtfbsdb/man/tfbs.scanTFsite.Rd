@@ -57,7 +57,7 @@ folder in $PATH.\cr
 A list object will be returned with the class name of \code{tfbs.finding}. The object wraps four sub-list as follows:\cr
 
 1) \code{parm}:Calling parameters(\code{fdr}, \code{threshold}), \code{gc.groups}...).\cr
-2) \code{bed}: Calling bed-formatted loci(\code{tre.bed}).\cr
+2) \code{bed}: Calling bed-formatted loci(\code{gen.bed}).\cr
 3) \code{summary}: A data frame including summrized information about matched TF sites for all motifs.\cr
 4) \code{result}: Scanning results which data type is depend on the parameter of \code{return.type}.
 
@@ -85,22 +85,23 @@ The option of \emph{maxposterior} will return a probability matrix which the row
 \examples{
 
 library(rtfbsdb);
-file.twoBit     <- "/local/storage/data/hg19/hg19.2bit"
+
+file.twoBit <- system.file("extdata","hg19.chr19.2bit", package="rtfbsdb")
 
 db <- CisBP.extdata("Homo_sapiens");
-tfs <- tfbs.createFromCisBP(db, family_name="AP-2");
+tfs <- tfbs.createFromCisBP(db, family_name="Ets");
 
-tre.bed <- data.frame(chr="chr1", 
+gen.bed <- data.frame(chr="chr19", 
 			start=round(runif(10,1000000, 2000000)), 
 			stop=0, 
 			name="", 
 			score=0, 
 			strand=".");
-tre.bed$stop <- tre.bed$start + 3000;
+gen.bed$stop <- gen.bed$start + 3000;
 
 t1 <- tfbs.scanTFsite( tfs, 
 	file.twoBit, 
-	tre.bed, 
+	gen.bed, 
 	file.prefix="test.db",
 	ncores = 1);
 
@@ -114,11 +115,14 @@ show(t1$summary);
 show(t1$result[[1]]);
 
 #Output a PDF report for all motifs.
-tfbs.reportFinding(tfs, t1, file.pdf="test-stfbs-scan.pdf");
+tfbs.reportFinding(tfs, t1, file.pdf="test-rtfbs-scan.pdf", report.title="ELF1");
+
+file.ELF1 <- system.file("extdata","Chipseq-k562-chr19-ELF1.bed", package="rtfbsdb")
+gen.bed<- read.table(file.ELF1)
 
 t2 <- tfbs.scanTFsite( tfs, 
 	file.twoBit, 
-	tre.bed, 
+	gen.bed, 
 	file.prefix="test.db",
 	return.type="writedb",
 	ncores = 1);
@@ -127,7 +131,7 @@ t2
 
 t3 <- tfbs.scanTFsite( tfs, 
 	file.twoBit, 
-	tre.bed, 
+	gen.bed, 
 	return.type="posteriors",
 	ncores = 1);
 
@@ -135,13 +139,13 @@ t3
 
 t4 <- tfbs.scanTFsite( tfs, 
 	file.twoBit, 
-	tre.bed, 
+	gen.bed, 
 	return.type="maxposterior",
 	ncores = 1);	
 
 t4;
 
-t4$result;
+dim(t4$result);
 
 }
 

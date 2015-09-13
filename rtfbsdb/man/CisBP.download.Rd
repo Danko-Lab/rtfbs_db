@@ -31,11 +31,11 @@ See Also as \code{\link{CisBP.zipload}}, \code{\link{CisBP.extdata}}.
 }
 \examples{
 
-#download human dataset
-db1 <- CisBP.download("Homo_sapiens");
+#download zebra fish dataset
+db1 <- CisBP.download("Danio_rerio");
 
-#download mouse dataset
-db2 <- CisBP.download("Mus_musculus");
+#download Felis_catus dataset
+db2 <- CisBP.download("Felis_catus");
 
 }
 \keyword{CisBP object}

@@ -51,22 +51,22 @@ See Also as \code{"\linkS4class{tfbs}"}
 
 
  #Draw 10 motif logos from first one. 
- tfbs.drawLogo(tfs, file.pdf="tfbs.drawLogo1.pdf", index=c(1:10) );
+ tfbs.drawLogo(tfs, file.pdf="test-drawLogo1.pdf", index=c(1:10) );
  
  #Draw logos for specified Motif_ID, or TF_ID, or TF_Name, or Family_Name 
- tfbs.drawLogo(tfs, file.pdf="tfbs.drawLogo2.pdf", 
- 			motif_id=motif_id, 
- 			tf_id=tf_id, 
- 			tf_name="AP-2", 
- 			family_name=family_name, 
- 			groupby="TF_Status");
+ tfbs.drawLogo(tfs, file.pdf="test-drawLogo2.pdf", 
+ 			motif_id = motif_id, 
+ 			tf_id = tf_id, 
+ 			tf_name = "AP-2", 
+ 			family_name = family_name, 
+ 			groupby = "TF_Status");
  
  #Draw logos for specified TF_Status
- tfbs.drawLogo(tfs, file.pdf="tfbs.drawLogo3.pdf", tf_status="D", groupby="TF_Status");
+ tfbs.drawLogo(tfs, file.pdf="test-drawLogo3.pdf", tf_status="D", groupby="TF_Status");
 
- #unlink("tfbs.drawLogo1.pdf");
- #unlink("tfbs.drawLogo2.pdf");
- #unlink("tfbs.drawLogo3.pdf");
+ #unlink("test-drawLogo1.pdf");
+ #unlink("test-drawLogo2.pdf");
+ #unlink("test-drawLogo3.pdf");
  
 }
 \keyword{Logo}

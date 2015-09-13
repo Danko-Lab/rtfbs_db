@@ -291,8 +291,12 @@ background.check<-function( gc.pos, gc.neg, gc.correction, file.pdf.vioplot=NA, 
 
 	# In order to get the high p-value, multiple resample sizes are used to do test, find a best one.
 	# Need to consider ? 
-	ns.sample <- c ( round(length(gc.neg)/c(5,10,15,20,25)), 1000);
-	ns.sample <- ns.sample[ ns.sample>=1000 ];
+	
+	#ns.sample <- c ( round(length(gc.neg)/c(5,10,15,20,25)), 1000);
+	#ns.sample <- ns.sample[ ns.sample>=1000 ];
+
+	ns.sample <- c ( round(length(gc.neg)/c( 2:10,15,20,25)), 1000, 800, 500 );
+	ns.sample <- ns.sample[ ns.sample >= 500 ];
 	
 	ns.pvalue <- unlist(lapply(ns.sample, try.sample));
 	n.sample  <- ns.sample[ which.max(ns.pvalue) ];
@@ -317,6 +321,36 @@ background.check<-function( gc.pos, gc.neg, gc.correction, file.pdf.vioplot=NA, 
 
 	## return sampling background.
 	return( indx.bgnew );
+}
+
+background.generate <- function( positive.bed )
+{
+	pos.range  <- range(positive.bed[,3] - positive.bed[,2]);
+	
+	chr.size    <- aggregate(positive.bed[,3], list(positive.bed[,1]), max);
+
+	file.chr.size <- tempfile();
+	write.table(chr.size, file=file.chr.size, quote=F, row.names=F, col.names=F, sep="\t");	
+
+	file.pos.bed <- tempfile();
+	write.table( positive.bed, file=file.pos.bed, quote=F, row.names=F, col.names=F, sep="\t");	
+	
+	cmd.pipe <- paste("bedtools complement -i ", file.pos.bed, " -g ", file.chr.size, sep=" ");
+	bed.complement <- read.table( pipe( cmd.pipe ), header=F );
+
+	bed.complement <- bed.complement[ -which( bed.complement[,3] - bed.complement[,2] <= pos.range[2] ),]
+	bed.width      <- bed.complement[,3] - bed.complement[,2];
+
+	n.neg <- sample( 1:length(bed.width), max(NROW(positive.bed)*2, 50000), replace=TRUE, 
+					prob = (as.numeric(bed.width-pos.range[2]))/sum(as.numeric(bed.width-pos.range[2]) ));
+	
+	n.start <- unlist(lapply( n.neg, function(i){ bed.complement[i,2] + round( runif(1, 1, bed.width[i])) } ) )
+	n.stop <-  unlist(lapply( 1:length(n.start), function(i){ n.start[i] + round( runif(1, pos.range[1], pos.range[2])) } ))
+	
+	unlink( file.chr.size );
+	unlink( file.pos.bed );
+	
+	return(data.frame(chr=bed.complement[n.neg,1], start=n.start, stop=n.stop));
 }
 
 comparative_scanDb_rtfbs <- function( tfbs, file.twoBit, 
@@ -494,16 +528,17 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit,
 }
 
 tfbs_enrichmentTest<-function( tfbs, file.twoBit, 
-					positive.bed, negative.bed, 
+					positive.bed, 
+					negative.bed = NA, 
 					file.prefix = NA, 
 					use.cluster = FALSE, 
 					ncores = 1,
 					gc.correction = TRUE, 
 					gc.correction.pdf = NA, 
+					gc.robust.rep = NA,
 					threshold = 6, 
 					threshold.type = c("score", "fdr"), 
 					gc.groups = 1, 
-					robust.test = 1,
 					background.order = 2, 
 					background.length = 100000, 
 					pv.adj = p.adjust.methods) 
@@ -512,7 +547,7 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 
 	if( !check_bed( positive.bed ) ) 
 		stop("Wrong format in the parameter of 'positive.bed', at least three columns including chromosome, strat, stop.");
-	if( !check_bed( negative.bed ) ) 
+	if( !missing(negative.bed) && !check_bed( negative.bed ) ) 
 		stop("Wrong format in the parameter of 'negative.bed', at least three columns including chromosome, strat, stop.");
 
 	if( missing( threshold.type ) ) threshold.type <- "score";
@@ -523,7 +558,9 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 	if( missing(pv.adj) ) pv.adj <- "bonferroni";
 	if( pv.adj == "fdr" ) pv.adj <- "BH";
 
-	if( robust.test>1 && robust.test<3 ) robust.test <- 3;
+	if( missing(gc.robust.rep) || is.na(gc.robust.rep)) gc.robust.rep <- 1;
+	if( gc.robust.rep >1 && gc.robust.rep<3 ) gc.robust.rep <- 3;
+	
 	if( missing( ncores) ) ncores <- 1;
 	if( missing( gc.groups) ) gc.groups <- 1;
 	if( missing( gc.correction) ) gc.correction <- FALSE;
@@ -542,6 +579,12 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 	}
 	else
 		cluster.mat <- cbind( 1:tfbs@ntfs, 1);
+	
+	if( missing(negative.bed) ) 
+	{
+		negative.bed <- background.generate( positive.bed );
+		cat("*", NROW(negative.bed),  "GC negative loci are randomly generated.\n");  
+	}
 	
 	r.comp <- comparative_scanDb_rtfbs( tfbs, 
 							file.twoBit, 
@@ -563,14 +606,14 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 	if( is.null(r.comp) ) return(NULL);
 	ret <- r.comp$ret;
 	
-	if( !is.null(r.comp$bg.sample)  && robust.test > 1 ) 
+	if( !is.null(r.comp$bg.sample)  && gc.robust.rep > 1 ) 
 	{
 		ret.list <- list();
 		ret.list[[1]] <- ret;
 		
-		for(i in 2:robust.test)
+		for(i in 2:gc.robust.rep)
 		{
-			cat("* Robust test for background resampling, loop=", i, "\n");  
+			cat("* GC robust replication for background resampling, loop=", i, "\n");  
 			r.comp <- comparative_scanDb_rtfbs( tfbs, 
 								file.twoBit, 
 								positive.bed, 
@@ -595,7 +638,7 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 			Npos.list <- c();
 			Nneg.list <- c();
 			
-			for(k in 1:robust.test)
+			for(k in 1:gc.robust.rep)
 			{
 				Npos.list <- c( Npos.list, ret.list[[k]][i,'Npos'] );
 				Nneg.list <- c( Nneg.list, ret.list[[k]][i,'Nneg'] );
@@ -606,7 +649,11 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 			n.gc.pos <- ret.list[[1]][i,'gc.pos'];
 			n.gc.neg <- ret.list[[1]][i,'gc.neg'];
 			Nneg.expected <- Nneg * n.gc.pos/ n.gc.neg ; 
-			fe.ratio <- ( ifelse(Npos==0,1, Npos)/ n.gc.pos )/( ifelse(Nneg==0,1, Nneg)/ n.gc.neg );
+			
+			Npos <- ifelse( Npos==0,1, Npos );
+			Nneg <- ifelse( Nneg==0,1, Nneg );
+			
+			fe.ratio <- ( Npos / n.gc.pos )/( Nneg / n.gc.neg );
 			tbl  = rbind( c( Npos, Nneg ), c( n.gc.pos- Npos, n.gc.neg - Nneg ) )
 			pval = fisher.test(tbl)$p.value;
 			
@@ -616,6 +663,8 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 			ret[i, 'fe.ratio'] <- fe.ratio;
 			ret[i, 'pvalue']   <- pval;
 		}
+		
+		ret$pv.adj <- adjust.pvale( ret$pvalue, cluster.mat, pv.adj );
 	}
 	
 	ret$Nneg   <- NULL;
@@ -638,7 +687,7 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 				use.cluster       = use.cluster, 
 				cluster.mat       = cluster.mat, 
 				ncores            = ncores,
-				robust.test       = robust.test,
+				gc.robust.rep     = gc.robust.rep,
 				threshold.type    = threshold.type, 
 				threshold         = threshold, 
 				pv.adj            = pv.adj, 
@@ -666,7 +715,7 @@ print.tfbs.enrichment<-function( x, ..., pv.threshold=0.05, pv.adj=NA )
 	cat("Threshold:", r.comp$parm$threshold, "\n");
 	cat("Background.order:", r.comp$parm$background.order, "\n");
 	cat("Background.length:", r.comp$parm$background.length, "\n");
-	cat("Robust test:", r.comp$parm$robust.test, "\n");
+	cat("GC robust replication:", r.comp$parm$gc.robust.rep, "\n");
 
 	cat("Total Motif:", NROW(r.comp$result), "\n");
 	cat("\nSignificant Motifs(or top 20):\n");
@@ -714,9 +763,12 @@ tfbs.reportEnrichment<-function( tfbs,
 								 report.size = "letter", 
 								 report.title = "", 
 								 sig.only = TRUE, 
+								 enrichment.type = c ("both", "enriched", "depleted"),
 								 pv.threshold = 0.05, 
 								 pv.adj = NA )
 {
+	stopifnot(class(tfbs) == "tfbs" && class(r.comp) == "tfbs.enrichment" )
+
 	if(!is.na(pv.adj))  
 		r.comp$result$pv.adj <- adjust.pvale( r.comp$result$pvalue, r.comp$parm$cluster.mat, pv.adj )
 	
@@ -725,7 +777,16 @@ tfbs.reportEnrichment<-function( tfbs,
 	
 	if( sig.only )
 	{
+		if( !missing(enrichment.type)) enrichment.type <- match.arg(enrichment.type)
+
 		idx.sel <- which( r.comp.sel$pv.adj <= pv.threshold );
+
+		if (enrichment.type=="enriched")
+			idx.sel <- which( r.comp.sel$pv.adj <= pv.threshold && r.comp.sel$fe.ratio >= 1);
+
+		if (enrichment.type=="depleted")
+			idx.sel <- which( r.comp.sel$pv.adj <= pv.threshold && r.comp.sel$fe.ratio < 1);
+
 		if( length(idx.sel) > 0 )
 			r.comp.sel <- r.comp.sel[ idx.sel, ]
 		else

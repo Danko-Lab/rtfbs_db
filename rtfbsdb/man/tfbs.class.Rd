@@ -22,7 +22,6 @@ Objects can be created by calls of the function of \code{\link{tfbs.createFromCi
 }
 \section{Slots}{
   \describe{
-  \item{TFID}{Vector of non-unique ID for TF.}
   \item{species}{String indicating the species name}
   \item{ntfs}{Number of motifs in matrix.}
   \item{pwm}{A list including PWM matics.}

@@ -28,15 +28,17 @@ db <- CisBP.extdata("Homo_sapiens");
 
 tfs <- tfbs.createFromCisBP(db, family_name="AP-2");
 
-if(0)
-{
-tfs <- tfbs.getExpression(tfs, file.bigwig.plus, file.bigwig.minus, file.hg19);
+
+file.bigwig.minus <- system.file("extdata","GSM1480327_K562_PROseq_chr19_minus.bw", package="rtfbsdb")
+file.bigwig.plus <- system.file("extdata","GSM1480327_K562_PROseq_chr19_plus.bw", package="rtfbsdb")
+hg19.twobit <- system.file("extdata","hg19.chr19.2bit", package="rtfbsdb")
+gencode.gtf <- system.file("extdata","gencode.v21.annotation.chr19.gtf.gz", package="rtfbsdb")
+
+tfs <- tfbs.getExpression(tfs, hg19.twobit, gencode.gtf, file.bigwig.plus, file.bigwig.minus, ncore=1); 
 
 tfs <- tfbs.clusterMotifs(tfs, pdf.heatmap="test-AP2-heatmap.pdf" );
 
-usemotif <- tfbs.selectByGeneExp(tfs);
-}
-
+usemotif <- tfbs.selectByGeneExp( tfs );
 
 }
 \keyword{tfbs object}

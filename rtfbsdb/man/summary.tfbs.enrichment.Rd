@@ -24,9 +24,11 @@ The results is a data frame including 6 columns,
 \item{motif.id }{Motif ID}
 \item{tf.name }{TF Name}
 \item{Npos }{Read count in positive loci.}
-\item{Nneg }{Read count in negative loci.}
-\item{pv.adj}{p-value}
-\item{es.ratio}{The ratio of read counts between positive loci and negative loci. }
+\item{expected }{Read count in negative loci.}
+\item{fe.ratio}{The ratio of read counts between positive loci and negative loci. }
+\item{starch}{Cpmporessed Bed filename}
+\item{pvalue}{p-value}
+\item{pv.adj}{adjusted p-value by multiple comparson method.}
 }
 \seealso{
 See also as \code{\link{tfbs.enrichmentTest}}.

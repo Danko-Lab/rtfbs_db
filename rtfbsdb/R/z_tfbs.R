@@ -68,34 +68,33 @@ setMethod("tfbs.importMotifs", signature(tfbs="tfbs"), tfbs_importMotifs)
 
 setGeneric("tfbs.selectExpressedMotifs", 
 	def = function( tfbs, 
-			file.bigwig.plus, 
-			file.bigwig.minus, 
+			file.twoBit, 
+			file.gencode.gtf, 
+			file.bigwig.plus = NA, 
+			file.bigwig.minus = NA, 
 			file.bam = NA, 
-			file.twoBit = NA, 
-			file.gencode.gtf = NA, 
-			seq.datatype = NA, 
+			seq.datatype=c( "GRO-seq", "PRO-seq", "RNA-seq" ), 
 			pvalue.threshold = 0.05, 
-			include.DBID.missing = TRUE, 
-			ncores = 1) 
+			include.DBID.missing = TRUE,
+			ncores = 1 ) 
 	{
-		stopifnot(class(tfbs) == "tfbs")
-		standardGeneric("tfbs.selectExpressedMotifs")
+		stopifnot(class(tfbs) == "tfbs");
+		standardGeneric("tfbs.selectExpressedMotifs");
 	})
 
 setMethod("tfbs.selectExpressedMotifs", c(tfbs="tfbs"), tfbs_selectExpressedMotifs )
-
 
 ## Gets expression level of target TF.
 ## TODO: Add the MGI symbol to each TF.  Not 100% sure where to do this?!
 
 setGeneric("tfbs.getExpression", 
 	def = function( tfbs, 
-			file.bigwig.plus, 
-			file.bigwig.minus, 
+			file.twoBit, 
+			file.gencode.gtf, 
+			file.bigwig.plus = NA, 
+			file.bigwig.minus = NA, 
 			file.bam = NA, 
-			file.twoBit = NA, 
-			file.gencode.gtf = NA, 
-			seq.datatype = NA, 
+			seq.datatype=c( "GRO-seq", "PRO-seq", "RNA-seq" ), 
 			ncores = 1) 
 	{
 		stopifnot(class(tfbs) == "tfbs")
@@ -107,7 +106,7 @@ setMethod("tfbs.getExpression", c(tfbs="tfbs"), tfbs_getExpression );
 ## Clusters TFs based on DNA sequence preferences.
 setGeneric("tfbs.clusterMotifs", 
 	def = function(tfbs, 
-			method = c("agne", "apcluster"), 
+			method = c("agnes", "apcluster"), 
 			pdf.heatmap = NA, 
 			group.k = NA, 
 			apcluster.q = 0.95, 
@@ -179,16 +178,16 @@ setGeneric("tfbs.enrichmentTest",
 	def = function( tfbs, 
 					file.twoBit, 
 					positive.bed, 
-					negative.bed, 
-					file.prefix = NA, 
-					use.cluster = FALSE, 
+					negative.bed = NA, 
+					file.prefix  = NA, 
+					use.cluster  = FALSE, 
 					ncores = 1,
 					gc.correction = TRUE, 
 					gc.correction.pdf=NA, 
+					gc.robust.rep = NA,
 					threshold = 6, 
 					threshold.type = c("score", "fdr"), 
 					gc.groups=1, 
-					robust.test=1,
 					background.order = 2, 
 					background.length = 100000, 
 					pv.adj=p.adjust.methods) 
