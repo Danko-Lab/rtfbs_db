@@ -22,22 +22,22 @@ B: Source:
 
 3) Adding slots "cluster" and "tf_missing", renaming slots "tf_info", removing TF_ID for tfbs class
 
-4) Adding function: tfbs.importMotifs
+4) Adding function: tfbs.importMotifs()
 
-5) Adding function:tfbs.selectExpressedMotifs(), gene expression and motif filtering, separated from the constructor CisBP.createFromCisBP.
+5) Adding function:tfbs.selectExpressedMotifs(), gene expression and motif filtering, separated from the constructor CisBP.createFromCisBP()
 
 6) Renaming function: tfbs.enrichmentTest()
 
-7) Adding new cluster (apcluster) for tfbs.clusterMotifs
+7) Adding new cluster (apcluster) for tfbs.clusterMotifs()
 
-8) Renaming expected field for the results returned by tfbs.enrichmentTest.
+8) Renaming expected field for the results returned by tfbs.enrichmentTest()
 
-9) Adding parameter gc.robust.rep, use.cluster, threshold.type for tfbs.enrichmentTest.
+9) Adding parameter gc.robust.rep, use.cluster, threshold.type for tfbs.enrichmentTest()
 
-10) Adding parameter threshold.type for tfbs.scanTFsite.
+10) Adding parameter threshold.type for tfbs.scanTFsite()
 
-11) Adding parameter enrichment.type and pv.threshold for tfbs.reportEnrichment
+11) Adding parameter enrichment.type and pv.threshold for tfbs.reportEnrichment()
 
-12) The parameter orders are changed in some functions.
+12) The parameter orders are changed in some functions
 
 
