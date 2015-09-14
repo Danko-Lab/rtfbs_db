@@ -32,9 +32,9 @@ B: Source:
 
 8) Renaming expected field for the results returned by tfbs.enrichmentTest.
 
-9) Adding parameter gc.robust.rep, use.cluster, threshold.rype for tfbs.enrichmentTest.
+9) Adding parameter gc.robust.rep, use.cluster, threshold.type for tfbs.enrichmentTest.
 
-10) Adding parameter threshold.rype for tfbs.scanTFsite.
+10) Adding parameter threshold.type for tfbs.scanTFsite.
 
 11) Adding parameter enrichment.type and pv.threshold for tfbs.reportEnrichment
 
