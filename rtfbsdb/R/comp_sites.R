@@ -500,7 +500,7 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit,
 						  'tf.name'  = pwm.name, 
 						  'Npos'     = Npos, 
 						  'Nneg'     = Nneg, 
-						  'expected' = Nneg.expected, 
+						  'expected' = round( Nneg.expected, 1), 
 						  'fe.ratio' = fe.ratio, 
 						  'pvalue'   = pval, 
 						  'pv.adj'   = pval, 
@@ -650,16 +650,17 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 			n.gc.neg <- ret.list[[1]][i,'gc.neg'];
 			Nneg.expected <- Nneg * n.gc.pos/ n.gc.neg ; 
 			
-			Npos <- ifelse( Npos==0,1, Npos );
-			Nneg <- ifelse( Nneg==0,1, Nneg );
+			Npos <- ifelse( Npos==0, 1, Npos );
+			Nneg <- ifelse( Nneg==0, 1, Nneg );
 			
 			fe.ratio <- ( Npos / n.gc.pos )/( Nneg / n.gc.neg );
 			tbl  = rbind( c( Npos, Nneg ), c( n.gc.pos- Npos, n.gc.neg - Nneg ) )
+show(tbl);
 			pval = fisher.test(tbl)$p.value;
 			
 			ret[i, 'Npos']     <- Npos;
 			ret[i, 'Nneg']     <- Nneg;
-			ret[i, 'expected'] <- Nneg.expected;
+			ret[i, 'expected'] <- round( Nneg.expected, 1);
 			ret[i, 'fe.ratio'] <- fe.ratio;
 			ret[i, 'pvalue']   <- pval;
 		}

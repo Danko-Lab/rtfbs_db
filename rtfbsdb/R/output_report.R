@@ -1,7 +1,7 @@
 output_motif_report<-function( tfbs, df.motif, file.pdf, report.size, report.title, report.style, report.note="")
 {
 	scheme1 <- data.frame( min.col = c( 0,0,1 ), max.col = c( 0.9, 0.9, 0.9 ) );
-	scheme2 <- data.frame( min.col = c( 0,1,0 ), max.col = c( 0.9, 0, 0.9   ) );
+	scheme2 <- data.frame( min.col = c( 0,1,0 ), max.col = c( 0.6, 0.3, 0.6 ) );
 	
 	get_rgbcol<-function(pvalue, p.min=0.001, p.max=1, log10=T, scheme=1)
 	{

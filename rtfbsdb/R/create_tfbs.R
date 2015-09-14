@@ -38,7 +38,7 @@ tfbs <- function(filenames, names, species="Homo_sapiens", tf_info=NULL, tf_miss
 		expressionlevel= as.data.frame(NULL) )
 }
 
-#' Create a new tfbs object from all the PWM files found in the supplied folders.
+#' Create a new tfbs object from all the PWMs found in the supplied folders.
 #' Optionally recursively descends into subfolders.
 
 tfbs.dirs <- function(..., species="Homo_sapiens", args.read.motif = NULL, pattern = glob2rx("*.pwm"), recursive = FALSE) 
@@ -131,7 +131,7 @@ tfbs_createFromCisBP <- function ( cisbp.db,
 	}
 
 	tbm <- tbm[nidx,, drop=F];
-	cat( " ", NROW(tbm), "PWM files are defined in the CisBP dataset.\n");
+	cat( " ", NROW(tbm), "PWM(s) are defined in the CisBP dataset.\n");
 
 	tmp.dir <- tempdir();
 	pwm.files <- c();
@@ -194,11 +194,11 @@ tfbs_createFromCisBP <- function ( cisbp.db,
 
 	if(length(pwm.files)==0)
 	{
-		cat("! No PWM files to create a tfbs object.\n");
+		cat("! No PWM file to create a tfbs object.\n");
 		return(NULL);
 	}
 	else
-		cat("*", length(pwm.files), "PWMs in the tfbs object.\n");
+		cat("*", length(pwm.files), "PWM(s) in the tfbs object.\n");
 
 	tfs <- tfbs(
 		species    = cisbp.db@species,

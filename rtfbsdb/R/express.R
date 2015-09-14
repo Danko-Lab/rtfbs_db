@@ -465,7 +465,7 @@ tfbs_selectExpressedMotifs <- function( tfbs,
 		return(tfs);
 	}
 
-	tfs <- tfbs_getExpression( tfs, 
+	tfs <- tfbs_getExpression( tfbs, 
 								file.twoBit, 
 								file.gencode.gtf, 
 								file.bigwig.plus, 

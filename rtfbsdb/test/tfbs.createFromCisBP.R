@@ -1,8 +1,8 @@
 #
 # Test a full procedure of CisBP.db class
 #
-
-detach("package:rtfbsdb", unload=TRUE);
+if(require(rtfbsdb))
+	detach("package:rtfbsdb", unload=TRUE);
 
 library(rtfbsdb)
 
@@ -15,16 +15,41 @@ file.gencode.gtf <- "/local/storage/data/gencode/gencode.v21.annotation.gtf"
 
 db <- CisBP.extdata("Homo_sapiens");
 
-tfs1 <- tfbs.createFromCisBP(db, family_name="AP-2", file.bigwig.plus=file.bigwig.plus, file.bigwig.minus=file.bigwig.minus,  file.gencode.gtf=file.gencode.gtf, seq.datatype="PRO-seq", ncores=1);
+tfs1 <- tfbs.createFromCisBP(db, family_name="AP-2" );
+tfs1 <- tfbs.selectExpressedMotifs( tfs1, file.twoBit_path, 
+			file.gencode.gtf, 
+			file.bigwig.plus  = file.bigwig.plus, 
+			file.bigwig.minus = file.bigwig.minus, 
+			seq.datatype      = "PRO-seq", 
+			ncores=1);
 
-tfs2 <- tfbs.createFromCisBP(db, file.bigwig.plus=file.bigwig.plus, file.bigwig.minus=file.bigwig.minus,  file.gencode.gtf=file.gencode.gtf, seq.datatype="PRO-seq", ncores=21);
+tfs2 <- tfbs.createFromCisBP(db);
+tfs2 <- tfbs.selectExpressedMotifs( tfs2, file.twoBit_path, 
+			file.gencode.gtf, 
+			file.bigwig.plus  = file.bigwig.plus, 
+			file.bigwig.minus = file.bigwig.minus,  
+			seq.datatype      = "PRO-seq", 
+			pvalue.threshold  = 0.005, 
+      		include.DBID.missing=F, 
+      		ncores            = 21);
 
 
 file.bam.plus <- "/local/storage/projects/NHP/AllData/bams/H3_U.fastq.gz.sort.bam";
 
-tfs3 <- tfbs.createFromCisBP(db, family_name="AP-2", file.bigwig.plus=file.bam.plus, file.bigwig.minus=NULL,  file.gencode.gtf=file.gencode.gtf, seq.datatype="RNA-seq", ncores=1);
+tfs3 <- tfbs.createFromCisBP(db, family_name="AP-2");
+tfs3 <- tfbs.selectExpressedMotifs(tfs3, file.twoBit_path, 
+			file.gencode.gtf, 
+			file.bam    = file.bam.plus,
+			seq.datatype="RNA-seq", 
+			ncores      = 1);
 
-tfs4 <- tfbs.createFromCisBP(db, file.bigwig.plus=file.bam.plus, file.bigwig.minus=NULL,  file.gencode.gtf=file.gencode.gtf, seq.datatype="RNA-seq", ncores=21);
-
+tfs4 <- tfbs.createFromCisBP(db);
+tfs3 <- tfbs.selectExpressedMotifs(tfs3, file.twoBit_path, 
+			file.gencode.gtf, 
+			file.bam         = file.bam.plus,
+			seq.datatype     = "RNA-seq", 
+			pvalue.threshold = 0.005, 
+      		include.DBID.missing=F, 
+			ncores           = 21);
 
 save.image(file="tfbs.createFromCisBP.rdata");

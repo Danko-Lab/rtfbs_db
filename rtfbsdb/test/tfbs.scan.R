@@ -27,15 +27,15 @@ t3.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, return.typ
 
 t4.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, return.type="maxposterior", ncores=1, threshold=8);
 
-t5.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, ncores=3, file.prefix = "test.tfscan", fdr=0.05);
+t5.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, ncores=3, file.prefix = "test.tfscan", threshold=0.05, threshold.type="fdr" );
 
-t6.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, ncores=3, file.prefix = "test.tfscan", fdr=0.05, gc.groups=5, background.order = 3 );
+t6.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, ncores=3, file.prefix = "test.tfscan", threshold=0.05, threshold.type="fdr", gc.groups=5, background.order = 3 );
 
 t7.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, ncores=3, threshold=8, gc.groups=4, background.order = 3 );
 
-t8.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, ncores=3, return.type="writedb", file.prefix = "test.tfscan", fdr=0.05, gc.groups=5, background.order = 3 );
+t8.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, ncores=3, return.type="writedb", file.prefix = "test.tfscan", threshold=0.05, threshold.type="fdr", gc.groups=5, background.order = 3 );
 
-t9.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, ncores=3, return.type="matches", file.prefix = "test.tfscan", fdr=0.05, gc.groups=5, background.order = 3 );
+t9.scan <- tfbs.scanTFsite( tfs, file.twoBit_path, dREG_H_change_bed, ncores=3, return.type="matches", file.prefix = "test.tfscan", threshold=0.05, threshold.type="fdr", gc.groups=5, background.order = 3 );
 
 
 t1.scan;

@@ -16,6 +16,9 @@ db3 <- CisBP.zipload(db2@zip.file, species="Mus_musculus");
 #reading data from inner file
 db4 <- CisBP.extdata(species="Homo_sapiens");
 
+df <- CisBP.getTFinformation( db1, tf.information.type=2 );
+
+show(head(df));
 
 #group method
 
@@ -31,7 +34,9 @@ gr5 <-CisBP.group(db3, group.by="motif_type", tf.information.type=3);
 
 gr6 <-CisBP.group(db3, group.by="msource_id", tf.information.type=3); 
 
-save(gr1, gr2, gr3, gr4, gr5, gr6, file="cisbp.test.rdata");
+df1 <- CisBP.getTFinformation(db3); 
+
+df2 <- CisBP.getTFinformation(db3, tf.information.type=2); 
 
 #find method
 tfs0 <-tfbs.createFromCisBP(db4, family_name="Homeodomain", tf_status="D",  motif_type="ChIP-seq", msource_id= "MS01_1.01", tf.information.type=1 ); 
