@@ -31,7 +31,7 @@ setMethod("show", "tfbs", function(object)
 	if( NROW(object@cluster)==0 ) 
 		cat( "Cluster Matrix:  NULL\n" )
 	else
-		cat( "Cluster Matrix:  [", NROW(object@Cluster), ",", NCOL(object@Cluster), "]\n" );
+		cat( "Cluster Matrix:  [", NROW(object@cluster), ",", NCOL(object@cluster), "]\n" );
 	
 	if(NROW(object@expressionlevel)==0) 
 		cat( "Expression:  NULL\n" )
