@@ -207,7 +207,7 @@ scanDb_rtfbs <- function(tfbs,
 										name       = tfbs@mgisymbols[i], # binding$motif_id
 										score      = binding$score,
 										strand     = binding$strand,
-										bedOffset  = binding$start)
+										peakStart  = peak_start)
 				
 
 				if(return.type == "writedb") {
