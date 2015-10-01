@@ -200,14 +200,15 @@ scanDb_rtfbs <- function(tfbs,
 				spl <- strsplit(as.character(binding$seqname), ":|-")
 				peak_chrom <- as.character(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[1]]}))
 				peak_start <- as.integer(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[2]]}))
-
+				peak_end <- as.integer(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[3]]}))
 				binding <- data.frame(  chrom      = peak_chrom, 
 										chromStart = peak_start+ binding$start- 1,  ## -1 determined empirically.
 										chromEnd   = peak_start+ binding$end, 
 										name       = tfbs@mgisymbols[i], # binding$motif_id
 										score      = binding$score,
 										strand     = binding$strand,
-										peakStart  = peak_start)
+										peakStart  = peak_start,
+										peakEnd    = peak_end)
 				
 
 				if(return.type == "writedb") {
