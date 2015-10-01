@@ -163,7 +163,7 @@ scanDb_rtfbs <- function(tfbs,
 	seq.ms  <- read.seqfile.from.bed( extBed, file.twoBit);
 	bgModel <- build.mm( seq.ms, 3);
 
-	## Swiched rtfbs to returning posteriors.
+	## Switched rtfbs to returning posteriors.
 	return.posteriors <- ( return.type=="posteriors" | return.type=="maxposterior" )
 
 	binding_all <- mclapply(usemotifs, function(i, ...) {
@@ -200,13 +200,16 @@ scanDb_rtfbs <- function(tfbs,
 				spl <- strsplit(as.character(binding$seqname), ":|-")
 				peak_chrom <- as.character(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[1]]}))
 				peak_start <- as.integer(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[2]]}))
-
+				peak_end <- as.integer(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[3]]}))
 				binding <- data.frame(  chrom      = peak_chrom, 
 										chromStart = peak_start+ binding$start- 1,  ## -1 determined empirically.
 										chromEnd   = peak_start+ binding$end, 
 										name       = tfbs@mgisymbols[i], # binding$motif_id
 										score      = binding$score,
-										strand     = binding$strand)
+										strand     = binding$strand,
+										peakStart  = peak_start,
+										peakEnd    = peak_end)
+				
 
 				if(return.type == "writedb") {
 					file.starch <- paste(file.prefix,i,".bed.tmp.starch", sep="");
