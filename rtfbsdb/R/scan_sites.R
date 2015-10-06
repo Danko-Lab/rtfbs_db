@@ -200,14 +200,17 @@ scanDb_rtfbs <- function(tfbs,
 				spl <- strsplit(as.character(binding$seqname), ":|-")
 				peak_chrom <- as.character(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[1]]}))
 				peak_start <- as.integer(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[2]]}))
-
+				peak_end <- as.integer(sapply(c(1:NROW(binding)), function(x) {spl[[x]][[3]]}))
+				
 				binding <- data.frame(  chrom      = peak_chrom, 
 										chromStart = peak_start+ binding$start- 1,  ## -1 determined empirically.
 										chromEnd   = peak_start+ binding$end, 
 										name       = tfbs@mgisymbols[i], # binding$motif_id
 										score      = binding$score,
-										strand     = binding$strand)
-
+										strand     = binding$strand,
+										peakStart  = peak_start,
+										peakEnd    = peak_end)
+										
 				if(return.type == "writedb") {
 					file.starch <- paste(file.prefix,i,".bed.tmp.starch", sep="");
 					write.starchbed(binding, file.starch);
@@ -318,18 +321,20 @@ tfbs_scanTFsite<-function( tfbs, file.twoBit,
 	sum.match <- NULL;
 	if( return.type == "matches" )
 	{
-		sum.match <- do.call("rbind", lapply(r.ret, function(x){ 
+		sum.match <- do.call("rbind", lapply( 1:length(usemotifs), function(i){ 
 
-				if (NROW(x)==0) return(NULL);
+				x <- r.ret[[i]];
+				motif.id <- as.character( tfbs@tf_info$Motif_ID[ usemotifs[i] ] );
+				tf.name  <- as.character( tfbs@tf_info$TF_Name[  usemotifs[i] ] );
+				
+				if (NROW(x)==0) return( data.frame( motif.id, tf.name, count=0 ) );
 
-				tf.name <- "";
-				tf.idx  <- which( as.character(tfbs@tf_info$Motif_ID) == as.character(x$name[1]) );
-				if( length(tf.idx)>0)
-					tf.name <- tfbs@tf_info$TF_Name[tf.idx[1]];
-				return( data.frame( x$name[1], tf.name, NROW(x) ) );
+				stopifnot( as.character( x$name[1] ) == motif.id );
+
+				return( data.frame(motif.id, tf.name, count=NROW(x) ) );
 		} ) );
 		
-		colnames(sum.match) <- c("TF_Name", "Motif_ID", "Count");
+		colnames(sum.match) <- c("Motif_ID", "TF_Name", "Count");
 	}
 
 	r.scan <- list( parm = r.parm, bed = gen.bed, result = r.ret, summary=sum.match );

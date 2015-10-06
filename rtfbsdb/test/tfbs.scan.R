@@ -2,6 +2,7 @@
 # Test a tfbs.scanTSsite procedure of tfbs class
 #
 
+library(rtfbsdb)
 
 detach("package:rtfbsdb", unload=TRUE);
 

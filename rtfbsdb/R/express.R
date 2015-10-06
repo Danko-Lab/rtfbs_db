@@ -76,8 +76,88 @@ simple_reduce_bed<-function( r.bed )
 	return(r.bed); 		
 }
 
+lambda_estimate_in_bam <- function( file.bam, file.twoBit, file.gencode.gtf, win.size=1000, sample.size=100*1000 )
+{
+	import_gene_loci <-function()
+	{
+		awk.cmd <- paste( "awk '{print $1,$2,$3,$4,$5}' ", file.gencode.gtf, sep="")
+
+		# for gzipped GTF file
+		if(tools::file_ext(file.gencode.gtf)=="gz" )
+			awk.cmd <- paste( "zcat ",file.gencode.gtf," | awk '{print $1,$2,$3,$4,$5}' ", sep="");
+
+		bigdf <- read.table( pipe(awk.cmd), header = F );
+
+		if( exists("bigdf") && !is.null(bigdf) && !is.na(bigdf) )
+		{
+			colnames(bigdf) <- c("V1", "V2", "V3", "V4", "V5");
+			return(bigdf[,c(1,4,5)]);
+		}
+		else
+		{
+			cat("! Failed to call awk command to get the reduced gencode file.\n");	
+			return(NULL);
+		}
+	}
+
+	get_complement<-function( bed )
+	{
+		tmp.bed <- tempfile();
+		write.table(bed, file=tmp.bed, quote=F, sep="\t", row.names=FALSE, col.names=FALSE,);
+
+		tmp.genome <- tempfile();
+		write.table( get_chromosome_size(file.twoBit), file=tmp.genome, quote=F, sep="\t", row.names=FALSE, col.names=FALSE,);
+
+		pipe.cmd <- paste("bedtools complement -i", tmp.bed, " -g ", tmp.genome );
+		df.comp <- read.table( pipe(pipe.cmd), header = F );
+
+		return(df.comp);
+	}
+
+	df.bed <- import_gene_loci();
+	if( is.null( df.bed ) ) return( NULL );
+
+	df.comp <- get_complement( df.bed );
+	df.comp[,2] <- df.comp[,2] + 1000;
+	df.comp[,3] <- df.comp[,3] - 1000;
+	df.comp.width <- df.comp[,3] - df.comp[,2];
+	df.comp <- df.comp [ -which( df.comp.width < win.size), ];
+
+	df.split <- apply(df.comp, 1, function(x) { 
+		start <- seq(as.numeric(x[2]), as.numeric(x[3]), by=win.size);
+		stop  <- c(start[-1], as.numeric(x[3]));
+		df <- data.frame(x[1], start, stop);
+		df <- df [ - which( df[,3] - df[,2] < win.size ),];
+		return(df);
+	})
+
+	#library(data.table);
+	#df.comp.win <- as.data.frame( rbindlist( df.split ) );
+	df.comp.win <- do.call(rbind, df.split);
+
+	if ( sample.size >= NROW( df.comp.win ) ) 
+		sample.size <- NROW( df.comp.win );
+	
+	sub.sample <- sample( 1:NROW(df.comp.win) )[ 1:sample.size ];
+	df.comp.win <- df.comp.win[sub.sample, ];
+	
+	reads <- get_bam_reads( file.bam, df.comp.win );
+	
+	## NO BAM file or BAM file is not indexed
+	if(all(is.na(reads)))  return( NULL );
+	
+	Mode <- function(x) {
+	  ux <- unique(x)
+	  ux[which.max(tabulate(match(x, ux)))]
+	}
+
+	return( Mode(reads) );
+}
+
 get_bam_reads<-function(file.bam, df.bed )
 {
+	options("scipen"=100, "digits"=4)
+	
 	filename <- tempfile();
 	if(is.null(df.bed))
 	{
@@ -154,7 +234,8 @@ tfbs_getExpression <- function(tfbs,
 	if(is.null(gencode_transcript_ext) || class(gencode_transcript_ext)=="try-error")
 		stop("Gencode data can not be found in the GTF file specified by the parameter of file.gencode.gtf.");
 
-	reads.total <- 0;
+	reads.total  <- 0;
+	reads.lambda.kb <- 0;
 	
 	if(seq.datatype=="GRO-seq" ||seq.datatype=="PRO-seq")
 	{
@@ -180,8 +261,12 @@ tfbs_getExpression <- function(tfbs,
 		gencode_transcript_ext <- gencode_transcript_ext[ which(gencode_transcript_ext$V3=="exon"),];	
 		cat("  For", seq.datatype, ",", NROW(gencode_transcript_ext), "items are selected from GENCODE dataset.\n");
 		
-		reads.total <- get_bam_reads( file.bam, NULL );
-		cat("*", reads.total, "Reads in", file.bam, ".\n");
+		reads.lambda.kb <- lambda_estimate_in_bam( file.bam, file.twoBit, file.gencode.gtf );
+		
+		if( is.null(reads.lambda.kb) )
+			stop("Failed to load the BAM file.");
+		
+		cat("*Lambda of poisson distribution is estimated in", file.bam, "(=", reads.lambda.kb, "/kb).\n");
 	}
 	else
 	{
@@ -189,7 +274,11 @@ tfbs_getExpression <- function(tfbs,
 		return(tfbs);
 	}
 	
-	r.lambda <- 0.04 * reads.total/10751533/1000 ;
+	if (seq.datatype=="RNA-seq")
+		r.lambda <- reads.lambda.kb/1000
+	else
+		r.lambda <- 0.04 * reads.total/10751533/1000 ;
+	
 
 	DBIDs <- unique( as.character(tfbs@tf_info$DBID) );
 	if( length(DBIDs)==0 )
@@ -242,7 +331,8 @@ tfbs_getExpression <- function(tfbs,
 			if( class(r.reads) != "try-error")
 			{
 				bed.max <- which.max(abs( r.reads /((r.bed[,3] - r.bed[,2])+1)));
-				p.pois <- ppois( abs(r.reads[bed.max]), r.lambda*abs(r.bed[bed.max,3] - r.bed[bed.max,2]) , lower.tail=F);
+				
+				p.pois <- ppois( abs(r.reads[bed.max]), r.lambda * abs( r.bed[bed.max,3] - r.bed[bed.max,2] ) , lower.tail=F);
 
 				r.df   <- c( 
 						"dbid"      = dbid,
@@ -258,7 +348,8 @@ tfbs_getExpression <- function(tfbs,
 			else
 				r.df   <- c(dbid, rep(NA, 8));
 				
-			r.df;});  
+			return(r.df);
+		});  
 			
 		df.exp <- transform( do.call(rbind, r.bed.list) );
 		colnames(df.exp) <- c("dbid", "chr", "start", "end", "length", "strand", "reads","lambda", "p.pois");

@@ -34,22 +34,33 @@ tfs2 <- tfbs.selectExpressedMotifs( tfs2, file.twoBit_path,
       		ncores            = 21);
 
 
-file.bam.plus <- "/local/storage/projects/NHP/AllData/bams/H3_U.fastq.gz.sort.bam";
+file.bam <- "/local/storage/projects/NHP/AllData/bams/H3_U.fastq.gz.sort.bam";
 
 tfs3 <- tfbs.createFromCisBP(db, family_name="AP-2");
 tfs3 <- tfbs.selectExpressedMotifs(tfs3, file.twoBit_path, 
 			file.gencode.gtf, 
-			file.bam    = file.bam.plus,
+			file.bam    = file.bam,
 			seq.datatype="RNA-seq", 
 			ncores      = 1);
 
 tfs4 <- tfbs.createFromCisBP(db);
-tfs3 <- tfbs.selectExpressedMotifs(tfs3, file.twoBit_path, 
+tfs4 <- tfbs.selectExpressedMotifs(tfs4, file.twoBit_path, 
 			file.gencode.gtf, 
-			file.bam         = file.bam.plus,
+			file.bam         = file.bam,
 			seq.datatype     = "RNA-seq", 
 			pvalue.threshold = 0.005, 
       		include.DBID.missing=F, 
 			ncores           = 21);
+
+file.bam <- "/local/storage/projects/NHP/AllData/bams/H2_U.fastq.gz.sort.bam";
+tfs5 <- tfbs.createFromCisBP(db);
+tfs5 <- tfbs.selectExpressedMotifs(tfs5, file.twoBit_path, 
+			file.gencode.gtf, 
+			file.bam         = file.bam,
+			seq.datatype     = "RNA-seq", 
+			pvalue.threshold = 0.005, 
+      		include.DBID.missing=F, 
+			ncores           = 21);
+
 
 save.image(file="tfbs.createFromCisBP.rdata");
