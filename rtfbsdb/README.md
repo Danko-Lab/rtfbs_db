@@ -40,4 +40,14 @@ B: Source:
 
 12) The parameter orders are changed in some functions
 
+10/6/2015
+
+1) Changing lambda of Poisson distribution in gene expression for RNA-seq data
+
+2) Changing q value in APcluster to 0.99
+
+3) Fixing bugs in the function print.tfbs.finding() and summary.tfbs.finding()
+
+4) Adding peak starting and ending postions for the results of matches option in the function tfbs.scanTFsite().
+
 
