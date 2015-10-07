@@ -48,6 +48,6 @@ B: Source:
 
 3) Fixing bugs in the function print.tfbs.finding() and summary.tfbs.finding()
 
-4) Adding peak starting and ending postions for the results of matches option in the function tfbs.scanTFsite().
+4) Adding peak starting and ending positions for the results of matches option in the function tfbs.scanTFsite().
 
 
