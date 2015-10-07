@@ -265,8 +265,11 @@ tfbs_getExpression <- function(tfbs,
 		
 		if( is.null(reads.lambda.kb) )
 			stop("Failed to load the BAM file.");
+
+		if( reads.lambda.kb < 1 )
+			stop("Lambda of Poisson distribution is too samll( = 0 reads/kb).");
 		
-		cat("*Lambda of poisson distribution is estimated in", file.bam, "(=", reads.lambda.kb, "/kb).\n");
+		cat("*Lambda of Poisson distribution is estimated in", file.bam, "(=", reads.lambda.kb, "reads/kb).\n");
 	}
 	else
 	{

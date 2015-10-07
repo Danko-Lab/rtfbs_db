@@ -50,11 +50,16 @@ The probability of each motif can be calcuated by the reads count and lambda.\cr
 
 The lambda is determined by the following formulation:\cr
 
-For GRO-seq and PRO-seq data:
+For GRO-seq and PRO-seq data:\cr
 \code{r.lambda = 0.04 * sum(reads_in_all_chromosomes)/10751533/1000.}\cr
 
-For RNA-seq data:
+For RNA-seq data:\cr
+
 \code{r.lambda = mode( reads_in_1000_bp_windows_cross_all_gene_deserts )/1000.}\cr
+
+This function will be failed to get the reads count if the BAM file is not indexed. Please use the command samtools to make the index file for the BAM file\cr
+
+\code{samtools index your_bam_file}\cr
 
 }
 \value{
