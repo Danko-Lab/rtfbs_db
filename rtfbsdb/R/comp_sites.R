@@ -167,8 +167,13 @@ comparative_scan_rtfbs <- function(pwm, file.twoBit,
 	}
 	
 	# fisher test
-	tbl = rbind(c(Npos, Nneg), c(dim(positive.bed)[1] - Npos, dim(negative.bed)[1] - Nneg))
-	pval = fisher.test(tbl)$p.value
+	pos.left <- dim(positive.bed)[1] - Npos;
+	if( pos.left<0 ) pos.left <- 0;
+	neg.left <- dim(negative.bed)[1] - Nneg;
+	if( neg.left<0 ) neg.left <- 0;
+	
+	tbl = rbind(c(Npos, Nneg), c( pos.left, neg.left ));
+	pval = fisher.test(tbl)$p.value;
 	
 	# merge results
 	bed = tfbs_to_bed(result.sites, "pwm")
@@ -476,7 +481,12 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit,
 		# process result
 		result.bed = tfbs_to_bed(result.sites, pwm.name)
 	
-		tbl  = rbind(c(Npos, Nneg), c(length(gc.pos) - Npos, length(gc.neg) - Nneg))
+		pos.left <- length(gc.pos) - Npos;
+		if( pos.left<0 ) pos.left <- 0;
+		neg.left <- length(gc.neg) - Nneg;
+		if( neg.left<0 ) neg.left <- 0;
+
+		tbl  = rbind(c(Npos, Nneg), c(pos.left, neg.left))
 		pval = fisher.test(tbl)$p.value;
 	
 		# save sites
@@ -654,8 +664,13 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 			Nneg <- ifelse( Nneg==0, 1, Nneg );
 			
 			fe.ratio <- ( Npos / n.gc.pos )/( Nneg / n.gc.neg );
-			tbl  = rbind( c( Npos, Nneg ), c( n.gc.pos- Npos, n.gc.neg - Nneg ) )
-show(tbl);
+
+			pos.left <-  n.gc.pos - Npos;
+			if( pos.left<0 ) pos.left  <- 0;
+			neg.left <- n.gc.neg - Nneg;
+			if( neg.left<0 ) neg.left  <- 0;
+
+			tbl  = rbind( c( Npos, Nneg ), c( pos.left, neg.left ) )
 			pval = fisher.test(tbl)$p.value;
 			
 			ret[i, 'Npos']     <- Npos;
