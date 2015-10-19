@@ -236,6 +236,7 @@ tfbs_getExpression <- function(tfbs,
 
 	reads.total  <- 0;
 	reads.lambda.kb <- 0;
+	win.size <- 2000;
 	
 	if(seq.datatype=="GRO-seq" ||seq.datatype=="PRO-seq")
 	{
@@ -261,7 +262,7 @@ tfbs_getExpression <- function(tfbs,
 		gencode_transcript_ext <- gencode_transcript_ext[ which(gencode_transcript_ext$V3=="exon"),];	
 		cat("  For", seq.datatype, ",", NROW(gencode_transcript_ext), "items are selected from GENCODE dataset.\n");
 		
-		reads.lambda.kb <- lambda_estimate_in_bam( file.bam, file.twoBit, file.gencode.gtf );
+		reads.lambda.kb <- lambda_estimate_in_bam( file.bam, file.twoBit, file.gencode.gtf, win.size=win.size );
 		
 		if( is.null(reads.lambda.kb) )
 			stop("Failed to load the BAM file.");
@@ -269,7 +270,7 @@ tfbs_getExpression <- function(tfbs,
 		if( reads.lambda.kb < 1 )
 			stop("Lambda of Poisson distribution is too samll( = 0 reads/kb).");
 		
-		cat("*Lambda of Poisson distribution is estimated in", file.bam, "(=", reads.lambda.kb, "reads/kb).\n");
+		cat("*Lambda of Poisson distribution is estimated in", file.bam, "(=", round(reads.lambda.kb*1000/win.size, 2), "reads/kb).\n");
 	}
 	else
 	{
@@ -278,7 +279,7 @@ tfbs_getExpression <- function(tfbs,
 	}
 	
 	if (seq.datatype=="RNA-seq")
-		r.lambda <- reads.lambda.kb/1000
+		r.lambda <- reads.lambda.kb/win.size
 	else
 		r.lambda <- 0.04 * reads.total/10751533/1000 ;
 	

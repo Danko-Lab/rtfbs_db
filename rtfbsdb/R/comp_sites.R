@@ -793,7 +793,10 @@ tfbs.reportEnrichment<-function( tfbs,
 	
 	if( sig.only )
 	{
-		if( !missing(enrichment.type)) enrichment.type <- match.arg(enrichment.type)
+		if( !missing(enrichment.type)) 
+			enrichment.type <- match.arg(enrichment.type)
+		else			
+			enrichment.type <- "both";
 
 		idx.sel <- which( r.comp.sel$pv.adj <= pv.threshold );
 
