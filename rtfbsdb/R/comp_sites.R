@@ -781,16 +781,25 @@ tfbs.reportEnrichment<-function( tfbs,
 								 enrichment.type = c ("both", "enriched", "depleted"),
 								 sig.only = TRUE, 
 								 pv.threshold = 0.05, 
-								 pv.adj = NA )
+								 pv.adj = NA,
+								 sorted = c ("pvalue", "enrich.ratio"))
 {
 	stopifnot(class(tfbs) == "tfbs" && class(r.comp) == "tfbs.enrichment" )
 
-	if(!is.na(pv.adj))  
+	if(!missing(pv.adj))  
 		r.comp$result$pv.adj <- adjust.pvale( r.comp$result$pvalue, r.comp$parm$cluster.mat, pv.adj )
-	
+
+	if( !missing(sorted)) 
+		sorted <- match.arg( sorted )
+	else			
+		sorted <- "pvalue";
+
 	r.comp.sel <- r.comp$result;
-	r.comp.sel <- r.comp.sel[ order(r.comp.sel$pvalue), c("motif.id","tf.name","Npos","expected","pv.adj","fe.ratio"), drop=F ];
-	
+	if( sorted == "enrich.ratio") 
+		r.comp.sel <- r.comp.sel[ order(r.comp.sel$fe.ratio, decreasing = TRUE), c("motif.id","tf.name","Npos","expected","pv.adj","fe.ratio"), drop=F ]
+	else
+		r.comp.sel <- r.comp.sel[ order(r.comp.sel$pvalue), c("motif.id","tf.name","Npos","expected","pv.adj","fe.ratio"), drop=F ];
+
 	if( !missing(enrichment.type)) 
 		enrichment.type <- match.arg(enrichment.type)
 	else			
