@@ -778,8 +778,8 @@ tfbs.reportEnrichment<-function( tfbs,
 								 file.pdf = NA, 
 								 report.size = "letter", 
 								 report.title = "", 
-								 sig.only = TRUE, 
 								 enrichment.type = c ("both", "enriched", "depleted"),
+								 sig.only = TRUE, 
 								 pv.threshold = 0.05, 
 								 pv.adj = NA )
 {
@@ -791,28 +791,34 @@ tfbs.reportEnrichment<-function( tfbs,
 	r.comp.sel <- r.comp$result;
 	r.comp.sel <- r.comp.sel[ order(r.comp.sel$pvalue), c("motif.id","tf.name","Npos","expected","pv.adj","fe.ratio"), drop=F ];
 	
+	if( !missing(enrichment.type)) 
+		enrichment.type <- match.arg(enrichment.type)
+	else			
+		enrichment.type <- "both";
+
+	idx.sel <- 1:NROW(r.comp.sel);
 	if( sig.only )
 	{
-		if( !missing(enrichment.type)) 
-			enrichment.type <- match.arg(enrichment.type)
-		else			
-			enrichment.type <- "both";
-
 		idx.sel <- which( r.comp.sel$pv.adj <= pv.threshold );
 
 		if (enrichment.type=="enriched")
-			idx.sel <- which( r.comp.sel$pv.adj <= pv.threshold && r.comp.sel$fe.ratio >= 1);
+			idx.sel <- which( r.comp.sel$pv.adj <= pv.threshold & r.comp.sel$fe.ratio >= 1);
 
 		if (enrichment.type=="depleted")
-			idx.sel <- which( r.comp.sel$pv.adj <= pv.threshold && r.comp.sel$fe.ratio < 1);
+			idx.sel <- which( r.comp.sel$pv.adj <= pv.threshold & r.comp.sel$fe.ratio < 1);
+	}
+	else
+	{
+		if (enrichment.type=="enriched")
+			idx.sel <- which( r.comp.sel$fe.ratio >= 1);
 
-		if( length(idx.sel) > 0 )
-			r.comp.sel <- r.comp.sel[ idx.sel, ]
-		else
-			r.comp.sel <- r.comp.sel[ -c(1:NROW(r.comp.sel)), , drop=F];
+		if (enrichment.type=="depleted")
+			idx.sel <- which( r.comp.sel$fe.ratio < 1);
 	}
 	
-	if(NROW(r.comp.sel)==0)
+	if( length(idx.sel) > 0 )
+		r.comp.sel <- r.comp.sel[ idx.sel, ,drop=F ]
+	else	
 	{
 		cat( "! No motif information for the report.\n" );
 		return(invisible(NULL));

@@ -11,8 +11,8 @@ tfbs.reportEnrichment(tfbs, r.comp,
       file.pdf = NA, 
       report.size = "letter", 
       report.title = "", 
-      sig.only = TRUE, 
       enrichment.type = c ("both", "enriched", "depleted"),
+      sig.only = TRUE, 
       pv.threshold = 0.05, 
       pv.adj = NA)
 }
@@ -22,8 +22,8 @@ tfbs.reportEnrichment(tfbs, r.comp,
   \item{file.pdf}{String, the file name of PDF report.}
   \item{report.size}{String, the page size ( default="letter")}
   \item{report.title}{String, the report title. }
-  \item{sig.only}{String, indicating whether only significant motifs are outputted or not.( default=TRUE).}
   \item{enrichment.type}{String, three values are available for significant motifs to be printed out.( default="both").}
+  \item{sig.only}{String, indicating whether only significant motifs are outputted or not.( default=TRUE).}
   \item{pv.threshold}{Numeric value,indicating whether the different threshold of p-value is applied to select the significant motifs. }
   \item{pv.adj}{String,indicating whether the different correction metod of p-value is applied to select the significant motifs. }
 }
