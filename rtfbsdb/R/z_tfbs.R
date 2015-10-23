@@ -111,7 +111,8 @@ setGeneric("tfbs.clusterMotifs",
 			group.k = NA, 
 			apcluster.q = 0.95, 
 			ncores = 1, 
-			BG=log( c(0.25, 0.25, 0.25, 0.25)) ) 
+			BG=log( c(0.25, 0.25, 0.25, 0.25)),
+			... ) 
 	{
 		stopifnot(class(tfbs) == "tfbs")
 		standardGeneric("tfbs.clusterMotifs")

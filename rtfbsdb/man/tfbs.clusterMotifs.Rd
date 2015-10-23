@@ -13,7 +13,8 @@ tfbs.clusterMotifs(tfbs,
       group.k = NA,
       apcluster.q = 0.99,
       ncores = 1,
-      BG = log(c(0.25, 0.25, 0.25, 0.25)) )
+      BG = log(c(0.25, 0.25, 0.25, 0.25)),
+      ...)
 }
 \arguments{
   \item{tfbs}{A tfbs object (\code{"\linkS4class{tfbs}"})  returned by \code{\link{tfbs.createFromCisBP}}, \code{\link{tfbs.dirs}} or other functions.}
@@ -23,6 +24,7 @@ tfbs.clusterMotifs(tfbs,
   \item{apcluster.q}{Numeric value between 0 and 1, if the method of apcluster is used to do clustering, the parameter of q is optional to use as preset group number.}
   \item{ncores}{Number, the number of cores to use simultaneously.}
   \item{BG}{The log value of probabilities for nucleotide A, C, G and T as Backgroud computing.}
+  \item{\dots}{The parameters used in function \code{apcluster}.}
 }
 \details{
 This result of clustering will be used in the \code{\link{tfbs.drawLogosForClusters}}, \code{\link{tfbs.selectByGeneExp}}, \code{\link{tfbs.enrichmentTest}}.
