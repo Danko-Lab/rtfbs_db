@@ -44,10 +44,12 @@ gr1 <- CisBP.group(db_human, group.by="family_name", tf.information.type=1 );
 # Group the motif count by the column of tf_status in TF_Information.txt
 gr2 <- CisBP.group(db_human, group.by="tf_status", tf.information.type=1 ); 
 
-# Group the motif count by the column of tf_status in TF_Information_all_motifs.txt
+# Group the motif count by the column of tf_status 
+# in TF_Information_all_motifs.txt
 gr3 <- CisBP.group(db_human, group.by="tf_status", tf.information.type=2); 
 
-# Group the motif count by the column of tf_status in F_Information_all_motifs_plus.txt
+# Group the motif count by the column of tf_status 
+# in F_Information_all_motifs_plus.txt
 gr4 <- CisBP.group(db_human, group.by="tf_status", tf.information.type=3); 
 
 }

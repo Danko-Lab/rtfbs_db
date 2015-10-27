@@ -13,7 +13,9 @@ Print the brief enrichment results.
   \item{x}{The result obtained by \code{\link{tfbs.enrichmentTest}}.}
   \item{\dots}{Additional arguments affecting the print produced.}
   \item{pv.threshold}{Numeric value,indicating whether the different cutoff of p-value is applied to select the significant motifs. }
-  \item{pv.adj}{String, P-values correct method for \code{p.adjust} function. The available values are "holm", "hochberg", "hommel", "bonferroni", "BH", "BY","fdr" or "none".(default="bonferroni").}
+  \item{pv.adj}{String, P-values correct method for \code{p.adjust} function. The available values are "holm", \cr
+  "hochberg", "hommel", "bonferroni", "BH", "BY","fdr" or "none".\cr
+  (default="bonferroni").}
 }
 \details{
 This command shows the calling parameters and significant motifs from the result object.\cr

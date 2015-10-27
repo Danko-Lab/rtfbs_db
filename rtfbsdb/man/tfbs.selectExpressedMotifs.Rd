@@ -74,35 +74,39 @@ library(rtfbsdb);
 db.human <- CisBP.extdata("Homo_sapiens");
 
 # Create a tfbs object by querying the meta file of CisBP dataset. 
-tfs <- tfbs.createFromCisBP(db.human, motif_type="ChIP-seq", tf.information.type=1 );
+tfs <- tfbs.createFromCisBP(db.human, motif_type="ChIP-seq", 
+      tf.information.type=1 );
 
-file.bigwig.minus <- system.file("extdata","GSM1480327_K562_PROseq_chr19_minus.bw", package="rtfbsdb")
-file.bigwig.plus <- system.file("extdata","GSM1480327_K562_PROseq_chr19_plus.bw", package="rtfbsdb")
+file.bigwig.minus <- system.file("extdata",
+      "GSM1480327_K562_PROseq_chr19_minus.bw", package="rtfbsdb")
+file.bigwig.plus <- system.file("extdata",
+      "GSM1480327_K562_PROseq_chr19_plus.bw", package="rtfbsdb")
 hg19.twobit <- system.file("extdata","hg19.chr19.2bit", package="rtfbsdb")
-gencode.gtf <- system.file("extdata","gencode.v21.annotation.chr19.gtf.gz", package="rtfbsdb")
+gencode.gtf <- system.file("extdata",
+      "gencode.v21.annotation.chr19.gtf.gz", package="rtfbsdb")
 
 tfs1 <- tfbs.selectExpressedMotifs(tfs, 
-	hg19.twobit, 
-	gencode.gtf, 
-	file.bigwig.plus, 
-	file.bigwig.minus, 
-	seq.datatype = "PRO-seq",
-	pvalue.threshold=0.001, 
-	include.DBID.missing=TRUE, 
-	ncore=1); 
+      hg19.twobit, 
+      gencode.gtf, 
+      file.bigwig.plus, 
+      file.bigwig.minus, 
+      seq.datatype = "PRO-seq",
+      pvalue.threshold=0.001, 
+      include.DBID.missing=TRUE, 
+      ncore=1); 
 
 show(tfs1)
 
 file.bam <- "/local/storage/projects/NHP/AllData/bams/H3_U.fastq.gz.sort.bam"
 
 tfs2 <- tfbs.selectExpressedMotifs(tfs, 
-	hg19.twobit, 
-	gencode.gtf, 
-	file.bam = file.bam, 
-	seq.datatype = "RNA-seq",
-	pvalue.threshold=0.01, 
-	include.DBID.missing=TRUE, 
-	ncore=1); 
+      hg19.twobit, 
+      gencode.gtf, 
+      file.bam = file.bam, 
+      seq.datatype = "RNA-seq",
+      pvalue.threshold=0.01, 
+      include.DBID.missing=TRUE, 
+      ncore=1); 
 
 show(tfs2)
 

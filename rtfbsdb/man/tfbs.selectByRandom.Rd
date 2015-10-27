@@ -16,7 +16,7 @@ tfbs.selectByRandom(tfbs)
 The indexes of selected motifs can be used in the function of \code{\link{tfbs.enrichmentTest}} or \code{\link{tfbs.scanTFsite}}. 
 }
 \value{
-A vector of motif indices is returned.
+New tfbs object with the selected indices is returned(tfbs@cluster). The 3rd column of tfbs@cluster is added or updated as the select flag(1:selected, 0:unselected).
 }
 \seealso{
 See Also as \code{\link{tfbs.selectByGeneExp}}, \code{\link{tfbs.getExpression}}
@@ -29,9 +29,9 @@ tfs <- tfbs.createFromCisBP(db, family_name="AP-2");
 
 tfs <- tfbs.clusterMotifs(tfs, pdf.heatmap="test-AP2-heatmap.pdf" );
 
-usemotif <- tfbs.selectByRandom(tfs );
+tfs <- tfbs.selectByRandom(tfs );
 
-show(usemotif);
+show(tfs@cluster);
 
 }
 \keyword{tfbs object}

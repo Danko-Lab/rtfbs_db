@@ -86,19 +86,19 @@ tfs <- tfbs.createFromCisBP(db, family_name="AP-2");
 
 #make two dummy BED data frame for positive loci and negative loci
 pos.bed <- data.frame(chr="chr19", 
-		start=round(runif(1000,1000000, 2000000)), 
-		stop=0, 
-		name="", 
-		score=0, 
-		strand=".");
+      start=round(runif(1000,1000000, 2000000)), 
+      stop=0, 
+      name="", 
+      score=0, 
+      strand=".");
 pos.bed$stop <- pos.bed$start + round(runif(1000, 20, 30));
 
 neg.bed <- data.frame(chr="chr19", 
-		start=round(runif(8000, 800000, 1800000)), 
-		stop=0, 
-		name="", 
-		score=0, 
-		strand=".");
+      start=round(runif(8000, 800000, 1800000)), 
+      stop=0, 
+      name="", 
+      score=0, 
+      strand=".");
 neg.bed$stop <- neg.bed$start + round(runif(8000, 20, 30));
 
 t1 <- tfbs.enrichmentTest( tfs, 
@@ -135,7 +135,8 @@ t2 <- tfbs.enrichmentTest( tfs,
 show(t2)
 
 #Output the result to one pdf report. 
-tfbs.reportEnrichment(tfs, t2, file.pdf="test-tfbs-enrich-both.pdf", sig.only=TRUE, enrichment.type="both");
+tfbs.reportEnrichment(tfs, t2, file.pdf="test-tfbs-enrich-both.pdf", 
+      sig.only=TRUE, enrichment.type="both");
 
 t3 <- tfbs.enrichmentTest( tfs, 
       file.twoBit, 
@@ -146,7 +147,8 @@ t3 <- tfbs.enrichmentTest( tfs,
 
 show(t3)
 
-tfbs.reportEnrichment(tfs, t3, file.pdf="test-elf1-enrich-depleted.pdf", sig.only=TRUE, enrichment.type="depleted");
+tfbs.reportEnrichment(tfs, t3, file.pdf="test-elf1-enrich-depleted.pdf", 
+      sig.only=TRUE, enrichment.type="depleted");
 
 }
 \keyword{tfbs object}

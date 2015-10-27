@@ -33,7 +33,10 @@ tfs;
 motif_ids <- c( "M2938_1.02", "M2940_1.02", "M2940_2.02", "M4056_1.02" );
 
 path <- system.file("extdata", package="rtfbsdb");
-file_pwms <- paste(path, c("fake_M2938_1.02.pwm", "fake_M2940_1.02.pwm", "M2940_2.02.pwm", "M4056_1.02.pwm"), sep="/");
+file_pwms <- paste(path, c("fake_M2938_1.02.pwm", 
+      "fake_M2940_1.02.pwm", 
+      "M2940_2.02.pwm", 
+      "M4056_1.02.pwm"), sep="/");
 
 tfs <- tfbs.importMotifs(tfs, motif_ids, file_pwms );
 show(tfs);

@@ -31,7 +31,7 @@ Objects can be created by calls of the function of \code{\link{tfbs.createFromCi
   \item{tf_missing}{Data frame, including extra information for missing PWMs, it maybe different with motif dataset, default:NULL.}
   \item{distancematrix}{Distance matrix between motifs returned by \code{\link{tfbs.clusterMotifs}}, default:NULL.}
   \item{expressionlevel}{Data frame indicatig the result of expression level returned by \code{\link{tfbs.selectExpressedMotifs}} or \code{\link{tfbs.getExpression}}, default:NULL. }
-  \item{cluster}{Matrix with 2 columns returned by \code{\link{tfbs.clusterMotifs}}, 1st column is the index of motifs and 2nd column is the group number of clustering, default:NULL. }
+  \item{cluster}{Matrix with 3 columns returned by \code{\link{tfbs.clusterMotifs}}, 1st column is the index of motifs, 2nd column is the group number of clustering, 3rd column is selected flag by the function \code{tfbs.selectByGeneExp} or \code{tfbs.selectByRandom}. default:NULL. }
   }
 }
 \section{Methods}{

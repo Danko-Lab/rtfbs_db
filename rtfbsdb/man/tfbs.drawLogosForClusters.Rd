@@ -31,7 +31,8 @@ db <- CisBP.extdata("Homo_sapiens");
 tfs <- tfbs.createFromCisBP(db, motif_type="ChIP-seq", tf.information.type=1 );
 
 # Cluster the motifs using the "cors" method
-tfs <- tfbs.clusterMotifs(tfs, method="apcluster", pdf.heatmap = "test-heatmap1.pdf" );
+tfs <- tfbs.clusterMotifs(tfs, method="apcluster", 
+      pdf.heatmap = "test-heatmap1.pdf" );
 show(tfs@cluster);
 
 # draw motif logos on one group per page.

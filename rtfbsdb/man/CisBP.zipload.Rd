@@ -34,7 +34,8 @@ db1 <- CisBP.download("Arabidopsis_thaliana");
 
 # Loading the zip file, the db2 and db3 have same TF data. 
 # Here is an example to show how to use CisBP.zipload. 
-# We dont nee to download it by CisBP.download and then load it by CisBP.zipload
+# We dont nee to download it by CisBP.download and then load it 
+# by CisBP.zipload
 db2 <- CisBP.zipload(db1@zip.file, species="Arabidopsis thaliana");
 
 }

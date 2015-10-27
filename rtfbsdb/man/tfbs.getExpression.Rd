@@ -45,8 +45,8 @@ and attached in this package.\cr
 The \code{gencode_transcript_ext} object can be accessed after the following command is 
 executed successfully.\cr
 
-\code{load( system.file("extdata", "gencode_human21_transcript_ext.rdata",
-      package="rtfbsdb"), environment() );}\cr
+\code{load( system.file("extdata", "gencode_human21_transcript_ext.rdata",}
+\code{      package="rtfbsdb"), environment() ); }\cr
 }
 
 \value{
@@ -72,14 +72,19 @@ See Also as \code{"\linkS4class{tfbs}"}
 db.human <- CisBP.extdata("Homo_sapiens");
 
 # Create a tfbs object by querying the meta file of CisBP dataset. 
-tfs <- tfbs.createFromCisBP(db.human, motif_type="ChIP-seq", tf.information.type=1 );
+tfs <- tfbs.createFromCisBP(db.human, motif_type="ChIP-seq", 
+      tf.information.type=1 );
 
-file.bigwig.minus <- system.file("extdata","GSM1480327_K562_PROseq_chr19_minus.bw", package="rtfbsdb")
-file.bigwig.plus <- system.file("extdata","GSM1480327_K562_PROseq_chr19_plus.bw", package="rtfbsdb")
+file.bigwig.minus <- system.file("extdata","GSM1480327_K562_PROseq_chr19_minus.bw", 
+      package="rtfbsdb")
+file.bigwig.plus <- system.file("extdata","GSM1480327_K562_PROseq_chr19_plus.bw", 
+      package="rtfbsdb")
 hg19.twobit <- system.file("extdata","hg19.chr19.2bit", package="rtfbsdb")
-gencode.gtf <- system.file("extdata","gencode.v21.annotation.chr19.gtf.gz", package="rtfbsdb")
+gencode.gtf <- system.file("extdata","gencode.v21.annotation.chr19.gtf.gz", 
+      package="rtfbsdb")
 
-tfs <- tfbs.getExpression(tfs, hg19.twobit, gencode.gtf, file.bigwig.plus, file.bigwig.minus, ncore=1); 
+tfs <- tfbs.getExpression(tfs, hg19.twobit, gencode.gtf, 
+      file.bigwig.plus, file.bigwig.minus, ncore=1); 
 
 }
 \keyword{tfbs object}

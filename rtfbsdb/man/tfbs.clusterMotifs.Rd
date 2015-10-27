@@ -18,8 +18,8 @@ tfbs.clusterMotifs(tfbs,
 }
 \arguments{
   \item{tfbs}{A tfbs object (\code{"\linkS4class{tfbs}"})  returned by \code{\link{tfbs.createFromCisBP}}, \code{\link{tfbs.dirs}} or other functions.}
-  \item{pdf.heatmap}{String, a PDF filename for heatmap.}
   \item{method}{String, availabe values are "agnes" and "apcluster".}
+  \item{pdf.heatmap}{String, a PDF filename for heatmap.}
   \item{group.k}{Integer, if the method of agnes is used to do clustering, the parameter of k is optional to use as preset group number.}
   \item{apcluster.q}{Numeric value between 0 and 1, if the method of apcluster is used to do clustering, the parameter of q is optional to use as preset group number.}
   \item{ncores}{Number, the number of cores to use simultaneously.}
@@ -48,11 +48,13 @@ db <- CisBP.extdata("Homo_sapiens");
 tfs <- tfbs.createFromCisBP(db, motif_type="ChIP-seq", tf.information.type=1 );
 
 # Cluster the motifs using the "agnes" method
-tfs <- tfbs.clusterMotifs(tfs, method="agnes", pdf.heatmap = "test-heatmap-agnes.pdf" );
+tfs <- tfbs.clusterMotifs(tfs, method="agnes", 
+      pdf.heatmap = "test-heatmap-agnes.pdf" );
 show(tfs@cluster);
 
 # Cluster the motifs using the "apcluster" method
-tfs <- tfbs.clusterMotifs(tfs, method="apcluster", pdf.heatmap = "test-heatmap-apcluster.pdf" );
+tfs <- tfbs.clusterMotifs(tfs, method="apcluster", 
+      pdf.heatmap = "test-heatmap-apcluster.pdf" );
 show(tfs@cluster);
 
 # draw motif logos on one group per page.

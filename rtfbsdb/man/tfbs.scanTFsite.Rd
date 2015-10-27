@@ -92,18 +92,18 @@ db <- CisBP.extdata("Homo_sapiens");
 tfs <- tfbs.createFromCisBP(db, family_name="Ets");
 
 gen.bed <- data.frame(chr="chr19", 
-			start=round(runif(10,1000000, 2000000)), 
-			stop=0, 
-			name="", 
-			score=0, 
-			strand=".");
+      start=round(runif(10,1000000, 2000000)), 
+      stop=0, 
+      name="", 
+      score=0, 
+      strand=".");
 gen.bed$stop <- gen.bed$start + 3000;
 
 t1 <- tfbs.scanTFsite( tfs, 
-	file.twoBit, 
-	gen.bed, 
-	file.prefix="test.db",
-	ncores = 1);
+      file.twoBit, 
+      gen.bed, 
+      file.prefix="test.db",
+      ncores = 1);
 
 #show a brief information about the result
 t1
@@ -121,27 +121,27 @@ file.ELF1 <- system.file("extdata","Chipseq-k562-chr19-ELF1.bed", package="rtfbs
 gen.bed<- read.table(file.ELF1)
 
 t2 <- tfbs.scanTFsite( tfs, 
-	file.twoBit, 
-	gen.bed, 
-	file.prefix="test.db",
-	return.type="writedb",
-	ncores = 1);
+      file.twoBit, 
+      gen.bed, 
+      file.prefix="test.db",
+      return.type="writedb",
+      ncores = 1);
 
 t2
 
 t3 <- tfbs.scanTFsite( tfs, 
-	file.twoBit, 
-	gen.bed, 
-	return.type="posteriors",
-	ncores = 1);
+      file.twoBit, 
+      gen.bed, 
+      return.type="posteriors",
+      ncores = 1);
 
 t3
 
 t4 <- tfbs.scanTFsite( tfs, 
-	file.twoBit, 
-	gen.bed, 
-	return.type="maxposterior",
-	ncores = 1);	
+      file.twoBit, 
+      gen.bed, 
+      return.type="maxposterior",
+      ncores = 1);	
 
 t4;
 

@@ -55,14 +55,15 @@ See Also as \code{"\linkS4class{tfbs}"}
  
  #Draw logos for specified Motif_ID, or TF_ID, or TF_Name, or Family_Name 
  tfbs.drawLogo(tfs, file.pdf="test-drawLogo2.pdf", 
- 			motif_id = motif_id, 
- 			tf_id = tf_id, 
- 			tf_name = "AP-2", 
- 			family_name = family_name, 
- 			groupby = "TF_Status");
+       motif_id = motif_id, 
+       tf_id = tf_id, 
+       tf_name = "AP-2", 
+       family_name = family_name, 
+       groupby = "TF_Status");
  
  #Draw logos for specified TF_Status
- tfbs.drawLogo(tfs, file.pdf="test-drawLogo3.pdf", tf_status="D", groupby="TF_Status");
+ tfbs.drawLogo(tfs, file.pdf="test-drawLogo3.pdf", tf_status="D", 
+       groupby="TF_Status");
 
  #unlink("test-drawLogo1.pdf");
  #unlink("test-drawLogo2.pdf");
