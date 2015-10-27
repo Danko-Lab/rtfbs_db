@@ -119,7 +119,6 @@ tfbs_drawLogo <- function(tfbs, file.pdf=NULL, index=NULL, tf_id=NULL, motif_id=
 #' tfbs.drawLogosForClusters
 #'
 #' @file.pdf
-#' @cluster.mat
 
 tfbs_drawLogosForClusters <- function(tfbs,  file.pdf=NULL) 
 {

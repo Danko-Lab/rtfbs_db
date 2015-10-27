@@ -223,8 +223,12 @@ setMethod("tfbs.selectByGeneExp", c(tfbs="tfbs"),
 			} else {
 				return(a)
 		}})
+
+		select.col <- rep( 0, NROW(tfbs@cluster) );
+		select.col[ usemotifs ]<-1;
+		tfbs@cluster <- cbind( tfbs@cluster, selected=select.col);
 		
-		return( tfbs@cluster[ usemotifs,1 ] );
+		return( tfbs );
 	})
 
 setGeneric("tfbs.selectByRandom", 
@@ -249,5 +253,9 @@ setMethod("tfbs.selectByRandom", c(tfbs="tfbs"),
 				return(a)
 		}})
 		
-		return( tfbs@cluster[ usemotifs, 1] )
+		select.col <- rep( 0, NROW(tfbs@cluster) );
+		select.col[ usemotifs ]<-1;
+		tfbs@cluster <- cbind( tfbs@cluster, selected=select.col);
+		
+		return( tfbs );
 	})

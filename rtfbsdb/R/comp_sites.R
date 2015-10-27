@@ -579,13 +579,16 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 	if( missing( use.cluster) ) use.cluster <- FALSE;
 	if( use.cluster && NROW(tfbs@cluster)==0 ) 
 		stop("No cluster information in the tfbs object");
+	if( use.cluster && NCOL(tfbs@cluster)!=3 ) 
+		stop("No selected motif for each cluster in the tfbs object");
 	
 	if( use.cluster ) 
 	{
-		cluster.mat <- tfbs@cluster[, c(1,2),drop=F ];
-		r.mat <- range( cluster.mat[,1] );
+		r.mat <- range( tfbs@cluster[,1] );
 		if( r.mat[1]<1 || r.mat[2]>tfbs@ntfs )
 			stop("The first column of 'tfbs@cluster' exceeds the range of motif data set.");
+
+		cluster.mat <- tfbs@cluster[ tfbs@cluster[,3]==1, c(1,2), drop=F];
 	}
 	else
 		cluster.mat <- cbind( 1:tfbs@ntfs, 1);
