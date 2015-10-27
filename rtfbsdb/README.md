@@ -50,4 +50,6 @@ B: Source:
 
 4) Adding peak starting and ending positions for the results of matches option in the function tfbs.scanTFsite().
 
+10/27/2015
 
+1) Changing the return value of tfbs.selectByRandom() and tfbs.selectByGeneExp() and adding the indices of selected motif into the matrix tfbs@cluster.

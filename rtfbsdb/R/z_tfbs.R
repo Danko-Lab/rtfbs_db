@@ -109,7 +109,7 @@ setGeneric("tfbs.clusterMotifs",
 			method = c("agnes", "apcluster"), 
 			pdf.heatmap = NA, 
 			group.k = NA, 
-			apcluster.q = 0.95, 
+			apcluster.q = 0.99, 
 			ncores = 1, 
 			BG=log( c(0.25, 0.25, 0.25, 0.25)),
 			... ) 
