@@ -340,7 +340,7 @@ background.generate <- function( positive.bed )
 	file.pos.bed <- tempfile();
 	write.table( positive.bed, file=file.pos.bed, quote=F, row.names=F, col.names=F, sep="\t");	
 	
-	cmd.pipe <- paste("bedtools complement -i ", file.pos.bed, " -g ", file.chr.size, sep=" ");
+	cmd.pipe <- paste("sort-bed ", file.pos.bed, " | bedtools complement -i - -g ", file.chr.size, sep=" ");
 	bed.complement <- read.table( pipe( cmd.pipe ), header=F );
 
 	bed.complement <- bed.complement[ -which( bed.complement[,3] - bed.complement[,2] <= pos.range[2] ),]

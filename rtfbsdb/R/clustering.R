@@ -30,7 +30,7 @@
 #	  return(tfbs);
 #})
 
-tfbs_clusterMotifs <- function(tfbs, method=c("agnes", "apcluster"), pdf.heatmap=NA, group.k=NA, apcluster.q=0.99, ncores=3, BG=log(c(0.25, 0.25, 0.25, 0.25) ), ... )
+tfbs_clusterMotifs <- function(tfbs, method=c("agnes", "apcluster"), pdf.heatmap=NA, group.k=NA, apcluster.q=0.99, ncores=1, BG=log(c(0.25, 0.25, 0.25, 0.25) ), ... )
 {
 	if( missing(method) ) 
 		method <- "apcluster";

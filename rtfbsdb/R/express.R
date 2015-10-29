@@ -91,6 +91,10 @@ lambda_estimate_in_bam <- function( file.bam, file.twoBit, file.gencode.gtf, win
 		if( exists("bigdf") && !is.null(bigdf) && !is.na(bigdf) )
 		{
 			colnames(bigdf) <- c("V1", "V2", "V3", "V4", "V5");
+			
+			#to make sure the ending postion > start position
+			bigdf <- bigdf[ bigdf[,5] > bigdf[,4], ,drop=F];
+			
 			return(bigdf[,c(1,4,5)]);
 		}
 		else
@@ -108,7 +112,7 @@ lambda_estimate_in_bam <- function( file.bam, file.twoBit, file.gencode.gtf, win
 		tmp.genome <- tempfile();
 		write.table( get_chromosome_size(file.twoBit), file=tmp.genome, quote=F, sep="\t", row.names=FALSE, col.names=FALSE,);
 
-		pipe.cmd <- paste("bedtools complement -i", tmp.bed, " -g ", tmp.genome );
+		pipe.cmd <- paste("sort-bed ", tmp.bed, " | bedtools complement -i - -g ", tmp.genome );
 		df.comp <- read.table( pipe(pipe.cmd), header = F );
 
 		return(df.comp);
