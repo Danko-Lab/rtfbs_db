@@ -318,7 +318,10 @@ tfbs_scanTFsite<-function( tfbs, file.twoBit,
 					background.order = background.order, 
 					background.length = background.length);
 	
-	sum.match <- NULL;
+	sum.match <- data.frame(
+					Motif_ID = tfbs@tf_info$Motif_ID[ usemotifs ],
+					TF_Name  = tfbs@tf_info$TF_Name[  usemotifs ] );
+
 	if( return.type == "matches" )
 	{
 		sum.match <- do.call("rbind", lapply( 1:length(usemotifs), function(i){ 
@@ -328,7 +331,7 @@ tfbs_scanTFsite<-function( tfbs, file.twoBit,
 				tf.name  <- as.character( tfbs@tf_info$TF_Name[  usemotifs[i] ] );
 				
 				if (NROW(x)==0) return( data.frame( motif.id, tf.name, count=0 ) );
-
+				
 				stopifnot( as.character( x$name[1] ) == motif.id );
 
 				return( data.frame(motif.id, tf.name, count=NROW(x) ) );
@@ -337,6 +340,16 @@ tfbs_scanTFsite<-function( tfbs, file.twoBit,
 		colnames(sum.match) <- c("Motif_ID", "TF_Name", "Count");
 	}
 
+	if( return.type == "maxposterior" )
+	{
+		sum.match <- data.frame(
+					tfbs@tf_info$Motif_ID[ usemotifs ],
+					tfbs@tf_info$TF_Name[ usemotifs ],
+					colMeans( r.ret, na.rm=T) );
+		
+		colnames(sum.match) <- c("Motif_ID", "TF_Name", "Mean" );
+	}
+		
 	r.scan <- list( parm = r.parm, bed = gen.bed, result = r.ret, summary=sum.match );
 	class( r.scan ) <- c( "tfbs.finding" );
 	
