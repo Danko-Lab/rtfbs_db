@@ -30,10 +30,13 @@
 #	  return(tfbs);
 #})
 
-tfbs_clusterMotifs <- function(tfbs, method=c("agnes", "apcluster"), pdf.heatmap=NA, group.k=NA, apcluster.q=0.99, ncores=1, BG=log(c(0.25, 0.25, 0.25, 0.25) ), ... )
+tfbs_clusterMotifs <- function(tfbs, method=c("agnes", "apcluster"), pdf.heatmap=NA, group.k=NA, apcluster.q=0.99, ncores=1, plot.style=c("rtfbsdb", "apcluster"), BG=log(c(0.25, 0.25, 0.25, 0.25) ), ... )
 {
 	if( missing(method) ) 
 		method <- "apcluster";
+
+	if( missing(plot.style) ) 
+		plot.style <- "rtfbsdb";
 
 	if( !is.na( pdf.heatmap ) )
 		if( !check_folder_writable( pdf.heatmap ) ) 
@@ -88,12 +91,23 @@ tfbs_clusterMotifs <- function(tfbs, method=c("agnes", "apcluster"), pdf.heatmap
 				cat("! Failed to write PDF file:", pdf.heatmap, "\n")
 			else
 			{
-				try(apcluster::heatmap( r.ap, mat ));
-				
+				if(plot.style=="apcluster")
+					try( apcluster::heatmap( r.ap, mat ) )
+				else
+					tryCatch({ 
+						aggres <- aggExCluster(mat, r.ap);
+						dend <- as.dendrogram(aggres, base=0.05, useNames=FALSE)
+						tfbs_draw_heatmap_style(dend, mat, clusters); 
+						}, 
+						error= function(e) 
+						{ 
+							show(e); 
+							return( NULL ) ;
+						});
+
 				dev.off(); 
 			}
 		}
-			
 	}
 	else
 	{
@@ -111,28 +125,7 @@ tfbs_clusterMotifs <- function(tfbs, method=c("agnes", "apcluster"), pdf.heatmap
 			else
 			{
 				hc1 <- as.dendrogram(hc1)
-				ord.hc1 <- order.dendrogram(hc1)
-				hc2 <- reorder(hc1, mat[ord.hc1])
-				ord.hc2 <- order.dendrogram(hc2)
-
-				pal100 <- c("#7E291B","#66E52C","#8F66F0","#58DBE8","#396526","#EAABC1","#E1C33C","#3E3668","#EB3F90","#C3E6A8","#E74618","#66A2E9","#3E7774","#DF9056","#3C2C21","#DF40D7","#6CEF92","#8C5A6B","#BC8AE2","#A03B99","#56AC2D","#389C6C","#E26B7E","#706B4B","#D2E374","#A0A560","#7B1C3E","#49F7DB","#C8C6E9","#414FA2","#95A590","#8A669A","#98A62F","#9E792C","#D69489","#547FE5","#DF6340","#849BAB","#E63A61","#8A386D","#DAE338","#263715","#BBDEE3","#3F1324","#A1E03B","#383544","#76C2E8","#794D38","#DD74E2","#D7BF8E","#E366B9","#894D19","#D57221","#D9B764","#B0303D","#D6BFBC","#757A28","#D991CC","#356344","#E3A22D","#223C36","#83B664","#D8E4C5","#AE9ED9","#37576D","#CF7398","#6BEAB2","#6C9266","#B33662","#4B340E","#57E65B","#E23635","#9B464B","#757089","#578BBA","#A6311B","#B2714E","#457F20","#4EA3B1","#B93286","#73D463","#531914","#6B78C2","#E07467","#8D786E","#515018","#361E40","#AA4FCC","#90D2C4","#71469B","#419C4C","#37558A","#B393B0","#9BE090","#856BDA","#66B593","#47CA84","#5D205B","#672F3F","#59D8C2")
-				pal500 <- rep(pal100, 5)
-
-				cuth <- clusters[ ord.hc2 ];
-
-				fill.col<- rep("white", length(ord.hc2));
-				fill.col[ord.hc2] <- pal500[ clusters ];
-
-				#pl <- levelplot((mat)[ord.hc2, ord.hc2], col.regions= yb.sig.pal(100, scale=3), xlab="", ylab="",
-				print( levelplot((mat)[ord.hc2, ord.hc2], col.regions= yb.sig.pal(100, scale=3), xlab="", ylab="",
-					colorkey = list(space="left", labels=list(cex=1.5)), 
-					legend = list(
-						top = list(fun = dendrogramGrob,
-						args = list(x = hc2, ord = ord.hc2, side = "top", #lwd=2,
-						size = 7, size.add = 0.5, 
-						add = list(rect = list(col = "transparent", fill = fill.col )),
-						type = "rectangle")))) );
-
+				tfbs_draw_heatmap_style(hc1, mat, clusters);
 				dev.off();               
 			}
 		}
@@ -141,6 +134,29 @@ tfbs_clusterMotifs <- function(tfbs, method=c("agnes", "apcluster"), pdf.heatmap
 	tfbs@cluster <- cbind(subset, clusters);
 	
 	return( tfbs );
+}
+
+tfbs_draw_heatmap_style <- function(hc1, mat, clusters) 
+{
+	ord.hc1 <- as.numeric(order.dendrogram(hc1))
+	hc2 <- reorder(hc1, mat[ord.hc1])
+	ord.hc2 <- as.numeric(order.dendrogram(hc2))
+
+	pal100 <- c("#7E291B","#66E52C","#8F66F0","#58DBE8","#396526","#EAABC1","#E1C33C","#3E3668","#EB3F90","#C3E6A8","#E74618","#66A2E9","#3E7774","#DF9056","#3C2C21","#DF40D7","#6CEF92","#8C5A6B","#BC8AE2","#A03B99","#56AC2D","#389C6C","#E26B7E","#706B4B","#D2E374","#A0A560","#7B1C3E","#49F7DB","#C8C6E9","#414FA2","#95A590","#8A669A","#98A62F","#9E792C","#D69489","#547FE5","#DF6340","#849BAB","#E63A61","#8A386D","#DAE338","#263715","#BBDEE3","#3F1324","#A1E03B","#383544","#76C2E8","#794D38","#DD74E2","#D7BF8E","#E366B9","#894D19","#D57221","#D9B764","#B0303D","#D6BFBC","#757A28","#D991CC","#356344","#E3A22D","#223C36","#83B664","#D8E4C5","#AE9ED9","#37576D","#CF7398","#6BEAB2","#6C9266","#B33662","#4B340E","#57E65B","#E23635","#9B464B","#757089","#578BBA","#A6311B","#B2714E","#457F20","#4EA3B1","#B93286","#73D463","#531914","#6B78C2","#E07467","#8D786E","#515018","#361E40","#AA4FCC","#90D2C4","#71469B","#419C4C","#37558A","#B393B0","#9BE090","#856BDA","#66B593","#47CA84","#5D205B","#672F3F","#59D8C2")
+	pal500 <- rep(pal100, 5)
+
+	fill.col<- rep("white", length(ord.hc2));
+	fill.col[ord.hc2] <- pal500[ clusters ];
+
+	#pl <- levelplot((mat)[ord.hc2, ord.hc2], col.regions= yb.sig.pal(100, scale=3), xlab="", ylab="",
+	print( levelplot((mat)[ord.hc2, ord.hc2], col.regions= yb.sig.pal(100, scale=3), xlab="", ylab="",
+		colorkey = list(space="left", labels=list(cex=1.5)), 
+		legend = list(
+			top = list(fun = dendrogramGrob,
+			args = list(x = hc2, ord = ord.hc2, side = "top", #lwd=2,
+			size = 7, size.add = 0.5, 
+			add = list(rect = list(col = "transparent", fill = fill.col )),
+			type = "rectangle")))) );
 }
 
 tfbs_corclustering_bic_optim<-function( obs_mat )

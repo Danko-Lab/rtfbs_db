@@ -111,6 +111,7 @@ setGeneric("tfbs.clusterMotifs",
 			group.k = NA, 
 			apcluster.q = 0.99, 
 			ncores = 1, 
+			plot.style=c("rtfbsdb", "apcluster"),
 			BG=log( c(0.25, 0.25, 0.25, 0.25)),
 			... ) 
 	{
