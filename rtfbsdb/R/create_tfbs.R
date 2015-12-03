@@ -1,19 +1,29 @@
 #' Creates a new tfbs object.  Reads files
 
-tfbs <- function(filenames, names, species="Homo_sapiens", tf_info=NULL, tf_missing=NULL, ...) 
+tfbs <- function(filenames=NULL, names=NULL, species="Homo_sapiens", tf_info=NULL, tf_missing=NULL, ...) 
 {
 	stopifnot( length(names) == length(filenames) );
 	
-	pwms <- list()
-	for(i in 1:length(filenames)) {
-		curr <- read.motif(filenames[i], ...)
-		pwms[[i]] <- curr;
+	pwms <- list();
+	idx.pwm <- c();
+	mgisymbols <- c();
+	if( !is.null(filenames) )
+	{
+		for(i in 1:length(filenames)) {
+			pwms[[i]] <- read.motif(filenames[i], ...)
+		}
+	
+		idx.pwm <- which( unlist( lapply( pwms, function(x) !is.null(x) ) ) );
+		if( length(idx.pwm)==0 )
+			return( NULL );
+
+		pwm        = pwms[ idx.pwm ];
+		filename   = filenames[ idx.pwm ];
+		mgisymbols = names[ idx.pwm ];
 	}
-
-	idx.pwm <- which( unlist( lapply( pwms, function(x) !is.null(x) ) ) );
-	if( length(idx.pwm)==0 )
-		return( NULL );
-
+	else
+		filenames <- c();
+	
 	if( is.null(tf_info) )
 		tf_info  <- as.data.frame(NULL)
 	else
@@ -21,16 +31,13 @@ tfbs <- function(filenames, names, species="Homo_sapiens", tf_info=NULL, tf_miss
 	
 	if( is.null(tf_missing) )
 		tf_missing  <- as.data.frame(NULL)
-	else
-		tf_missing  <- tf_missing[idx.pwm,,drop=F];
 
 	new("tfbs", 
-		#usemotifs     = as.integer(1:length(filenames)),
 		species        = species,
-		ntfs           = as.integer(length(idx.pwm)),
-		pwm            = pwms[ idx.pwm ],
-		filename       = filenames[ idx.pwm ], 
-		mgisymbols     = names[ idx.pwm ], 
+		ntfs           = as.integer(length(filenames)),
+		pwm            = pwms,
+		filename       = as.character(filenames), 
+		mgisymbols     = as.character(mgisymbols), 
 		tf_info        = tf_info,
 		tf_missing     = tf_missing,
 		distancematrix = matrix(, nrow=0, ncol=0),
@@ -209,80 +216,5 @@ tfbs_createFromCisBP <- function ( cisbp.db,
 		header=T, sep="\t" , row.names=1 );
 
 
-	return(tfs);
-}
-
-tfbs_importMotifs <- function(tfbs, motif_ids, file.pwms )
-{
-	if( length(motif_ids) != length(file.pwms) )
-		stop("The size of 'motif_id' is not equal to 'file.pwms'.");
-
-	nidx <- c();
-	names <- c();
-	filenames <- c();
-	
-	err.missing <- 0;
-	err.empty <- 0;
-	
-	for ( i in 1:length(motif_ids) )
-	{
-		if( as.character(motif_ids[i])==".")
-		{
-			# cat("! No ID for this motif(.).\n"); 	
-			err.missing <- err.missing + 1;
-			next;
-		}
-
-		idx0 <- which( motif_ids[i] == tfs@tf_missing$Motif_ID );
-		if( length(idx0) == 0 )
-		{
-			cat("!", motif_ids[i], "is not a missing or empty motif.\n");
-			next;
-		}
-		
-		tb <- try( read.table( file.pwms[i], header=T, sep="\t", row.names=1), TRUE );
-		if( class(tb)=="try-error" ) 
-		{
-			# cat("! Can not find PWM file for motif ID=", motif_ids[i], ".\n" );
-			err.missing <- err.missing + 1;
-			next;
-		}
-	
-		if(NROW(tb)==0)
-		{
-			# cat("! No A C G T values in the PWM file for motif ID=", motif_ids[i], ".\n" );
-			err.empty <- err.empty + 1
-			next;
-		}
-		
-		filenames <- c( filenames, file.pwms[i] );
-		names     <- c( names, motif_ids[i] );
-		nidx      <- c( nidx, idx0 );
-	}
-
-	if( err.empty + err.missing > 0 )
-		cat("!", err.empty + err.missing, "PWM file(s) are failed to be loaded ( Missing PWMs :", err.missing, ", Empty PWMs :", err.empty, ").\n");
-
-	if(length(nidx)>0)
-	{
-		for(i in 1:length(filenames)) {
-			curr <- read.motif( filenames[i], header=T, sep="\t" , row.names=1 )
-			tfs@pwm[[tfs@ntfs + i ]] <- curr
-		}
-
-		TF_info <- tfs@tf_missing[ nidx, , drop=F];
-
-		tfs@tf_missing      <- tfs@tf_missing[ -nidx, , drop=F];
-		tfs@tf_info         <- rbind( tfs@tf_info, TF_info );
-		tfs@filename        <- c( tfs@filename, filenames );
-		tfs@mgisymbols      <- c( tfs@mgisymbols, names ) ; 
-		tfs@ntfs            <- as.integer( length(tfs@filename) );
-		tfs@distancematrix  <- matrix(, nrow=0, ncol=0);
-		tfs@cluster         <- matrix(, nrow=0, ncol=0); 
-		tfs@expressionlevel <- as.data.frame( NULL );
-	}
-
-	cat("*", length(filenames), "PWMs are imported.\n");
-	
 	return(tfs);
 }

@@ -1,0 +1,63 @@
+AC  oligo-analysis.asmb_m1
+XX
+ID  tin_like_motif
+XX
+DE  vkcTCAAGTGgctw
+PO       A     C     G     T
+1       12    10    10     5
+2        5     7    13    12
+3        2    24     6     5
+4        1     0     0    36
+5        0    36     0     1
+6       36     0     1     0
+7       37     0     0     0
+8        0     1    36     0
+9        0     0     0    37
+10       0     0    36     1
+11       5     6    22     4
+12       4    19     7     7
+13       8     8     6    15
+14      10     4     8    15
+XX
+CC  program: feature
+CC  matrix.nb: 1
+CC  matrix.nb: 1
+CC  sites: 37
+CC  consensus.strict: agcTCAAGTGgctt
+CC  consensus.strict.rc: AAGCCACTTGAGCT
+CC  consensus.IUPAC: vkcTCAAGTGgctw
+CC  consensus.IUPAC.rc: WAGCCACTTGAGMB
+CC  consensus.regexp: [acg][gt]cTCAAGTGgct[at]
+CC  consensus.regexp.rc: [AT]AGCCACTTGAG[AC][CGT]
+XX
+//
+AC  oligo-analysis.asmb_m2
+XX
+ID  gata_like_motif
+XX
+DE  wmmAGATACam
+PO       A     C     G     T
+1       17     7     6    12
+2       17    12     6     7
+3       13    19     7     3
+4       42     0     0     0
+5        0     0    42     0
+6       42     0     0     0
+7        0     0     0    42
+8       42     0     0     0
+9        0    42     0     0
+10      21     5     8     8
+11      12    16     5     9
+XX
+CC  program: feature
+CC  matrix.nb: 2
+CC  matrix.nb: 2
+CC  sites: 42
+CC  consensus.strict: aacAGATACac
+CC  consensus.strict.rc: GTGTATCTGTT
+CC  consensus.IUPAC: wmmAGATACam
+CC  consensus.IUPAC.rc: KTGTATCTKKW
+CC  consensus.regexp: [at][ac][ac]AGATACa[ac]
+CC  consensus.regexp.rc: [GT]TGTATCT[GT][GT][AT]
+XX
+//

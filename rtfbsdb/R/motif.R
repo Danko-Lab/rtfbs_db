@@ -19,8 +19,21 @@ read.motif <- function(motif_path, pseudocount= -7, force_even= FALSE, ...)
 			return( NULL ) ;
 		})
 	
-	if( is.null(motif) || NROW(motif) == 0 ) return( NULL );
-
+	if( is.null(motif) || NROW(motif) == 0 ) 
+	{
+		warning(paste( "No matrix data in the file (", motif_path, ".", sep=""))
+		return( NULL );
+	}
+	
+	if( NCOL(motif)>=6 || !is.numeric(motif) ) 
+	{
+		warning(paste( "File (", motif_path, ") maybe not a correct PWM file.", sep=""))
+		return(NULL);
+	}	
+	
+	## remove left position column if 5 columns
+	if( NCOL(motif)==5) motif <- motif[,-1]
+	
 	if(sum(motif[1,])>0) {
 		motif <- log(motif/rowSums(motif)) # Divide by counts.
 	}

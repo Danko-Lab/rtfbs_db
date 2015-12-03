@@ -41,11 +41,16 @@ setMethod("show", "tfbs", function(object)
 	df <- NULL;	
 	if( NROW(object@tf_info) >0 )
 	{
-		df <- object@tf_info[,c("Motif_ID", "DBID", "TF_Name", "Family_Name", "Motif_Type", "MSource_Identifier")]
-		df <- data.frame(df, filename=basename(object@filename));
+		df.list <- lapply ( c("Motif_ID", "TF_Name", "Family_Name", "DBID", "Motif_Type"), function(x){
+					if(x %in% colnames(object@tf_info) ) return(object@tf_info[,x]) else NA; } );
+
+		df1 <- do.call( cbind, df.list );
+		colnames(df1) <- c("Motif_ID", "TF_Name", "Family_Name", "DBID", "Motif_Type");
+		
+		df <- data.frame(df1, filename=basename(object@filename), stringsAsFactors=FALSE);
 	}
 	else
-		df <- data.frame(Motif_ID=object@mgisymbols, filename=basename(object@filename));
+		df <- data.frame(Motif_ID=object@mgisymbols, filename=basename(object@filename), stringsAsFactors=FALSE);
 
 	if( NROW(object@expressionlevel) > 0 ) 
 		df <- data.frame(df, p.pois = object@expressionlevel[,c("p.pois")] );
@@ -55,7 +60,7 @@ setMethod("show", "tfbs", function(object)
 })
 
 setGeneric("tfbs.importMotifs",
-	def = function(tfbs, motif_ids, file.pwms){
+	def = function(tfbs, format, filenames, motif_ids=NULL, skip.lines=0, pseudocount = -7, force_even = FALSE, ...){
 		stopifnot(class(tfbs) == "tfbs");
 		standardGeneric("tfbs.importMotifs");
 	})

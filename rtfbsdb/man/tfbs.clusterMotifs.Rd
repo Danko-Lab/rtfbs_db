@@ -13,6 +13,7 @@ tfbs.clusterMotifs(tfbs,
       group.k = NA,
       apcluster.q = 0.99,
       ncores = 1,
+      plot.style = c("rtfbsdb", "apcluster"),
       BG = log(c(0.25, 0.25, 0.25, 0.25)),
       ...)
 }
@@ -23,6 +24,7 @@ tfbs.clusterMotifs(tfbs,
   \item{group.k}{Integer, if the method of agnes is used to do clustering, the parameter of k is optional to use as preset group number.}
   \item{apcluster.q}{Numeric value between 0 and 1, if the method of apcluster is used to do clustering, the parameter of q is optional to use as preset group number.}
   \item{ncores}{Number, the number of cores to use simultaneously.}
+  \item{plot.style}{String indicating the heatmap is plotted by the apcluster package or not if the method apcluster is used. }
   \item{BG}{The log value of probabilities for nucleotide A, C, G and T as Backgroud computing.}
   \item{\dots}{The parameters used in function \code{apcluster}.}
 }

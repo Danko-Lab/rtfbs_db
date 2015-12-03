@@ -224,8 +224,15 @@ output_motif_report<-function( tfbs, df.motif, file.pdf, report.size, report.tit
 								height = 1/M40, 
 								just = c("left","bottom")));
 
-					idx <-which( as.character(df.motif[i,k]) == as.character(tfbs@tf_info$Motif_ID) )[1];
-					seqLogo( exp(t(tfbs@pwm[[idx]])), xaxis = FALSE, yaxis = FALSE)
+					idx <-which( as.character(df.motif[i,k]) == as.character(tfbs@tf_info$Motif_ID) );
+					if(length(idx)>1)
+					{
+						warning(paste("Multiple matrice in the tfbs object for Motif ID:", as.character(df.motif[i,k]), 
+							", first matrix (index:", idx[1], ") is used to draw logo.\n"));
+						idx <- idx[1];
+					}
+					
+					seqLogo( exp(t(tfbs@pwm[[idx]])), xaxis = FALSE, yaxis = FALSE);
 					popViewport();
 				}
 				

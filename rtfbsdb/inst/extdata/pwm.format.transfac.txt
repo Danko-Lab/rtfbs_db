@@ -1,0 +1,32 @@
+### Format demo
+#AC  MA0001.1
+#XX
+#ID  AGL3
+#XX
+#DE  MA0001.1 AGL3; from JASPAR
+#PO       A     C     G     T
+#1        0    94     1     2
+#2        3    75     0    19
+#3       79     4     3    11
+#4       40     3     4    50
+#5       66     1     1    29
+#6       48     2     0    47
+#7       65     5     5    22
+#8       11     2     3    81
+#9       65     3    28     1
+#10       0     3    88     6
+#XX
+#CC  program: jaspar
+#XX
+#//
+
+AC  $Motif_ID
+XX  $SKIP
+ID  $TF_Name
+XX  $SKIP
+DE  $Description
+PO       A     C     G     T
+$LOM    $A    $C    $G     $T $REPEAT
+XX $SKIP
+CC $SKIP $REPEAT
+// $EOM
