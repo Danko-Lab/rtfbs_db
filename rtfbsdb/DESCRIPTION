@@ -1,6 +1,6 @@
 Package: rtfbsdb
-Version: 0.2.0
-Date: 2015-09-09
+Version: 0.3.0
+Date: 2015-12-02
 Title: Parse TF motifs from public databases, read into R, and scan using 'rtfbs'.
 Author: Charles G. Danko <dankoc@gmail.com>, Zhong Wang<zw355@cornell.edu>
 Maintainer: Charles G. Danko <dankoc@gmail.com> Zhong Wang<zw355@cornell.edu>

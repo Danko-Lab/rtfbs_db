@@ -53,3 +53,10 @@ B: Source:
 10/27/2015
 
 1) Changing the return value of tfbs.selectByRandom() and tfbs.selectByGeneExp() and adding the indices of selected motif into the matrix tfbs@cluster.
+
+12/2/2015
+1) Implement a parser to load motif data from the source other than Cis-BP, such as Transfac, jaspar, Meme and Mscan.
+
+2) Draw apcluster heatmap with same style as agnes results.
+
+
