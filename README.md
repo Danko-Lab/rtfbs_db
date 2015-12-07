@@ -5,6 +5,8 @@ Transcription factors (TFs) regulate complex programs of gene transcription by b
 
 Uses: Parse TF motifs from public databases, read into R, and scan using 'rtfbs'.
 
+<img src="img/FIG1.png">
+
 Sources of Position Weight Matrices (PWMs).
 -------------------------------------------
 
