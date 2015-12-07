@@ -1,18 +1,18 @@
 rtfbs_db
 ========
 
-Parse TF motifs from public databases, read into R, and scan using 'rtfbs'.
+Transcription factors (TFs) regulate complex programs of gene transcription by binding to short DNA sequence motifs. Here we introduce rtfbsdb, a unified framework that integrates a database of more than 65,000 TF binding motifs with tools to easily and efficiently scan target genome sequences. Rtfbsdb clusters motifs with similar DNA sequence specificities and optionally integrates RNA-seq or PRO-seq data to restrict analyses to motifs recognized by TFs expressed in the cell type of interest.  Our package allows common analyses to be performed rapidly in an integrated environment.  
 
-WARNING:
---------
-
-This package is in no way intended for general distribution or use... It is UNSUPPORTED and will receive bugfixes and updates only if they are useful to me.
+Uses: Parse TF motifs from public databases, read into R, and scan using 'rtfbs'.
 
 Sources of Position Weight Matrices (PWMs).
 -------------------------------------------
 
 * CIS-BP: http://cisbp.ccbr.utoronto.ca/bulk.php
 	Weirauch MT, et. al. Determination and inference of eukaryotic transcription factor sequence specificity. Cell. 2014 Sep 11;158(6):1431-43. doi: 10.1016/j.cell.2014.08.009.
+
+* Jolma: Downloaded from the supplementary data of this paper: http://www.nature.com/nature/journal/vaop/ncurrent/full/nature15518.html
+	Jolma A, et. al. DNA-dependent formation of transcription factor pairs alters their binding specificity.  Nature.  2015 Nov 19;527(7578):384-8.
 
 * Jolma: Downloaded from the supplementary data of this paper: http://www.cell.com/retrieve/pii/S0092867412014961
 	Jolma A, et. al.  DNA-binding specificities of human transcription factors. Cell. 2013 Jan 17;152(1-2):327-39. doi: 10.1016/j.cell.2012.12.009. 
