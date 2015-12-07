@@ -160,6 +160,7 @@ scanDb_rtfbs <- function(tfbs,
 	options("scipen"=100, "digits"=4)
 
 	extBed  <- extend.bed( gen.bed, half_width - 1)
+	##!!!!! Any invalid genomic loci in extBed wil be removed by read.seqfile.from.bed(), so length(seq.ms) ==  or <> length(extBed).
 	seq.ms  <- read.seqfile.from.bed( extBed, file.twoBit);
 	bgModel <- build.mm( seq.ms, 3);
 
@@ -238,7 +239,7 @@ scanDb_rtfbs <- function(tfbs,
 
 	if(return.type == "maxposterior") 
 	{
-		binding_all <- matrix(unlist(binding_all), nrow= NROW(gen.bed), ncol= NROW(usemotifs))
+		binding_all <- matrix(unlist(binding_all), ncol= NROW(usemotifs))
 	}
 
 	return(binding_all)
