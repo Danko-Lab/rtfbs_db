@@ -41,7 +41,3 @@ Requires
 
 * 2bit files for your genome of interest.  Find links to these here: http://hgdownload.cse.ucsc.edu/downloads.html
 
-Usage
------
-
-See files in create_db/ for examples.
