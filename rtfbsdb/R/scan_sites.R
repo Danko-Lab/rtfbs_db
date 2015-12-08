@@ -10,12 +10,17 @@
 #' @param len extension in bp
 #' @return extended bed data.frame
 
-extend.bed <- function( bed, len ) 
+extend.bed <- function( bed, len, file.twoBit ) 
 {
-	starts = as.integer(bed[,2] - len)
-	ends = as.integer(bed[,3] + len)
+	starts = as.integer(bed[,2] - len);
+	ends   = as.integer(bed[,3] + len);
+	chr    = bed[,1];	
 
-	N = dim(bed)[2]
+	chr_info <- get_chromosome_size( file.twoBit );
+	chr_max  <- chr_info[ match(chr, chr_info[,1]), 2 ];
+	ends[ ends >  chr_max ] <- chr_max[ ends >  chr_max ];
+
+	N = NCOL(bed);
 	if (N == 3) {
 		data.frame(bed[,1], starts, ends)
 	} else {
@@ -40,7 +45,7 @@ scan_rtfbs <- function( tf_name, file.twoBit, gen.bed, motif_path, return.poster
 
 	## Write out new fasta file, adding on half-width of the motif, to correctly align motif center ...
 	half_width <- ceiling( (NROW(motif)-1)/2 );
-	extBed = extend.bed( gen.bed, half_width - 1 );
+	extBed = extend.bed( gen.bed, half_width - 1, file.twoBit );
 	dnase_peaks = read.seqfile.from.bed( extBed, file.twoBit );
 
 	## Swiched rtfbs to returning posteriors.
@@ -159,7 +164,7 @@ scanDb_rtfbs <- function(tfbs,
 	half_width = 15 ## Max size of TF in set of 1800 is 30 (half-width = 15).
 	options("scipen"=100, "digits"=4)
 
-	extBed  <- extend.bed( gen.bed, half_width - 1)
+	extBed  <- extend.bed( gen.bed, half_width - 1, file.twoBit)
 	##!!!!! Any invalid genomic loci in extBed wil be removed by read.seqfile.from.bed(), so length(seq.ms) ==  or <> length(extBed).
 	seq.ms  <- read.seqfile.from.bed( extBed, file.twoBit);
 	bgModel <- build.mm( seq.ms, 3);
@@ -239,7 +244,13 @@ scanDb_rtfbs <- function(tfbs,
 
 	if(return.type == "maxposterior") 
 	{
-		binding_all <- matrix(unlist(binding_all), ncol= NROW(usemotifs))
+		seqList <- unlist(lapply(seq.ms, function(ms) {ms[1]}));
+		seqList.org <- paste(extBed[,1],":", as.integer(extBed[,2]), "-", as.integer(extBed[,3]), sep="");
+		idx.bed <- match(seqList, seqList.org);
+		
+		posterior <- matrix(NA, nrow= NROW(extBed), ncol= NROW(usemotifs))
+		posterior[idx.bed, ] <- matrix(unlist(binding_all), ncol= NROW(usemotifs));
+		binding_all <- posterior;
 	}
 
 	return(binding_all)
