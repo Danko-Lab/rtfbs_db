@@ -51,7 +51,7 @@ setMethod("show", "CisBP.db", function(object){
 
 CisBP.download <- function( species="Homo_sapiens", url="http://cisbp.ccbr.utoronto.ca/bulk_archive.php" ) 
 {
-	if(! (require(RCurl) && require (stringr) ) )
+	if(! (requireNamespace("RCurl") && requireNamespace ("stringr") ) )
 		stop("Package RCurl and stringr are necessary to download files.");
 
 	#test the HTTP header 

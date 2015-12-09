@@ -1,14 +1,14 @@
 Package: rtfbsdb
 Version: 0.3.0
 Date: 2015-12-02
-Title: Parse TF motifs from public databases, read into R, and scan using 'rtfbs'.
+Title: An Integrated Framework for Transcription Factor Binding Site Analysis
 Author: Charles G. Danko <dankoc@gmail.com>, Zhong Wang<zw355@cornell.edu>
 Maintainer: Charles G. Danko <dankoc@gmail.com> Zhong Wang<zw355@cornell.edu>
 Depends: R (>= 2.6)
-Imports: rphast, rtfbs, bigWig, parallel, grid, cluster, methods, latticeExtra, lattice, apcluster
+Imports: rphast, rtfbs, parallel, grid, cluster, methods, latticeExtra, lattice, apcluster, vioplot, tools
 LinkingTo:
-Suggests: RCurl, stringr 
-Description: Convenience functions to read and scan DNA sequences using Position Weight Matrices (PWMs)
-License: GPL version 3 or newer
+Suggests: RCurl, stringr, bigWig
+Description: This package finds the transcription factor binding sites within specified genome loci and estimate the enrichment between two case-control group of different genomic loci based on a scoring algorithm driven by a Hidden Markov model and the CisBP database (or other data source, such as Jaspar, Transfac). It clusters motifs with similar DNA sequence specificities and optionally integrates RNA-seq or PRO-seq data to restrict analyses to motifs recognized by TFs expressed in the cell type of interest. PDF report is provided for the motif clustering, tfbs scaning and enrichment test.
+License: GPL-3
 biocViews: Sequencing, Analysis
 LazyLoad: yes

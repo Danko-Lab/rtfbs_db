@@ -235,7 +235,7 @@ background.check<-function( gc.pos, gc.neg, gc.correction, file.pdf.vioplot=NA, 
 		cat("  median/sample size of GC positive =", median(gc.pos), "/", length(gc.pos), "\n"); 
 		cat("  median/sample size of GC negative =", median(gc.neg), "/", length(gc.neg), "\n");
 		
-		if( !is.null(file.pdf.vioplot) && !is.na( file.pdf.vioplot) && require(vioplot) )
+		if( !is.null(file.pdf.vioplot) && !is.na( file.pdf.vioplot)  )
 		{
 			r.try <- try ( pdf(file.pdf.vioplot) );
 			if( class(r.try) != "try-error" )
@@ -246,7 +246,7 @@ background.check<-function( gc.pos, gc.neg, gc.correction, file.pdf.vioplot=NA, 
 			}
 			else
 				cat("  Failed to output the vioplot figure for the results.\n");
-		}
+		}		
 	}
 	
 	# No need to do sampling the background data.

@@ -6,8 +6,6 @@
 
 tfbs_importMotifs <- function(tfbs, format, filenames, motif_ids=NULL, skip.lines=0, pseudocount= -7, force_even= FALSE, ...)
 {
-	library(tools);
-
 	pwm.matrice <- list();
 	pwm.filenames <- c();
 	
@@ -29,10 +27,10 @@ tfbs_importMotifs <- function(tfbs, format, filenames, motif_ids=NULL, skip.line
 				}
 				
 				wildname <- basename(f);
-				fnames = list.files(dirname(f), pattern = glob2rx(wildname), full.names = TRUE, recursive = recursive)
+				fnames = list.files(dirname(f), pattern = glob2rx(wildname), full.names = TRUE, recursive = FALSE)
 				
 				pwm.filenames <- c( pwm.filenames, fnames );	
-				motif_ids <- c( motif_ids, basename(file_path_sans_ext(df$fileNames)) );
+				motif_ids <- c( motif_ids, basename( file_path_sans_ext(df$fileNames) ) );
 			}
 		}
 		else
@@ -405,6 +403,9 @@ parse_formatted_datafile <- function( format.style, filenames, skip.lines, pseud
 
 parser_aline<-function( pwm, format.style, data.line)
 {
+	## put dummy code to pass the check(R CMD check rtfbsdb --as-cran)
+	s <- "";
+
 	start_with<-function(s, a ) {return(substring(s,1,1)==a)}
 	ending_with<-function(s, a ) {return(substring(s,nchar(s),1)==a)}
 
@@ -513,7 +514,10 @@ parser_aline<-function( pwm, format.style, data.line)
 ## return the info from the data line.
 
 match_aline <- function( format.line, data.line)
-{
+{	
+	## put dummy code to pass the check(R CMD check rtfbsdb --as-cran)
+	s <- "";
+	
 	start_dollar<-function(s) { return(substring(s,1,1)=="$")}
 	is_numeric <- function(s) { suppressWarnings(!is.na(as.numeric(s))) };
 	

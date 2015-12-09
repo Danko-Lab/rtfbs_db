@@ -55,8 +55,14 @@ B: Source:
 1) Changing the return value of tfbs.selectByRandom() and tfbs.selectByGeneExp() and adding the indices of selected motif into the matrix tfbs@cluster.
 
 12/2/2015
-1) Implement a parser to load motif data from the source other than Cis-BP, such as Transfac, jaspar, Meme and Mscan.
 
-2) Draw apcluster heatmap with same style as agnes results.
+1) Implementing a parser to load motif data from the source other than Cis-BP, such as Transfac, jaspar, Meme and Mscan.
 
+2) Drawing apcluster heatmap with same style as agnes results.
+
+12/9/2015
+
+1) Fixing a bug in tfbs.scanTFsite function with the option "maxposterior"
+
+2) Tuning the package to pass the R package check(R CMD check rtfbsdb --as-cran), including NAMESPACE, DSCRIPTION and R codes. 
 

@@ -19,7 +19,7 @@ get_reads_from_bigwig <- function( bw.plus, bw.minus, chromInfo )
 		scores=".",
 		strands="+")
 		
-	r.plus <- sum(abs(bed6.region.bpQuery.bigWig( bw.plus, bw.minus, r.bed)));
+	r.plus <- sum(abs(bigWig::bed6.region.bpQuery.bigWig( bw.plus, bw.minus, r.bed)));
 
 	r.bed <- data.frame( seqnames=chromInfo[,1],
 		starts=chromInfo[,2],
@@ -28,7 +28,7 @@ get_reads_from_bigwig <- function( bw.plus, bw.minus, chromInfo )
 		scores=".",
 		strands="-")
 
-	r.minus <- sum(abs(bed6.region.bpQuery.bigWig( bw.plus, bw.minus, r.bed)));
+	r.minus <- sum(abs(bigWig::bed6.region.bpQuery.bigWig( bw.plus, bw.minus, r.bed)));
 
 	return(c(r.plus,r.minus));	  	
 }
@@ -83,7 +83,7 @@ lambda_estimate_in_bam <- function( file.bam, file.twoBit, file.gencode.gtf, win
 		awk.cmd <- paste( "awk '{print $1,$2,$3,$4,$5}' ", file.gencode.gtf, sep="")
 
 		# for gzipped GTF file
-		if(tools::file_ext(file.gencode.gtf)=="gz" )
+		if(file_ext(file.gencode.gtf)=="gz" )
 			awk.cmd <- paste( "zcat ",file.gencode.gtf," | awk '{print $1,$2,$3,$4,$5}' ", sep="");
 
 		bigdf <- read.table( pipe(awk.cmd), header = F );
@@ -244,20 +244,23 @@ tfbs_getExpression <- function(tfbs,
 	
 	if(seq.datatype=="GRO-seq" ||seq.datatype=="PRO-seq")
 	{
+		if(!requireNamespace("bigWig", quietly = TRUE))
+			stop("Package bigWig is required to calculate reads for GRO-seq or PRO-seq data");
+		
 		gencode_transcript_ext <- gencode_transcript_ext[ which(gencode_transcript_ext$V3=="transcript"),];	
 		cat(" ", NROW(gencode_transcript_ext), "items are selected from GENCODE dataset for", seq.datatype, ".\n");
 	
 		# Load bigWig files(minus and plus)
-		bw.plus  <- try( load.bigWig( file.bigwig.plus ) );
-		bw.minus <- try( load.bigWig( file.bigwig.minus ) );
+		bw.plus  <- try( bigWig::load.bigWig( file.bigwig.plus ) );
+		bw.minus <- try( bigWig::load.bigWig( file.bigwig.minus ) );
 	
 		if( class(bw.plus)=="try-error" || class(bw.minus)=="try-error" )
 			stop("Failed to load bigwig files.");
 	
 		reads.total <- sum(abs(c(bw.plus$primaryDataSize, bw.minus$primaryDataSize)) );
 
-		if( !is.null(bw.plus) )	try( unload.bigWig( bw.plus ) );
-		if( !is.null(bw.minus) ) try( unload.bigWig( bw.minus ) );
+		if( !is.null(bw.plus) )	try( bigWig::unload.bigWig( bw.plus ) );
+		if( !is.null(bw.minus) ) try( bigWig::unload.bigWig( bw.minus ) );
 		
 		cat(" ", reads.total, "Reads in", file.bigwig.plus, "and", file.bigwig.minus,"\n");
 	}
@@ -302,8 +305,8 @@ tfbs_getExpression <- function(tfbs,
 		
 		if(seq.datatype=="GRO-seq" ||seq.datatype=="PRO-seq")
 		{
-			bw.plus  <- try( load.bigWig( file.bigwig.plus ) );
-			bw.minus <- try( load.bigWig( file.bigwig.minus ) );
+			bw.plus  <- try( bigWig::load.bigWig( file.bigwig.plus ) );
+			bw.minus <- try( bigWig::load.bigWig( file.bigwig.minus ) );
 		}
 		
 		r.bed.list <- lapply( i.from:i.to, function(i) {
@@ -332,7 +335,7 @@ tfbs_getExpression <- function(tfbs,
 
 			# Query reads for each motif
 			if(seq.datatype=="GRO-seq" ||seq.datatype=="PRO-seq")
-				r.reads  <- try( bed6.region.bpQuery.bigWig( bw.plus, bw.minus, r.bed ) )
+				r.reads  <- try( bigWig::bed6.region.bpQuery.bigWig( bw.plus, bw.minus, r.bed ) )
 			else
 				r.reads  <- try( get_bam_reads( file.bam, r.bed ) );
 
@@ -362,8 +365,8 @@ tfbs_getExpression <- function(tfbs,
 		df.exp <- transform( do.call(rbind, r.bed.list) );
 		colnames(df.exp) <- c("dbid", "chr", "start", "end", "length", "strand", "reads","lambda", "p.pois");
 
-		if( !is.null(bw.plus) )	try( unload.bigWig( bw.plus ) );
-		if( !is.null(bw.minus) ) try( unload.bigWig( bw.minus ) );
+		if( !is.null(bw.plus) )	try( bigWig::unload.bigWig( bw.plus ) );
+		if( !is.null(bw.minus) ) try( bigWig::unload.bigWig( bw.minus ) );
 		
 		return( df.exp );	
 	}
@@ -418,7 +421,7 @@ import_gencode <-function( species, file.gencode.gtf, seq.datatype=NA )
 	awk.cmd <- paste( "awk '($3==\"", V3.type, "\"){gsub( /\\\";?/, \"\", $10);print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10}' ", file.gencode.gtf, sep="");
 	
 	# for gzipped GTF file
-	if(tools::file_ext(file.gencode.gtf)=="gz" )
+	if(file_ext(file.gencode.gtf)=="gz" )
 		awk.cmd <- paste( "zcat ",file.gencode.gtf," | awk '($3==\"", V3.type, "\"){gsub( /\\\";?/, \"\", $10);gsub( /\\\";?/, \"\", $18);print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$18}' ", sep="");
 		
 	bigdf <- read.table( pipe(awk.cmd), header = F );

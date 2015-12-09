@@ -203,7 +203,7 @@ A new tfbs object (\code{"\linkS4class{tfbs}"}) merged with licensed motifs.
 }
 \examples{
 
-library(rtfbsdb);
+require(rtfbsdb);
 
 db  <- CisBP.extdata("Homo_sapiens");
 tfs <- tfbs.createFromCisBP(db, family_name="AP-2");
@@ -233,7 +233,7 @@ file_pwms <- paste(path, c(
       "M3591_1.01.pwm", 
       "M3590_1.01.pwm"), sep="/");
 
-tfs <- tfbs.importMotifs(tfs, 'pwm.matrix', file_pwms, motif_ids, header=T );
+tfs <- tfbs.importMotifs(tfs, 'pwm.matrix', file_pwms, motif_ids, header=TRUE );
 show(tfs);
 
 
