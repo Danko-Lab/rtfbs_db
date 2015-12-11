@@ -134,12 +134,13 @@ get_binding_site <- function( bgModel1,
 	return( binding );
 }
 
-## return.type --> c("matches", "posteriors", "maxposterior", or "writedb")
+## return.type --> c("matches", "maxscore", "posteriors", "maxposterior", or "writedb")
 ##
 ## matches 		-- returns all matching motifs.
 ## writedb 		-- writes a bed file with matches.  Assuems that sort-bed and starch tools are availiable in $PATH
 ## posteriors 	-- returns the posteriors at each position.
 ## maxposterior	-- returns the max(posterior) in each dnase-1 peak.
+## maxscore	    -- returns the max(score) in each dnase-1 peak.
 
 scanDb_rtfbs <- function(tfbs, 
 						file.twoBit, 
@@ -170,7 +171,7 @@ scanDb_rtfbs <- function(tfbs,
 	bgModel <- build.mm( seq.ms, 3);
 
 	## Swiched rtfbs to returning posteriors.
-	return.posteriors <- ( return.type=="posteriors" | return.type=="maxposterior" )
+	return.posteriors <- ( return.type %in% c("posteriors", "maxposterior", "maxscore" ) );
 
 	binding_all <- mclapply(usemotifs, function(i, ...) {
 		binding<- NULL;
@@ -179,13 +180,20 @@ scanDb_rtfbs <- function(tfbs,
 		PWM <- tfbs@pwm[[i]];
 		
 		## Parse binding site into genomic coordinates.	
-		if( return.type == "maxposterior" || return.type == "posteriors") 
+		if( return.posteriors ) 
 		{ 
 			binding <- score.ms( seq.ms, PWM, bgModel, return_posteriors=TRUE, threshold = score.threshold );
-
-			if( return.type == "maxposterior"&& NROW(binding) > 0)
+			
+			if( is.null(binding) || NROW(binding) == 0 )
+				return(NA);
+				
+			if( return.type == "maxscore" )
 				return(sapply(1:NROW(binding), function(x) { 
 					max(c(binding[[x]]$MotifModel$Forward - binding[[x]]$Background, binding[[x]]$MotifModel$Reverse - binding[[x]]$Background)) }));
+			
+			if( return.type == "maxposterior" )
+				return(sapply(1:NROW(binding), function(x) { 
+					max(c(binding[[x]]$MotifModel$Forward, binding[[x]]$MotifModel$Reverse )) }));
 		}
 
 		## Parse binding site into genomic coordinates.
@@ -242,15 +250,15 @@ scanDb_rtfbs <- function(tfbs,
 		system(paste("rm ",file.prefix,"*.bed.tmp.starch",sep=""))
 	}
 
-	if(return.type == "maxposterior") 
+	if(return.type %in% c( "maxposterior", "maxscore") )
 	{
 		seqList <- unlist(lapply(seq.ms, function(ms) {ms[1]}));
 		seqList.org <- paste(extBed[,1],":", as.integer(extBed[,2]), "-", as.integer(extBed[,3]), sep="");
 		idx.bed <- match(seqList, seqList.org);
 		
-		posterior <- matrix(NA, nrow= NROW(extBed), ncol= NROW(usemotifs))
-		posterior[idx.bed, ] <- matrix(unlist(binding_all), ncol= NROW(usemotifs));
-		binding_all <- posterior;
+		binding_mat <- matrix(NA, nrow= NROW(extBed), ncol= NROW(usemotifs))
+		binding_mat[idx.bed, ] <- matrix(unlist(binding_all), ncol= NROW(usemotifs));
+		binding_all <- binding_mat;
 	}
 
 	return(binding_all)
@@ -271,9 +279,10 @@ tfbs_scanTFsite<-function( tfbs, file.twoBit,
 							background.length = 100000 )
 {
 	stopifnot(class(tfbs) == "tfbs")
-
-	if( missing(gen.bed) && (return.type == "posteriors" || return.type == "maxposterior" ) )
-		stop("The option 'posteriors' or 'maxposterior' need a specified genomic location.");
+	stopifnot(return.type %in% c("matches", "maxscore", "posteriors", "maxposterior", "writedb") );
+	
+	if( missing(gen.bed) && (return.type %in% c("posteriors", "maxposterior", "maxscore")) )
+		stop("The option 'maxscore', 'posteriors' or 'maxposterior' need a specified genomic location.");
 
 	if( missing(gen.bed) )
 	{
@@ -352,7 +361,7 @@ tfbs_scanTFsite<-function( tfbs, file.twoBit,
 		colnames(sum.match) <- c("Motif_ID", "TF_Name", "Count");
 	}
 
-	if( return.type == "maxposterior" )
+	if( return.type %in% c("maxposterior", "maxscore") )
 	{
 		sum.match <- data.frame(
 					tfbs@tf_info$Motif_ID[ usemotifs ],
@@ -373,9 +382,12 @@ print.tfbs.finding<-function(x, ...)
 	r.scan <- x;
 	 
 	cat("Return type: ", r.scan$parm$return.type, "\n");
-	cat("Threshold Type: ", r.scan$parm$threshold.type, "\n");
-	cat("Threshold: ",   r.scan$parm$threshold, "\n");
-
+	if(r.scan$parm$return.type %in% c("matches", "writedb") )
+	{
+		cat("Threshold Type: ", r.scan$parm$threshold.type, "\n");
+		cat("Threshold: ",   r.scan$parm$threshold, "\n");
+	}
+	
 	if( r.scan$parm$return.type == "matches" )
 	{
 		df.allfinding <- do.call("rbind", r.scan$result );
@@ -398,7 +410,7 @@ print.tfbs.finding<-function(x, ...)
 		cat("Binding sites: ", NROW(df.allfinding), "\n");
 	}
 	
-	if(r.scan$parm$return.type=="maxposterior")
+	if(r.scan$parm$return.type %in% c("maxposterior", "maxscore") )
 		cat("Matrix posterior: ", NROW(r.scan$result), "*", NCOL(r.scan$result), "\n");
 }
 

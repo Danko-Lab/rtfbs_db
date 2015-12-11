@@ -41,3 +41,5 @@ Requires
 
 * 2bit files for your genome of interest.  Find links to these here: http://hgdownload.cse.ucsc.edu/downloads.html
 
+* For more information about the installation, please check the tutorial document (Page 5 in 'rtfbsdb-tutorial.pptx').
+

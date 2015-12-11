@@ -26,7 +26,7 @@ tfbs.scanTFsite(tfbs,
   \item{tfbs}{A tfbs object (\code{"\linkS4class{tfbs}"}) returned by \code{\link{tfbs.createFromCisBP}}, \code{\link{tfbs}}, \code{\link{tfbs.dirs}}. }
   \item{file.twoBit}{String, the file name of genome data( e.g. hg19.2bit or mm10.2bit) }
   \item{gen.bed}{Data frame, bed-formatted loci information with 6 columns}
-  \item{return.type}{String, four available values explained in th details(default = "matches")}
+  \item{return.type}{String, five available values explained in th details(default = "matches")}
   \item{file.prefix}{String, the prefix for outputted file, only used when the return.type is \emph{writedb}}
   \item{usemotifs}{Vector indicating indexes of motif to be used in scanning.}
   \item{ncores}{Number, computing nodes in parallel environment (default = 1).}
@@ -39,12 +39,13 @@ tfbs.scanTFsite(tfbs,
 }
 \details{
 
-(1) Four options are availabe for the function of tfbs.scanTFsite as follows.\cr
+(1) Five options are availabe for the function of tfbs.scanTFsite as follows.\cr
 \itemize{
 \item{matches:}{ returns all matching TF sites for all motifs.}
 \item{writedb:}{ writes a bed file with matches sites. Assumes that sort-bed and starch tools are availiable in $PATH}
+\item{maxscore:}{ returns the max score(poserior difference between motif model and background) in each bed-formatted loci.}
 \item{posteriors:}{ returns the posteriors at each position in bed-formatted loci.}
-\item{maxposterior:}{ returns the max(posterior) in each position in bed-formatted loci.}
+\item{maxposterior:}{ returns the max(posterior) in each bed-formatted loci.}
 }
 
 (2) In order to make the binary file with the parameter of writedb, make sure that starchcat 
@@ -76,6 +77,8 @@ or the product of the probability of observing each base under the motif or back
 model. \cr
 
 The option of \emph{maxposterior} will return a probability matrix which the row indicates the target loci and the column indicates the motif.\cr
+
+The option of \emph{maxscore} will return a score (poserior difference) matrix which the row indicates the target loci and the column indicates the motif. \cr
 
 }
 
@@ -146,6 +149,15 @@ t4 <- tfbs.scanTFsite( tfs,
 t4;
 
 dim(t4$result);
+
+t5 <- tfbs.scanTFsite( tfs, 
+      file.twoBit, 
+      gen.bed, 
+      return.type="maxscore",
+      ncores = 1);	
+
+t5;
+
 
 }
 
