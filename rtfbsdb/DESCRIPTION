@@ -2,8 +2,8 @@ Package: rtfbsdb
 Version: 0.3.0
 Date: 2015-12-02
 Title: An Integrated Framework for Transcription Factor Binding Site Analysis
-Author: Charles G. Danko <dankoc@gmail.com>, Zhong Wang<zw355@cornell.edu>
-Maintainer: Charles G. Danko <dankoc@gmail.com> Zhong Wang<zw355@cornell.edu>
+Author: Charles G. Danko <dankoc@gmail.com>, Zhong Wang<zw355@cornell.edu>, Andre L. Martins<alm253@cornell.edu>
+Maintainer: Zhong Wang<zw355@cornell.edu>
 Depends: R (>= 2.6)
 Imports: rphast, rtfbs, parallel, grid, cluster, methods, latticeExtra, lattice, apcluster, vioplot, tools
 LinkingTo:
