@@ -139,10 +139,16 @@ tfbs_drawLogosForClusters <- function(tfbs,  file.pdf=NULL)
 	draw_tf_name <- function(tfbs, idx, nmax.motifs)
 	{
 		tf_name <- tfbs@mgisymbols[idx];	
+		motif_id <- tfbs@mgisymbols[idx];	
 		if ( NROW(tfbs@tf_info) > 0 )
+		{
 			tf_name <- tfbs@tf_info[ idx, "TF_Name"];
-			
+			motif_id <- tfbs@tf_info[ idx, "Motif_ID"];
+		}
+		
 		n.block  <- round(nmax.motifs/2);
+		
+		# draw TF_Name in biggger size
 		pushViewport( viewport(x=0.01, y=0, width=0.05, height=1, just=c("left","bottom")) );
 		  	
 		str.inches <- strwidth(tf_name, units = 'in');
@@ -155,6 +161,20 @@ tfbs_drawLogosForClusters <- function(tfbs,  file.pdf=NULL)
 		grid.text( tf_name, rot=90, gp=gpar(cex=cex), check.overlap=T);  
 
 		popViewport();
+
+		# draw Motif_ID in smaller size
+		pushViewport( viewport(x=0.06, y=0, width=0.02, height=1, just=c("left","bottom")) );
+		  	
+		str.inches <- strwidth(motif_id, units = 'in');
+		y.scale <- convertHeight(unit(str.inches, "inches"), "native", valueOnly=T );
+		
+		cex <- 1/2;
+		if( y.scale> 0.5 ) cex <- 0.5/y.scale;
+		if( cex > 1/2 ) cex <- 1/2;
+
+		grid.text( motif_id, rot=90, gp=gpar(cex=cex), check.overlap=T);  
+		popViewport();
+
 	}
 
 	cluster.mat <- tfbs@cluster;
@@ -178,7 +198,7 @@ tfbs_drawLogosForClusters <- function(tfbs,  file.pdf=NULL)
 			if ( j <= nmotifs )
 			{
 				draw_tf_name(tfbs, motifs_in_cluster[j], nmax.motifs);
-				pushViewport( viewport(x=0.04, y=0, width=0.96, height=1, just=c("left","bottom")) );
+				pushViewport( viewport(x=0.07, y=0, width=0.93, height=1, just=c("left","bottom")) );
 				seqLogo(exp(t(tfbs@pwm[[motifs_in_cluster[j]]])), xaxis = FALSE, yaxis = FALSE);
 				popViewport();
 			}
@@ -190,7 +210,7 @@ tfbs_drawLogosForClusters <- function(tfbs,  file.pdf=NULL)
 			if ( j+1 <= nmotifs )
 			{
 				draw_tf_name(tfbs, motifs_in_cluster[j+1], nmax.motifs);
-				pushViewport( viewport(x=0.04, y=0, width=0.96, height=1, just=c("left","bottom")) );
+				pushViewport( viewport(x=0.07, y=0, width=0.93, height=1, just=c("left","bottom")) );
 				seqLogo( exp(t(tfbs@pwm[[motifs_in_cluster[j+1]]])), xaxis = FALSE, yaxis = FALSE);
 				popViewport();
 			}
