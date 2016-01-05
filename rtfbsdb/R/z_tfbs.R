@@ -42,7 +42,7 @@ setMethod("show", "tfbs", function(object)
 	if( NROW(object@tf_info) >0 )
 	{
 		df.list <- lapply ( c("Motif_ID", "TF_Name", "Family_Name", "DBID", "Motif_Type"), function(x){
-					if(x %in% colnames(object@tf_info) ) return(object@tf_info[,x]) else NA; } );
+					if(x %in% colnames(object@tf_info) ) return(as.character(object@tf_info[,x])) else NA; } );
 
 		df1 <- do.call( cbind, df.list );
 		colnames(df1) <- c("Motif_ID", "TF_Name", "Family_Name", "DBID", "Motif_Type");

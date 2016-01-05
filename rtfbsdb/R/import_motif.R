@@ -50,7 +50,7 @@ tfbs_importMotifs <- function(tfbs, format, filenames, motif_ids=NULL, skip.line
 			pwm.matrice[[i]] <- motif;	
 		}
 		
-		tf_info <- data.frame(Motif_ID=motif_ids);
+		tf_info <- data.frame(Motif_ID=motif_ids, TF_Name=NA, Family_Name=NA, DBID=NA);
 	}
 	else
 	{	
