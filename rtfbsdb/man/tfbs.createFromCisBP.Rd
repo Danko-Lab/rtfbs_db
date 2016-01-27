@@ -8,6 +8,7 @@ Build a tfbs object by querying the meta file of CisBP dataset and subsetting th
 }
 \usage{
 tfbs.createFromCisBP(cisbp.db, 
+      motif_id = NULL, 
       tf_name = NULL, 
       tf_status = NULL, 
       family_name = NULL, 
@@ -17,6 +18,7 @@ tfbs.createFromCisBP(cisbp.db,
 }
 \arguments{
   \item{cisbp.db}{A CisBP object(\code{"\linkS4class{CisBP.db}"}), including the file of TF_Information.txt.}
+  \item{motif_id}{String, indicating the Motif_ID field will be used to select motifs.}
   \item{tf_name}{String, indicating the TF_name field will be used to select motifs.}
   \item{tf_status}{String, indicating the TF_Status field will be used to select motifs. }
   \item{family_name}{String, indicating the Family_Name field will be used to select motifs. }

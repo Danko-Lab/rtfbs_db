@@ -11,7 +11,7 @@ does not provided genome data such as hg19.2bit, mm10.2bit.
 tfbs.scanTFsite(tfbs, 
       file.twoBit, 
       gen.bed, 
-      return.type=c("matches", "posteriors", "maxposterior", "writedb"), 
+      return.type=c("matches", "maxscore", "posteriors", "maxposterior", "writedb"), 
       file.prefix=NA, 
       usemotifs = NA,
       ncores = 1, 
@@ -43,7 +43,7 @@ tfbs.scanTFsite(tfbs,
 \itemize{
 \item{matches:}{ returns all matching TF sites for all motifs.}
 \item{writedb:}{ writes a bed file with matches sites. Assumes that sort-bed and starch tools are availiable in $PATH}
-\item{maxscore:}{ returns the max score(poserior difference between motif model and background) in each bed-formatted loci.}
+\item{maxscore:}{ returns the max score(posterior difference between motif model and background) in each bed-formatted loci.}
 \item{posteriors:}{ returns the posteriors at each position in bed-formatted loci.}
 \item{maxposterior:}{ returns the max(posterior) in each bed-formatted loci.}
 }

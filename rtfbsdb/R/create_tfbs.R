@@ -104,6 +104,7 @@ tfbs.dirs <- function(..., species="Homo_sapiens", args.read.motif = NULL, patte
 #' @return: NULL or tfbs object;
 
 tfbs_createFromCisBP <- function ( cisbp.db, 
+					motif_id    = NULL, 
 					tf_name     = NULL, 
 					tf_status   = NULL,
 					family_name = NULL, 
@@ -119,6 +120,7 @@ tfbs_createFromCisBP <- function ( cisbp.db,
 
 	tbm_f <- c();
 
+	if(!is.null(motif_id))   tbm_f <- c( tbm_f, paste( "tbm$Motif_ID=='", motif_id, "'", sep="") );
 	if(!is.null(tf_name))    tbm_f <- c( tbm_f, paste( "tbm$TF_Name=='", tf_name, "'", sep="") );
 	if(!is.null(tf_status))  tbm_f <- c( tbm_f, paste( "tbm$TF_Status=='", tf_status, "'", sep="") );
 	if(!is.null(family_name))tbm_f <- c( tbm_f, paste( "tbm$Family_Name=='", family_name, "'", sep="") );

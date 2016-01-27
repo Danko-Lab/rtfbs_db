@@ -19,6 +19,7 @@ extend.bed <- function( bed, len, file.twoBit )
 	chr_info <- get_chromosome_size( file.twoBit );
 	chr_max  <- chr_info[ match(chr, chr_info[,1]), 2 ];
 	ends[ ends >  chr_max ] <- chr_max[ ends >  chr_max ];
+	starts[ starts <=1 ] <- 1;
 
 	N = NCOL(bed);
 	if (N == 3) {

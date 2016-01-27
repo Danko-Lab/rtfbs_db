@@ -380,7 +380,7 @@ setMethod("CisBP.getTFinformation", signature(cisbp.db="CisBP.db"),
 #' @return: tfbs object
 
 setGeneric("tfbs.createFromCisBP", 
-		def=function(cisbp.db, tf_name = NULL, tf_status = NULL, family_name = NULL, 
+		def=function(cisbp.db, motif_id = NULL, tf_name = NULL, tf_status = NULL, family_name = NULL, 
 					motif_type = NULL, msource_id =NULL, tf.information.type = 1){
 			stopifnot(class(cisbp.db) == "CisBP.db")
 			standardGeneric("tfbs.createFromCisBP")
