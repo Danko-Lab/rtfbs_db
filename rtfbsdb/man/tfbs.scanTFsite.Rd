@@ -63,12 +63,14 @@ A list object will be returned with the class name of \code{tfbs.finding}. The o
 4) \code{result}: Scanning results which data type is depend on the parameter of \code{return.type}.
 
 The option of \emph{matches} returns a list including the result of every motif, which result is BED style data frame with the following columns.\cr
-\item{chrom}{chromosome}
-\item{chromStart}{start position}
-\item{chromEnd}{chromosome end position}
+\item{chrom}{Chromosome}
+\item{chromStart}{Start position}
+\item{chromEnd}{Chromosome end position}
 \item{name}{}
 \item{score}{ The score is given by the log likelihood ratio against the Marklov model(backgound).}
-\item{strand}{strand}
+\item{strand}{Strand}
+\item{peakStart}{Start position of the matched BED region}
+\item{peakEnd}{End position of the matched BED region}
 
 The option of \emph{writedb} will return a binary BED filename in which store all bed ranges.\cr
 
