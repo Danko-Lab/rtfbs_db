@@ -4,7 +4,7 @@
 #          mscan
 #          meme	
 
-tfbs_importMotifs <- function(tfbs, format, filenames, motif_ids=NULL, skip.lines=0, pseudocount= -7, force_even= FALSE, ...)
+tfbs_importMotifs <- function(tfbs, format, filenames, motif_ids=NULL, PPM.format=TRUE, skip.lines=0, pseudocount= -7, force_even= FALSE, ...)
 {
 	pwm.matrice <- list();
 	pwm.filenames <- c();
@@ -83,7 +83,7 @@ tfbs_importMotifs <- function(tfbs, format, filenames, motif_ids=NULL, skip.line
 		## Separate elements by one or more whitepace
 		format.list <- strsplit(format.style , "[[:space:]]+")
 		
-		p <- parse_formatted_datafile( format.list, filenames, skip.lines, pseudocount, force_even, ... );
+		p <- parse_formatted_datafile( format.list, filenames, skip.lines, pseudocount, force_even, PPM.format, ... );
 		if(!is.null(p))
 		{
 			pwm.matrice <- p$pwm;
@@ -212,31 +212,32 @@ tfbs_importMotifs <- function(tfbs, format, filenames, motif_ids=NULL, skip.line
 ## parser one data file with the specific format style
 ## return all pwm info.
 
-parse_formatted_datafile <- function( format.style, filenames, skip.lines, pseudocount= -7, force_even= FALSE, ... )
+parse_formatted_datafile <- function( format.style, filenames, skip.lines, pseudocount= -7, force_even= FALSE, PPM.format=TRUE, ... )
 {
 	merge_pwm_info<-function( pwms )
 	{
-		tf_info  <- NULL;
-		
 		pwm.mat <- lapply(pwms, function(pwm) {return(pwm$pwm_mat)});
 		pwm.info <- unlist(lapply(pwms, function(pwm) {return(pwm$tf_info)}));
 		pwm.motif_id <- unlist(lapply(pwms, function(pwm) {return(pwm$Motif_ID)}));
 		pwm.tf_name <- unlist(lapply(pwms, function(pwm) {return(pwm$TF_Name)}));
 		pwm.filename <- unlist(lapply(pwms, function(pwm){return(pwm$filename)}));
 
+		if(is.null(pwm.tf_name)) pwm.tf_name<- rep(NA, length(pwm.motif_id))
+		
+		tf_info_inner <- NULL;
 		if(!is.null(pwm.info))
 		{
 			tf_tags <- unique( attr(pwm.info, "names") );
 
-			tf_info <- lapply(pwms, function(pwm) { return( pwm$tf_info[tf_tags] )}) 
-			tf_info <- do.call(rbind, tf_info);
-			colnames( tf_info ) <- tf_tags;
-			
-			tf_info <- data.frame( Motif_ID = pwm.motif_id, TF_Name = pwm.tf_name, tf_info, stringsAsFactors=FALSE );
+			tf_info_inner <- lapply(pwms, function(pwm) { return( pwm$tf_info[tf_tags] )}) 
+			tf_info_inner <- do.call(rbind, tf_info_inner);
+			colnames( tf_info_inner ) <- tf_tags;
 		}
-		else
+	
+		if(!is.null(tf_info_inner))
+			tf_info <- data.frame( Motif_ID = pwm.motif_id, TF_Name = pwm.tf_name, tf_info_inner, stringsAsFactors=FALSE )
+		else	
 			tf_info <- data.frame( Motif_ID = pwm.motif_id, TF_Name = pwm.tf_name, stringsAsFactors=FALSE );
-		
 		
 		return(list(pwm=pwm.mat, tf_info=tf_info, filename=pwm.filename));
 	}
@@ -281,7 +282,16 @@ parse_formatted_datafile <- function( format.style, filenames, skip.lines, pseud
 				mat <- mat[ - which(rowSums(mat)==0), ];
 			}
 			
-			mat <- log(mat/rowSums(mat));
+			### PFM ( position frequency matrix) 
+			### PPM ( position probability matrix) = PFM/rowSums(PFM)
+			### PWM ( position weight matrix) = log(PPM/background), background=1/4 (A,C,G, T).
+			
+			### in this package,  matrix is corresponding to log(PPM);
+			
+			if(PPM.format)
+				mat <- log(mat/rowSums(mat))
+			else
+				mat <- mat + log(0.25);
 			
 			rownames(mat) <- c(1:NROW(mat));
 
@@ -352,7 +362,7 @@ parse_formatted_datafile <- function( format.style, filenames, skip.lines, pseud
 		while( i.line <= length(lines) )
 		{
 			cpwm <- parser_aline( cpwm, format.style, lines[[i.line]])
-			
+
 			if( cpwm$status=="ERROR" )
 			{
 				# Something is wrong, skip error and start over.
@@ -365,7 +375,8 @@ parse_formatted_datafile <- function( format.style, filenames, skip.lines, pseud
 				break;
 			}
 
-			if( cpwm$status=="EOM" )
+			## EOM or Last line
+			if( cpwm$status=="EOM" || i.line == length(lines) )
 			{
 				# make PWM matrix @todo;
 				cpwm$pwm_mat  <- make_ACGT_matrix( cpwm );
@@ -376,9 +387,11 @@ parse_formatted_datafile <- function( format.style, filenames, skip.lines, pseud
 #show(cpwm);		
 				pwms[[length(pwms)+1]] <- cpwm;
 				filename <- paste(filenames[K], "#", i.line, sep="")
-				cpwm <- list( pwm_mat = NULL, cursor = 1, status = "", next.step = "NEXT", filename= filename );  
-			}
 
+				next.step <- if( cpwm$next.step != "ROLLBACK")  "NEXT" else "ROLLBACK";
+				cpwm <- list( pwm_mat = NULL, cursor = 1, status = "", next.step = next.step, filename= filename );
+			}
+			
 			if( cpwm$next.step == "SKIP" ) 
 				i.line <- i.line + cpwm$skip.line
 			else if( cpwm$next.step == "NEXT" ) 	
@@ -454,7 +467,7 @@ parser_aline<-function( pwm, format.style, data.line)
 		pwm$status <- "ERROR";
 		return(pwm);
 	}	
-	
+
 	if( r.match$matched )
 	{
 		if( length(r.match$values) > 0 )

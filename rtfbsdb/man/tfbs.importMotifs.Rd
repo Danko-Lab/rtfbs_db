@@ -3,14 +3,15 @@
 \title{ Import motifs to tfbs object }
 \description{ Import licensed motifs or the source other than Cis-BP to tfbs object }
 \usage{
-tfbs.importMotifs(tfbs, format, filenames, motif_ids=NULL, skip.lines=0, 
-      pseudocount= -7, force_even= FALSE, ...)
+tfbs.importMotifs(tfbs, format, filenames, motif_ids=NULL, PPM.format=TRUE,
+      skip.lines=0, pseudocount= -7, force_even= FALSE, ...)
 }
 \arguments{
   \item{tfbs}{A tfbs object (\code{"\linkS4class{tfbs}"}) returned by \code{\link{tfbs.createFromCisBP}}, \code{\link{tfbs}}, \code{\link{tfbs.dirs}}. }
-  \item{format}{String value indicating predefined format or string vector containing some tags to define a customize format. Predefined formats include \strong{pwm.matrix}, \strong{jaspar}, \strong{meme}, \strong{mscan} and \strong{transfac}. }
+  \item{format}{String value indicating predefined format or string vector containing some tags to define a customize format. Predefined formats include \strong{pwm.matrix}, \strong{jaspar}, \strong{meme}, \strong{mscan}, \strong{transfac} and \strong{HOCOMOCO}. }
   \item{filenames}{Vector of file names.}
   \item{motif_ids}{Vector of motif ID only for the format \strong{pwm.matrix} . Theses motif IDs are assigned to the motif data loaded from 'pwm.matrix' files. If these motifs are missing or licensed motifs, these IDs have to be in accordance with the TF information which can be exported from 'TF_information.txt' by the function \code{CisBP.getTFinformation}. }
+  \item{PPM.format}{Boolean value indicating whether the matrix data is format by PPM(position probability matrix) or PFM(position frequency matrix), otherwise, the original data is PWM format. Default: FALSE. }
   \item{skip.lines}{Number indicating specified non-empty lines are skipped from the head of data file. This parameter is not used for the  format 'pwm.matrix'. Default: 0.}
   \item{pseudocount}{Number value indicating to replace -Inf in PWM. Default: -7. }
   \item{force_even}{Boolean value indicating whether to append a row to make the row number even. Default: FALSE. }
@@ -23,7 +24,7 @@ Two goals to import the motifs from the sources other than Cis-BP. \cr
 1) Fill the missing motifs mainly licensed in the Cis-BP database.\cr
 2) Make use of the different source.\cr
 
-Five predefined formats are available, \strong{'pwm.matrix'}, \strong{'jaspar'}, \strong{'meme'}, \strong{'mscan'} and \strong{'transfac'}.\cr
+Five predefined formats are available, \strong{'pwm.matrix'}, \strong{'jaspar'}, \strong{'meme'}, \strong{'mscan'}, \strong{'transfac'} and \strong{'HOCOMOCO'}.\cr
 
 \strong{'pwm.matrix'} \cr
 Single text file containing 5 colums, Position, A, C, G and T as shown below.\cr
@@ -148,7 +149,7 @@ The predefined tags include the following names, which define the motif informat
 
 The user-defined tags reprsent the variables which values can be collected to the 'tf_info' slot in the tfbs object (\code{"\linkS4class{tfbs}"}). e.g. $Description, $anyword.
 
-The following section shows 4 predefined format:\cr
+The following section shows 5 predefined format:\cr
 
 \strong{'jaspar'}
 \preformatted{
@@ -190,6 +191,12 @@ CC $SKIP $REPEAT
 // $EOM
 }
 
+
+\strong{'HOCOMOCO'}
+\preformatted{
+>$Motif_ID,
+$A $C $G $T $REPEAT
+}
 
 
 }
@@ -281,10 +288,24 @@ tfs.nature15518 <- tfbs.importMotifs(tbs, format.style, data.file, skip.lines=19
 show(tfs.nature15518);
 
 
+## HOCOMOCO_10
+## Data from http://hocomoco.autosome.ru/downloads
+## The matrix is PWM format.
+
+library(rtfbsdb)
+format.style <- c(">$Motif_ID",
+		"$A $C $G $T $REPEAT");
+data.file <- system.file("extdata", "HOCOMOCO_10_pwms_HUMAN_mono.txt", package="rtfbsdb");
+
+tbs <- tfbs();
+tfs.HOCOMOCO.human <- tfbs.importMotifs(tbs, format.style, data.file, skip.lines=0, PPM.format=FALSE)
+show(tfs.HOCOMOCO.human);
+
 }
 \references{
 1.\url{http://rsat01.biologie.ens.fr/rsa-tools/help.convert-matrix.html}\cr
 2.\url{http://www.cisreg.ca/cgi-bin/mscan/MSCAN}\cr
 3.\url{http://meme-suite.org/}\cr
+4.\url{http://hocomoco.autosome.ru/downloads}\cr
 }
 \keyword{ tfbs object }

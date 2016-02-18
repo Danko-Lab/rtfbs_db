@@ -17,6 +17,8 @@ exportClasses("CisBP.db")
 export(CisBP.download, CisBP.zipload, CisBP.extdata, CisBP.group, CisBP.getTFinformation)
 export(tfbs, tfbs.dirs, tfbs.createFromCisBP)
 
+export(tfbs.createFromMotifDb)
+
 exportMethods(tfbs.importMotifs)
 exportMethods(tfbs.clusterMotifs)
 exportMethods(tfbs.getExpression)

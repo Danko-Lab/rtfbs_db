@@ -60,7 +60,7 @@ setMethod("show", "tfbs", function(object)
 })
 
 setGeneric("tfbs.importMotifs",
-	def = function(tfbs, format, filenames, motif_ids=NULL, skip.lines=0, pseudocount = -7, force_even = FALSE, ...){
+	def = function(tfbs, format, filenames, motif_ids=NULL, PPM.format=TRUE, skip.lines=0, pseudocount = -7, force_even = FALSE, ...){
 		stopifnot(class(tfbs) == "tfbs");
 		standardGeneric("tfbs.importMotifs");
 	})
