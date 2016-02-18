@@ -22,6 +22,9 @@ Sources of Position Weight Matrices (PWMs).
 * Jaspar: http://129.177.120.189/cgi-bin/jaspar2010/jaspar_db.pl
 	Mathelier A, et. al. JASPAR 2014: an extensively expanded and updated open-access database of transcription factor binding profiles. Nucleic Acids Res. 2014 Jan 1;42(1):D142-7. doi: 10.1093/nar/gkt997. Epub 2013 Nov 4.
 
+* HOCOMOCO: http://hocomoco.autosome.ru/
+	Kulakovskiy IV, et. al. HOCOMOCO: a comprehensive collection of human transcription factor binding sites models. Nucleic Acids Res. 2013 Jan;41(Database issue):D195-202. doi: 10.1093/nar/gks1089. Epub 2012 Nov 21.
+
 * Neph: URL: ftp://ftp.ebi.ac.uk/pub/databases/ensembl/encode/supplementary/integration_data_jan2011/byDataType/footprints/jan2011/de.novo.pwm 
 	Neph S, et. al. An expansive human regulatory lexicon encoded in transcription factor footprints. Nature. 2012 Sep 6;489(7414):83-90. doi: 10.1038/nature11212.
 
