@@ -494,7 +494,7 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit,
 		if( !is.na(file.prefix) )
 		{
 			starch.file = paste(file.prefix, ".", i, ".bed.starch", sep='')
-			write.starchbed(result.bed, starch.file)
+			starch.file <- write.starchbed(result.bed, starch.file);
 		}
 	
 		Npos.tmp <- Npos;

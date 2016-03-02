@@ -43,9 +43,18 @@ yb.sig.pal <- function(n, scale=10) {
 
 write.starchbed <- function(bed, file.starch) {
 	# pipe bed into starch file
-	write.table(bed, file = pipe(paste("sort-bed - | starch - >", file.starch)), quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t")
+	r <- try( write.table(bed, file = pipe(paste("sort-bed - | starch - >", file.starch)), quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t") );
+
+	if(class(r)=="try-error") 
+		return("ERROR");
+
 	if( !file.exists(file.starch) )    
+	{
 		cat("! Failed to write starch file (", file.starch, ") using the sort-bed and starch commands.\n");
+		return("ERROR");
+	}		
+	else
+		return(file.starch);
 }
 
 # get chromosome size based on genemo data of 2 bit file.
