@@ -3,21 +3,21 @@
 #' Find the subset by querying the motif table
 #'
 #' @param motifDB:        MotifList, MotifDb or subset of MotifDb
-#' @param organism:       string, the meta filed in theMotifDb
-#' @param geneSymbol:     string, the meta filed in theMotifDb
-#' @param tfFamily:       string, the meta filed in theMotifDb
-#' @param providerName:   string, the meta filed in theMotifDb
-#' @param providerId:     string, the meta filed in theMotifDb
-#' @param dataSource:     string, the meta filed in theMotifDb
-#' @param geneId:         string, the meta filed in theMotifDb
-#' @param geneIdType:     string, the meta filed in theMotifDb
-#' @param proteinId:      string, the meta filed in theMotifDb
-#' @param proteinIdType:  string, the meta filed in theMotifDb
-#' @param sequenceCount:  string, the meta filed in theMotifDb
-#' @param bindingSequence:string, the meta filed in theMotifDb
-#' @param bindingDomain:  string, the meta filed in theMotifDb
-#' @param experimentType: string, the meta filed in theMotifDb
-#' @param pubmedID:       string, the meta filed in theMotifDb
+#' @param organism:       string, the meta filed in the MotifDb
+#' @param geneSymbol:     string, the meta filed in the MotifDb
+#' @param tfFamily:       string, the meta filed in the MotifDb
+#' @param providerName:   string, the meta filed in the MotifDb
+#' @param providerId:     string, the meta filed in the MotifDb
+#' @param dataSource:     string, the meta filed in the MotifDb
+#' @param geneId:         string, the meta filed in the MotifDb
+#' @param geneIdType:     string, the meta filed in the MotifDb
+#' @param proteinId:      string, the meta filed in the MotifDb
+#' @param proteinIdType:  string, the meta filed in the MotifDb
+#' @param sequenceCount:  string, the meta filed in the MotifDb
+#' @param bindingSequence:string, the meta filed in the MotifDb
+#' @param bindingDomain:  string, the meta filed in the MotifDb
+#' @param experimentType: string, the meta filed in the MotifDb
+#' @param pubmedID:       string, the meta filed in the MotifDb
 #' @param pseudocount:    -7, replace -INF for PWM elements.
 #'
 #' @return: NULL or tfbs object;
@@ -44,10 +44,10 @@ tfbs.createFromMotifDb <- function (
 {
 	if(is.null(motifDB))
 	{
-		if(!require(MotifDb))
+		if(!requireNamespace("MotifDb"))
 			stop("The MotifDb package is not installed");
 		
-		motifDB <- MotifDb;
+		motifDB <- MotifDb::MotifDb;
 	}
 	else
 		stopifnot(class(motifDB)=="MotifList");

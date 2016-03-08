@@ -5,7 +5,7 @@ Estimate gene expression of target TF.
 }
 \description{
 Gets expression level of target TF.\cr
-USE extra_info$DBID to find gene information encoded by GENCODE V21\cr
+USE extra_info$DBID to find gene information encoded by GENCODE\cr
 }
 \usage{
 tfbs.getExpression(tfbs, 
@@ -30,7 +30,7 @@ tfbs.getExpression(tfbs,
 
 \details{
 For each motif, the occurance ranges can be queried by the gene ID in the GENCODE 
-database( for human, gencode.v21.annotation.gtf, for mouse: gencode.vM3.annotation.gtf). 
+database( for human, gencode.v19.annotation.gtf, for mouse: gencode.vM3.annotation.gtf). 
 After the searching, one range obtianed from the merge of the multiple ranges will be 
 used to detect the reads count in the specified  bigwig files(including plus and minus). 
 The probability of each motif can be calcuated by the reads count and lambda.\cr
@@ -39,7 +39,7 @@ The lambda is determined by the following formulation:\cr
 
 \code{r.lambda = 0.04 * sum(reads_in_all_chromosomes)/10751533/1000.}\cr
 
-The dataset of GENECODE v21 (human) and vM3 (mouse) have been compiled into RDATA file 
+The dataset of GENECODE v19 (human) and vM3 (mouse) have been compiled into RDATA file 
 and attached in this package.\cr
 
 The \code{gencode_transcript_ext} object can be accessed after the following command is 
@@ -80,7 +80,7 @@ file.bigwig.minus <- system.file("extdata","GSM1480327_K562_PROseq_chr19_minus.b
 file.bigwig.plus <- system.file("extdata","GSM1480327_K562_PROseq_chr19_plus.bw", 
       package="rtfbsdb")
 hg19.twobit <- system.file("extdata","hg19.chr19.2bit", package="rtfbsdb")
-gencode.gtf <- system.file("extdata","gencode.v21.annotation.chr19.gtf.gz", 
+gencode.gtf <- system.file("extdata","gencode.v19.annotation.chr19.gtf.gz", 
       package="rtfbsdb")
 
 tfs <- tfbs.getExpression(tfs, hg19.twobit, gencode.gtf, 

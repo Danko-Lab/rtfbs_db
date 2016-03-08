@@ -34,7 +34,7 @@ tfbs.selectExpressedMotifs(tfbs,
 \details{
 
 1) If \code{seq.datatype} is GRO-seq or PRO-seq and the bigwig files are provided, the gene expression values are calculated 
-through querying the TREs region from the GENCODE database( for human, gencode.v21.annotation.gtf, for mouse: gencode.vM3.annotation.gtf)\cr
+through querying the TREs region from the GENCODE database( for human, gencode.v19.annotation.gtf, for mouse: gencode.vM3.annotation.gtf)\cr
 and querying the reads count in the plus and minus bigWig files.\cr
 
 If \code{seq.datatype} is RNA-seq and the BAM file is provided, read counts for each TRE regions will be queried from the BAM file.\cr
@@ -83,7 +83,7 @@ file.bigwig.plus <- system.file("extdata",
       "GSM1480327_K562_PROseq_chr19_plus.bw", package="rtfbsdb")
 hg19.twobit <- system.file("extdata","hg19.chr19.2bit", package="rtfbsdb")
 gencode.gtf <- system.file("extdata",
-      "gencode.v21.annotation.chr19.gtf.gz", package="rtfbsdb")
+      "gencode.v19.annotation.chr19.gtf.gz", package="rtfbsdb")
 
 tfs1 <- tfbs.selectExpressedMotifs(tfs, 
       hg19.twobit, 

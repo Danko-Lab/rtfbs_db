@@ -11,7 +11,7 @@ file.dREG.all.bed    <- "/home/zw355/src/rtfbs_db/testdata/dREG.all.bed"
 file.twoBit_path     <- "/local/storage/data/hg19/hg19.2bit";
 file.bigwig.plus <- "/home/zw355/src/rtfbs_db/testdata/GSM1480327_K562_PROseq_plus.bw"
 file.bigwig.minus <- "/home/zw355/src/rtfbs_db/testdata/GSM1480327_K562_PROseq_minus.bw"
-file.gencode.gtf <- "/local/storage/data/gencode/gencode.v21.annotation.gtf"
+file.gencode.gtf <- "/local/storage/data/gencode/gencode.v19.annotation.gtf"
 
 db <- CisBP.extdata("Homo_sapiens");
 

@@ -35,7 +35,7 @@ file.bigwig.plus <- system.file("extdata",
       "GSM1480327_K562_PROseq_chr19_plus.bw", package="rtfbsdb")
 hg19.twobit <- system.file("extdata","hg19.chr19.2bit", package="rtfbsdb")
 gencode.gtf <- system.file("extdata",
-      "gencode.v21.annotation.chr19.gtf.gz", package="rtfbsdb")
+      "gencode.v19.annotation.chr19.gtf.gz", package="rtfbsdb")
 
 tfs <- tfbs.getExpression(tfs, hg19.twobit, gencode.gtf, 
       file.bigwig.plus, file.bigwig.minus, ncore=1); 

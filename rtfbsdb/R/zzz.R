@@ -32,11 +32,13 @@
 	if( exit_code == 127 )
 		packageStartupMessage("* The twoBitInfo command in UCSC package doesn't work normally.")
 
-	exit_code <- system("samtools --version",  ignore.stderr=T, ignore.stdout=T, wait = T );
-	if( exit_code != 0 )
+	exit_linux <- system("samtools --version",  ignore.stderr=T, ignore.stdout=T, wait = T );
+	exit_osx <- system("samtools",  ignore.stderr=T, ignore.stdout=T, wait = T );
+	if( exit_linux != 0  && exit_osx != 0 )
 		packageStartupMessage("* The samtools command doesn't work normally (http://samtools.sourceforge.net/).")
 
-	exit_code <- system("bedtools --version",  ignore.stderr=T, ignore.stdout=T, wait = T );
-	if( exit_code != 0 )
+	exit_linux <- system("bedtools --version",  ignore.stderr=T, ignore.stdout=T, wait = T );
+	exit_osx <- system("bedtools",  ignore.stderr=T, ignore.stdout=T, wait = T );
+	if( exit_linux != 0  && exit_osx  != 0 )
 		packageStartupMessage("* The bedtools command doesn't work normally (http://bedtools.readthedocs.org/).")
 }

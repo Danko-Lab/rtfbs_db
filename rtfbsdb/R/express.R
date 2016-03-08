@@ -84,7 +84,7 @@ lambda_estimate_in_bam <- function( file.bam, file.twoBit, file.gencode.gtf, win
 
 		# for gzipped GTF file
 		if(file_ext(file.gencode.gtf)=="gz" )
-			awk.cmd <- paste( "zcat ",file.gencode.gtf," | awk '{print $1,$2,$3,$4,$5}' ", sep="");
+			awk.cmd <- paste( "zcat ", ifelse( get_os()=="osx", " < ", " " ), file.gencode.gtf," | awk '{print $1,$2,$3,$4,$5}' ", sep="");
 
 		bigdf <- read.table( pipe(awk.cmd), header = F );
 
@@ -422,7 +422,7 @@ import_gencode <-function( species, file.gencode.gtf, seq.datatype=NA )
 	
 	# for gzipped GTF file
 	if(file_ext(file.gencode.gtf)=="gz" )
-		awk.cmd <- paste( "zcat ",file.gencode.gtf," | awk '($3==\"", V3.type, "\"){gsub( /\\\";?/, \"\", $10);gsub( /\\\";?/, \"\", $18);print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$18}' ", sep="");
+		awk.cmd <- paste( "zcat ", ifelse( get_os()=="osx", " < ", " " ),  file.gencode.gtf," | awk '($3==\"", V3.type, "\"){gsub( /\\\";?/, \"\", $10);gsub( /\\\";?/, \"\", $18);print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$18}' ", sep="");
 		
 	bigdf <- read.table( pipe(awk.cmd), header = F );
 
