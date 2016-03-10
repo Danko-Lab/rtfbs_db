@@ -110,7 +110,10 @@ lambda_estimate_in_bam <- function( file.bam, file.twoBit, file.gencode.gtf, win
 		write.table(bed, file=tmp.bed, quote=F, sep="\t", row.names=FALSE, col.names=FALSE,);
 
 		tmp.genome <- tempfile();
-		write.table( get_chromosome_size(file.twoBit), file=tmp.genome, quote=F, sep="\t", row.names=FALSE, col.names=FALSE,);
+		chromInfo <- get_chromosome_size(file.twoBit); 
+		chromInfo <- chromInfo[grep("_", chromInfo[,1], invert=TRUE),]
+		chromInfo <- chromInfo[order( chromInfo[,1]),]
+		write.table( chromInfo, file=tmp.genome, quote=F, sep="\t", row.names=FALSE, col.names=FALSE,);
 
 		pipe.cmd <- paste("sort-bed ", tmp.bed, " | bedtools complement -i - -g ", tmp.genome );
 		df.comp <- read.table( pipe(pipe.cmd), header = F );
@@ -130,7 +133,7 @@ lambda_estimate_in_bam <- function( file.bam, file.twoBit, file.gencode.gtf, win
 	df.split <- apply(df.comp, 1, function(x) { 
 		start <- seq(as.numeric(x[2]), as.numeric(x[3]), by=win.size);
 		stop  <- c(start[-1], as.numeric(x[3]));
-		df <- data.frame(x[1], start, stop);
+		df <- data.frame(x[1], start, stop, row.names=NULL);
 		df <- df [ - which( df[,3] - df[,2] < win.size ),];
 		return(df);
 	})
@@ -347,9 +350,9 @@ tfbs_getExpression <- function(tfbs,
 
 				r.df   <- c( 
 						"dbid"      = dbid,
-						"chr"       = r.bed[bed.max, 1],
-						"start"     = r.bed [bed.max,2],
-						"end"       = r.bed [bed.max,3],
+						"chr"       = r.bed [bed.max, 1],
+						"start"     = r.bed [bed.max, 2],
+						"end"       = r.bed [bed.max, 3],
 						"length"    = abs(r.bed [bed.max,3] - r.bed [bed.max,2] ),
 						"strand"  	= r.bed [bed.max,6],
 						"reads"	    = abs(r.reads[bed.max]),
