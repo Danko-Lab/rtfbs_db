@@ -76,9 +76,9 @@ simple_reduce_bed<-function( r.bed )
 	return(r.bed); 		
 }
 
-lambda_estimate_in_bam <- function( file.bam, file.twoBit, file.gencode.gtf, win.size=1000, sample.size=100*1000 )
+lambda_estimate_in_bam <- function( file.bam, file.twoBit, file.gencode.gtf, sample.size=100*1000, win.size=1000, pseudo_lambda=0.01)
 {
-	import_gene_loci <-function()
+	import_gene_loci <-function(file.gencode.gtf)
 	{
 		awk.cmd <- paste( "awk '{print $1,$2,$3,$4,$5}' ", file.gencode.gtf, sep="")
 
@@ -116,31 +116,55 @@ lambda_estimate_in_bam <- function( file.bam, file.twoBit, file.gencode.gtf, win
 		write.table( chromInfo, file=tmp.genome, quote=F, sep="\t", row.names=FALSE, col.names=FALSE,);
 
 		pipe.cmd <- paste("sort-bed ", tmp.bed, " | bedtools complement -i - -g ", tmp.genome );
-		df.comp <- read.table( pipe(pipe.cmd), header = F );
+		df.comp  <- read.table( pipe(pipe.cmd), header = F );
 
 		return(df.comp);
 	}
 
-	df.bed <- import_gene_loci();
+	split_bed<-function( bed, winsize )
+	{
+		tmp.bed <- tempfile();
+		write.table(bed, file=tmp.bed, quote=F, sep="\t", row.names=FALSE, col.names=FALSE,);
+
+		pipe.cmd <- paste("bedtools makewindows -b ", tmp.bed , " -w ", winsize);
+		df.split  <- read.table( pipe(pipe.cmd), header = F );
+
+		return(df.split);
+	}
+
+	Stats_mode <- function(x) {
+	  ux <- unique(x)
+	  ux[which.max(tabulate(match(x, ux)))]
+	}
+	
+	df.bed <- import_gene_loci(file.gencode.gtf);
+	df.bed <- df.bed[ df.bed[,3] > df.bed[,2], ,drop=F];
+	
 	if( is.null( df.bed ) ) return( NULL );
 
 	df.comp <- get_complement( df.bed );
 	df.comp[,2] <- df.comp[,2] + 1000;
 	df.comp[,3] <- df.comp[,3] - 1000;
 	df.comp.width <- df.comp[,3] - df.comp[,2];
-	df.comp <- df.comp [ -which( df.comp.width < win.size), ];
+	df.comp <- df.comp [ which( df.comp.width >= win.size), ];
 
-	df.split <- apply(df.comp, 1, function(x) { 
-		start <- seq(as.numeric(x[2]), as.numeric(x[3]), by=win.size);
-		stop  <- c(start[-1], as.numeric(x[3]));
-		df <- data.frame(x[1], start, stop, row.names=NULL);
-		df <- df [ - which( df[,3] - df[,2] < win.size ),];
-		return(df);
-	})
+	if(0)
+	{
+		df.split <- apply(df.comp, 1, function(x) { 
+			start <- seq(as.numeric(x[2]), as.numeric(x[3]), by=win.size);
+			stop  <- c(start[-1], as.numeric(x[3]));
+			df <- data.frame(x[1], start, stop, row.names=NULL);
+			df <- df [ - which( df[,3] - df[,2] < win.size ),];
+			return(df);
+		})
 
-	#library(data.table);
-	#df.comp.win <- as.data.frame( rbindlist( df.split ) );
-	df.comp.win <- do.call(rbind, df.split);
+		#library(data.table);
+		#df.comp.win <- as.data.frame( rbindlist( df.split ) );
+		df.comp.win <- do.call(rbind, df.split);
+	}
+	
+	df.comp.win <- split_bed( df.comp, win.size)
+	df.comp.win <- df.comp.win [ which( df.comp.win[,3] - df.comp.win[,2] >= win.size), ];
 
 	if ( sample.size >= NROW( df.comp.win ) ) 
 		sample.size <- NROW( df.comp.win );
@@ -151,14 +175,18 @@ lambda_estimate_in_bam <- function( file.bam, file.twoBit, file.gencode.gtf, win
 	reads <- get_bam_reads( file.bam, df.comp.win );
 	
 	## NO BAM file or BAM file is not indexed
-	if(all(is.na(reads)))  return( NULL );
+	if( all(is.na(reads)))  return( NULL );
 	
-	Mode <- function(x) {
-	  ux <- unique(x)
-	  ux[which.max(tabulate(match(x, ux)))]
-	}
+	## remove the ouliner reads
+	if( quantile(reads, 0.99) > 0)
+		reads <- reads[ which( reads <= quantile(reads, 0.99) ) ];
+		
+	lambda1 <- Stats_mode(reads);
+	lambda2 <- mean(reads);
 
-	return( Mode(reads) );
+	lambda <- max( lambda1, lambda2, pseudo_lambda);
+
+	return( lambda );
 }
 
 get_bam_reads<-function(file.bam, df.bed )
@@ -244,6 +272,7 @@ tfbs_getExpression <- function(tfbs,
 	reads.total  <- 0;
 	reads.lambda.kb <- 0;
 	win.size <- 2000;
+	pseudo_lambda <- 0.02;
 	
 	if(seq.datatype=="GRO-seq" ||seq.datatype=="PRO-seq")
 	{
@@ -271,13 +300,13 @@ tfbs_getExpression <- function(tfbs,
 	{
 		gencode_transcript_ext <- gencode_transcript_ext[ which(gencode_transcript_ext$V3=="exon"),];	
 		cat("  For", seq.datatype, ",", NROW(gencode_transcript_ext), "items are selected from GENCODE dataset.\n");
-		
-		reads.lambda.kb <- lambda_estimate_in_bam( file.bam, file.twoBit, file.gencode.gtf, win.size=win.size );
+
+		reads.lambda.kb <- lambda_estimate_in_bam( file.bam, file.twoBit, file.gencode.gtf, win.size=win.size, pseudo_lambda=pseudo_lambda );
 		
 		if( is.null(reads.lambda.kb) )
 			stop("Failed to load the BAM file.");
 
-		if( reads.lambda.kb < 1 )
+		if( reads.lambda.kb < pseudo_lambda )
 			stop("Lambda of Poisson distribution is too samll( = 0 reads/kb).");
 		
 		cat("*Lambda of Poisson distribution is estimated in", file.bam, "(=", round(reads.lambda.kb*1000/win.size, 2), "reads/kb).\n");
