@@ -189,7 +189,7 @@ lambda_estimate_in_bam <- function( file.bam, file.twoBit, file.gencode.gtf, sam
 	return( lambda );
 }
 
-get_bam_reads<-function(file.bam, df.bed )
+get_bam_reads<-function(file.bam, df.bed=NULL )
 {
 	options("scipen"=100, "digits"=4)
 	
@@ -308,6 +308,8 @@ tfbs_getExpression <- function(tfbs,
 
 		if( reads.lambda.kb < pseudo_lambda )
 			stop("Lambda of Poisson distribution is too samll( = 0 reads/kb).");
+
+		reads.total <- get_bam_reads( file.bam );
 		
 		cat("*Lambda of Poisson distribution is estimated in", file.bam, "(=", round(reads.lambda.kb*1000/win.size, 2), "reads/kb).\n");
 	}
@@ -374,18 +376,24 @@ tfbs_getExpression <- function(tfbs,
 			if( class(r.reads) != "try-error")
 			{
 				bed.max <- which.max(abs( r.reads /((r.bed[,3] - r.bed[,2])+1)));
-				
-				p.pois <- ppois( abs(r.reads[bed.max]), r.lambda * abs( r.bed[bed.max,3] - r.bed[bed.max,2] ) , lower.tail=F);
-
+				p.pois  <- ppois( abs(r.reads[bed.max]), r.lambda * abs( r.bed[bed.max,3] - r.bed[bed.max,2] ) , lower.tail=F);
+				length  <- abs(r.bed [bed.max,3] - r.bed [bed.max,2] );
+				reads   <- abs(r.reads[bed.max]);
+				reads.RPKM   <- 10^9 * reads / length / reads.total;
+				lambda0      <- r.lambda * abs( r.bed[bed.max,3] - r.bed[bed.max,2] );
+				lambda.RPKM  <- 10^9 * r.lambda / reads.total;
+	
 				r.df   <- c( 
 						"dbid"      = dbid,
 						"chr"       = r.bed [bed.max, 1],
 						"start"     = r.bed [bed.max, 2],
 						"end"       = r.bed [bed.max, 3],
-						"length"    = abs(r.bed [bed.max,3] - r.bed [bed.max,2] ),
-						"strand"  	= r.bed [bed.max,6],
-						"reads"	    = abs(r.reads[bed.max]),
-						"lambda"    = r.lambda,
+						"length"    = length,
+						"strand"    = as.character(r.bed [bed.max,6]),
+						"reads"	    = reads,
+						"lambda"    = lambda0,
+						"reads.RPKM"= reads.RPKM,
+						"lambda.RPKM"= lambda.RPKM,
 						"p.pois"    = p.pois );
 			}
 			else
@@ -395,8 +403,8 @@ tfbs_getExpression <- function(tfbs,
 		});  
 			
 		df.exp <- transform( do.call(rbind, r.bed.list) );
-		colnames(df.exp) <- c("dbid", "chr", "start", "end", "length", "strand", "reads","lambda", "p.pois");
-
+		colnames(df.exp) <- c("dbid", "chr", "start", "end", "length", "strand", "reads","lambda", "reads.RPKM", "lambda.RPKM", "p.pois");
+		
 		if( !is.null(bw.plus) )	try( bigWig::unload.bigWig( bw.plus ) );
 		if( !is.null(bw.minus) ) try( bigWig::unload.bigWig( bw.minus ) );
 		
@@ -418,7 +426,7 @@ tfbs_getExpression <- function(tfbs,
 	df.exp0 <- do.call( rbind, df.exp );
 	df.idx  <- match( as.character(tfbs@tf_info$DBID), as.character(df.exp0$dbid) )
 	df.exp  <- cbind( tfbs@tf_info$Motif_ID, df.exp0[df.idx,,drop=F] );
-	colnames(df.exp) <- c("Motif_ID", "DBID", "chr", "start", "end", "length", "strand", "reads", "lambda", "p.pois" );
+	colnames(df.exp) <- c("Motif_ID", "DBID", "chr", "start", "end", "length", "strand", "reads", "lambda", "reads.RPKM", "lambda.RPKM", "p.pois" );
 	
 	df.exp <- transform( df.exp, 
 				"start"  = as.numeric(as.character(start) ),
@@ -426,7 +434,11 @@ tfbs_getExpression <- function(tfbs,
 				"length" = as.numeric(as.character(length) ),
 				"reads"  = as.numeric(as.character(reads) ),
 				"lambda" = as.numeric(as.character(lambda) ),
+				"reads.RPKM"  = as.numeric(as.character(reads.RPKM) ),
+				"lambda.RPKM" = as.numeric(as.character(lambda.RPKM) ),
 				"p.pois" = as.numeric(as.character(p.pois) ) );
+	
+	if(NROW(df.exp)>0)  rownames(df.exp) <- df.exp[,'Motif_ID'];
 	
 	# expressionlevel is data.frame including all information.
 	tfbs@expressionlevel <- df.exp;
