@@ -60,6 +60,8 @@ A tbfs object with new expression data frame including the follwing columns:
 \item{bed_length}{Integer, the length of range which gene ID can be detected.}
 \item{reads}{The reads number queried by BigWig function from the bigwig files( plus and minus) }
 \item{lambda}{The lambda parameter in poison distribution. }
+\item{reads.RPKM}{The RPKM value of \code{reads} column.}
+\item{lambda.RPKM}{The RPKM value of \code{lambda} column.}
 \item{prob}{The probability calculated based on Poisson distribution.}
 }
 
