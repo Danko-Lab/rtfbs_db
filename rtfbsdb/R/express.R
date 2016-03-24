@@ -438,7 +438,7 @@ tfbs_getExpression <- function(tfbs,
 				"lambda.RPKM" = as.numeric(as.character(lambda.RPKM) ),
 				"p.pois" = as.numeric(as.character(p.pois) ) );
 	
-	if(NROW(df.exp)>0)  rownames(df.exp) <- df.exp[,'Motif_ID'];
+	if(NROW(df.exp)>0)  rownames(df.exp) <- c(1:NROW(df.exp));
 	
 	# expressionlevel is data.frame including all information.
 	tfbs@expressionlevel <- df.exp;

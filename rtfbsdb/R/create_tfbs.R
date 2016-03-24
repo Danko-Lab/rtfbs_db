@@ -195,10 +195,9 @@ tfbs_createFromCisBP <- function ( cisbp.db,
 	if(length(nidx.motif)>0)
 	{
 		TF_info <- tbm[ nidx.motif, , drop=F];
-		rownames(TF_info) <- TF_info[, 'Motif_ID'];
-
+		rownames(TF_info)<- c(1:NROW(TF_info));
 		TF_missing <- tbm[ -nidx.motif, , drop=F];
-		rownames(TF_missing) <- TF_missing[, 'Motif_ID'];
+		rownames(TF_missing)<- c(1:NROW(TF_missing));
 	}
 	
 	if( err.empty + err.missing > 0 )

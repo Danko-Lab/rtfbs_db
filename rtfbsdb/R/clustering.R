@@ -132,7 +132,6 @@ tfbs_clusterMotifs <- function(tfbs, method=c("agnes", "apcluster"), pdf.heatmap
 	}
 	
 	tfbs@cluster <- cbind(subset, clusters);
-	rownames(tfbs@cluster) <- tfbs@mgisymbols[subset];
 	
 	
 	return( tfbs );
