@@ -15,6 +15,7 @@ tfbs.selectExpressedMotifs(tfbs,
       file.bam=NA, 
       seq.datatype= c("GRO-seq", "PRO-seq", "RNA-seq"),
       pvalue.threshold = 0.05, 
+      lowest.reads.RPKM = NA,
       include.DBID.missing=TRUE, 
       ncores = 1 )       
 
@@ -27,7 +28,8 @@ tfbs.selectExpressedMotifs(tfbs,
   \item{file.twoBit}{String, indicating the binary data of sequence. (e.g. hg19.2bit, mm10.2bit)}
   \item{file.gencode.gtf}{String,indicating Gencode GTF file downloaded from the Gencode web site.}
   \item{seq.datatype}{String,indicating which kind of seq data is applied to this function, three values are available: GRO-seq, PRO-seq and RNA-seq. Default: GRO-seq}
-  \item{pvalue.threshold}{Numeric, indicating . }
+  \item{pvalue.threshold}{Numeric, indicating p-value criteria for expressed motifs. Default: 0.05 }
+  \item{lowest.reads.RPKM}{Numeric, implying the motifs with lower reads than this threshold will be removed from expressed list. Default: NA}
   \item{include.DBID.missing}{Logical, indicating whether the TFs without association with GENCODE through the DBID are selected. }
   \item{ncores}{Number, comuputing nodes in parallel environment for gencode data converting.}
 }
@@ -57,9 +59,17 @@ For RNA-seq data:\cr
 
 \code{r.lambda = mode( reads_in_1000_bp_windows_cross_all_gene_deserts )/1000.}\cr
 
-This function will be failed to get the reads count if the BAM file is not indexed. Please use the command samtools to make the index file for the BAM file\cr
+3) This function heavily relys on some Unix commands to operate bed data and gencode data. Please make sure
+the following commands work normally in R terminal.\cr
+
+\code{awk}, \code{zcat}, \code{sort-bed}, \code{twoBitInfo}, \code{bedtools}, \code{samtools}.\cr
+
+The function \code{\link{Sys.which}} and \code{\link{system}} help you to locate these commands and test its availability.\cr
+
+4) This function will be failed to get the reads count if the BAM file is not indexed. Please use the command samtools to make the index file for the BAM file\cr
 
 \code{samtools index your_bam_file}\cr
+
 
 }
 \value{

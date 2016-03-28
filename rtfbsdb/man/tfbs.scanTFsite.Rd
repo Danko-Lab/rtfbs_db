@@ -52,6 +52,15 @@ tfbs.scanTFsite(tfbs,
 and sort-bed command (in  BEDOPS) can be accessed from R environment. If not, please put the 
 folder in $PATH.\cr
 
+
+(3)This function heavily relys on some Unix commands to operate bed data and gencode data. Please make sure
+the following commands work normally in R terminal.\cr
+
+\code{starch}, \code{starchcat}, \code{sort-bed}, \code{twoBitInfo}, \code{twoBitToFa}.\cr
+
+The function \code{\link{Sys.which}} and \code{\link{system}} help you to locate these commands and test its availability.\cr
+
+
 }
 
 \value{

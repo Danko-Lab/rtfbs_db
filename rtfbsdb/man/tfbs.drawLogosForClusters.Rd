@@ -7,11 +7,12 @@ Draw the motif logos by clustering.
 Draw the motif logos by one cluster per page.
 }
 \usage{
-tfbs.drawLogosForClusters(tfbs, file.pdf )
+tfbs.drawLogosForClusters(tfbs, file.pdf, nrow.per.page=NULL )
 }
 \arguments{
   \item{tfbs}{A tfbs object(\code{"\linkS4class{tfbs}"}).}
   \item{file.pdf }{ String indicating a PDF eilname.}
+  \item{nrow.per.page }{ Number indicating row count in each page.}
 }
 \details{
 It is different with \code{\link{tfbs.drawLogo}} which is capable of printing out motif logos in group. This group is calculated by the \code{\link{tfbs.clusterMotifs}}, not is classfied by any group filed.
@@ -37,6 +38,9 @@ show(tfs@cluster);
 
 # draw motif logos on one group per page.
 tfbs.drawLogosForClusters(tfs, "test-cluster1.pdf")
+
+# draw motif logos on one group per page.
+tfbs.drawLogosForClusters(tfs, "test-cluster2.pdf", nrow.per.page=5 )
 
 
 }

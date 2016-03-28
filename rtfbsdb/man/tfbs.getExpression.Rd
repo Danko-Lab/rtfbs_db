@@ -29,7 +29,8 @@ tfbs.getExpression(tfbs,
 }
 
 \details{
-For each motif, the occurance ranges can be queried by the gene ID in the GENCODE 
+
+1) For each motif, the occurance ranges can be queried by the gene ID in the GENCODE 
 database( for human, gencode.v19.annotation.gtf, for mouse: gencode.vM3.annotation.gtf). 
 After the searching, one range obtianed from the merge of the multiple ranges will be 
 used to detect the reads count in the specified  bigwig files(including plus and minus). 
@@ -39,14 +40,13 @@ The lambda is determined by the following formulation:\cr
 
 \code{r.lambda = 0.04 * sum(reads_in_all_chromosomes)/10751533/1000.}\cr
 
-The dataset of GENECODE v19 (human) and vM3 (mouse) have been compiled into RDATA file 
-and attached in this package.\cr
+2) This function heavily relys on some Unix commands to operate bed data and gencode data. Please make sure
+the following commands work normally in R terminal.\cr
 
-The \code{gencode_transcript_ext} object can be accessed after the following command is 
-executed successfully.\cr
+\code{awk}, \code{zcat}, \code{sort-bed}, \code{twoBitInfo}, \code{bedtools}, \code{samtools}.\cr
 
-\code{load( system.file("extdata", "gencode_human21_transcript_ext.rdata",}
-\code{      package="rtfbsdb"), environment() ); }\cr
+The function \code{\link{Sys.which}} and \code{\link{system}} help you to locate these commands and test its availability.\cr
+
 }
 
 \value{

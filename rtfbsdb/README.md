@@ -66,3 +66,19 @@ B: Source:
 
 2) Tuning the package to pass the R package check(R CMD check rtfbsdb --as-cran), including NAMESPACE, DSCRIPTION and R codes. 
 
+3/28/2016 version 0.3.8
+
+1) Adding the parameter "lowest.reads.RPKM" for tfbs.selectExpressedMotifs function
+
+2) Adding the parameter "gc.correction.pvalue=0.01" for tfbs.enrichmentTest function
+
+3) Adding the parameter "nrow.per.page" for tfbs.drawLogosForClusters function
+
+4) Checking the unix commands or genomic tools if the system callings are failed.
+
+5) Adding reads and lambda in RPKM unit in the expresslevel result.
+
+6) Importing motifs from HOCOMOCO and MotifDB database.
+
+
+

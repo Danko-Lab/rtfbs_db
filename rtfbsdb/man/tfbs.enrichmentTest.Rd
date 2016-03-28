@@ -16,6 +16,7 @@ tfbs.enrichmentTest(tfbs,
       ncores=1,
       gc.correction=TRUE, 
       gc.correction.pdf=NA, 
+      gc.correction.pvalue=0.01, 
       gc.robust.rep=NA, 
       threshold = 6, 
       threshold.type = c("score", "fdr"),
@@ -34,6 +35,7 @@ tfbs.enrichmentTest(tfbs,
   \item{ncores}{Number, comupting nodes in parallel environment.(default=1)}
   \item{gc.correction}{Logical value, if the difference between positive and negative TREs is significant,the resampling will be applied to the correction for the negative TREs. (default=TRUE) }
   \item{gc.correction.pdf}{String, indicating the pdf file name if the GC correction is checked. (default=NA) }
+  \item{gc.correction.pvalue}{Number, indicating stop criteria when resamping the negative genomic loci for the GC correct. (default=0.01) }
   \item{gc.robust.rep}{Number, indicating whether resampling background set multiple times is applied to get the median of binding sites. (default=NA) }
   \item{threshold}{Numeric value, if 'score' is specified in \code{threshold.type}, only binding sites with scores above this threshold are returned, 
   if 'fdr' is specified in \code{threshold.type}, only binding sites with FDR (False Discovery Rate) less than this value can be selected. Default value is 6 for 'score' and 0.1 for 'fdr'.} 
@@ -44,13 +46,21 @@ tfbs.enrichmentTest(tfbs,
   \item{pv.adj}{String, P-values correct method for \code{p.adjust} function. The available values are "holm", "hochberg", "hommel", "bonferroni", "BH", "BY","fdr" or "none". (default="bonferroni").}
 }
 \details{
-The difference of GC contents between positive.bed and negative.bed is checked before the comparson. The p-value of Wilcoxon-Mann-Whitney test 
+(1)The difference of GC contents between positive.bed and negative.bed is checked before the comparson. The p-value of Wilcoxon-Mann-Whitney test 
 shows this difference and helps the user to determine whether the GC correction is necessary.If the difference is very significant, please set 
 \code{gc.correction} to do GC content correction by resampling the TREs from negative bed data based on the frequency of TREs in negative bed data. 
 Use the parameter of \code{gc.correction.pdf} to output vioplot figurs in a pdf file if you want to check the visualized difference.\cr
 
-The clustering matix indicates which motifs in the 1st column are slected to do comparson and which clustering group in the 2nd columns are applied to adjust p-values for multiple comparsons. 
+(2)The clustering matix indicates which motifs in the 1st column are slected to do comparson and which clustering group in the 2nd columns are applied to adjust p-values for multiple comparsons. 
 The function applys the p-values adjust for each clustering group. If no clustering information, all motifs in the tfbs object will be selected and adjusted as one group, which is the most conservative method.
+
+
+(3)This function heavily relys on some Unix commands to operate bed data and gencode data. Please make sure
+the following commands work normally in R terminal.\cr
+
+\code{starch}, \code{sort-bed}, \code{bedtools},\code{twoBitToFa}.\cr
+
+The function \code{\link{Sys.which}} and \code{\link{system}} help you to locate these commands and test its availability.\cr
 
 }
 \value{
@@ -106,6 +116,7 @@ t1 <- tfbs.enrichmentTest( tfs,
       pos.bed, 
       neg.bed, 
       gc.correction=TRUE,
+      gc.correction.pvalue = 1e-5,
       ncores = 1); #ncores=3
 
 #Show a brief result

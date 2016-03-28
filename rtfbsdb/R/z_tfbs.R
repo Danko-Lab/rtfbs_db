@@ -1,7 +1,7 @@
-#' S4 class for storing TFBS.  
+#' S4 class for storing TFBS.
 #' sequence preferences of a set of TFs.
 
-setClass("tfbs", 
+setClass("tfbs",
 	representation(
 		species        = "character",    ## such as, Homo_sapiens or Mus_musculus.
 		ntfs           = "integer",      ## Number of motifs in matrix.
@@ -23,22 +23,22 @@ setMethod("show", "tfbs", function(object)
 	cat("Species: ", object@species, "\n");
 	cat("TF number: ", object@ntfs, "\n");
 
-	if( NROW(object@distancematrix)==0 ) 
+	if( NROW(object@distancematrix)==0 )
 		cat( "Distance Matrix:  NULL\n" )
 	else
 		cat( "Distance Matrix:  [", NROW(object@distancematrix), ",", NCOL(object@distancematrix), "]\n" );
 
-	if( NROW(object@cluster)==0 ) 
+	if( NROW(object@cluster)==0 )
 		cat( "Cluster Matrix:  NULL\n" )
 	else
 		cat( "Cluster Matrix:  [", NROW(object@cluster), ",", NCOL(object@cluster), "]\n" );
-	
-	if(NROW(object@expressionlevel)==0) 
+
+	if(NROW(object@expressionlevel)==0)
 		cat( "Expression:  NULL\n" )
 	else
 		cat( "Expression:  [", NROW(object@expressionlevel), ",", NCOL(object@expressionlevel), "]\n" );
 
-	df <- NULL;	
+	df <- NULL;
 	if( NROW(object@tf_info) >0 )
 	{
 		df.list <- lapply ( c("Motif_ID", "TF_Name", "Family_Name", "DBID", "Motif_Type"), function(x){
@@ -46,15 +46,15 @@ setMethod("show", "tfbs", function(object)
 
 		df1 <- do.call( cbind, df.list );
 		colnames(df1) <- c("Motif_ID", "TF_Name", "Family_Name", "DBID", "Motif_Type");
-		
+
 		df <- data.frame(df1, filename=basename(object@filename), stringsAsFactors=FALSE);
 	}
 	else
 		df <- data.frame(Motif_ID=object@mgisymbols, filename=basename(object@filename), stringsAsFactors=FALSE);
 
-	if( NROW(object@expressionlevel) > 0 ) 
+	if( NROW(object@expressionlevel) > 0 )
 		df <- data.frame(df, p.pois = object@expressionlevel[,c("p.pois")] );
-	
+
 	cat("\nPartial list of TFs\n");
 	show(head(df, 20));
 })
@@ -71,17 +71,18 @@ setMethod("tfbs.importMotifs", signature(tfbs="tfbs"), tfbs_importMotifs)
 ## Gets expression level of target TF.
 ## TODO: Add the MGI symbol to each TF.  Not 100% sure where to do this?!
 
-setGeneric("tfbs.selectExpressedMotifs", 
-	def = function( tfbs, 
-			file.twoBit, 
-			file.gencode.gtf, 
-			file.bigwig.plus = NA, 
-			file.bigwig.minus = NA, 
-			file.bam = NA, 
-			seq.datatype=c( "GRO-seq", "PRO-seq", "RNA-seq" ), 
-			pvalue.threshold = 0.05, 
+setGeneric("tfbs.selectExpressedMotifs",
+	def = function( tfbs,
+			file.twoBit,
+			file.gencode.gtf,
+			file.bigwig.plus = NA,
+			file.bigwig.minus = NA,
+			file.bam = NA,
+			seq.datatype=c( "GRO-seq", "PRO-seq", "RNA-seq" ),
+			pvalue.threshold = 0.05,
+			lowest.reads.RPKM = NA,
 			include.DBID.missing = TRUE,
-			ncores = 1 ) 
+			ncores = 1 )
 	{
 		stopifnot(class(tfbs) == "tfbs");
 		standardGeneric("tfbs.selectExpressedMotifs");
@@ -92,15 +93,15 @@ setMethod("tfbs.selectExpressedMotifs", c(tfbs="tfbs"), tfbs_selectExpressedMoti
 ## Gets expression level of target TF.
 ## TODO: Add the MGI symbol to each TF.  Not 100% sure where to do this?!
 
-setGeneric("tfbs.getExpression", 
-	def = function( tfbs, 
-			file.twoBit, 
-			file.gencode.gtf, 
-			file.bigwig.plus = NA, 
-			file.bigwig.minus = NA, 
-			file.bam = NA, 
-			seq.datatype=c( "GRO-seq", "PRO-seq", "RNA-seq" ), 
-			ncores = 1) 
+setGeneric("tfbs.getExpression",
+	def = function( tfbs,
+			file.twoBit,
+			file.gencode.gtf,
+			file.bigwig.plus = NA,
+			file.bigwig.minus = NA,
+			file.bam = NA,
+			seq.datatype=c( "GRO-seq", "PRO-seq", "RNA-seq" ),
+			ncores = 1)
 	{
 		stopifnot(class(tfbs) == "tfbs")
 		standardGeneric("tfbs.getExpression")
@@ -109,16 +110,16 @@ setGeneric("tfbs.getExpression",
 setMethod("tfbs.getExpression", c(tfbs="tfbs"), tfbs_getExpression );
 
 ## Clusters TFs based on DNA sequence preferences.
-setGeneric("tfbs.clusterMotifs", 
-	def = function(tfbs, 
-			method = c("agnes", "apcluster"), 
-			pdf.heatmap = NA, 
-			group.k = NA, 
-			apcluster.q = 0.99, 
-			ncores = 1, 
+setGeneric("tfbs.clusterMotifs",
+	def = function(tfbs,
+			method = c("agnes", "apcluster"),
+			pdf.heatmap = NA,
+			group.k = NA,
+			apcluster.q = 0.99,
+			ncores = 1,
 			plot.style=c("rtfbsdb", "apcluster"),
 			BG=log( c(0.25, 0.25, 0.25, 0.25)),
-			... ) 
+			... )
 	{
 		stopifnot(class(tfbs) == "tfbs")
 		standardGeneric("tfbs.clusterMotifs")
@@ -128,16 +129,16 @@ setMethod("tfbs.clusterMotifs", c(tfbs="tfbs"), tfbs_clusterMotifs);
 
 
 ## Draws the logo for a single tf.
-setGeneric("tfbs.drawLogo", 
-	def = function(tfbs, 
-			file.pdf = NULL, 
-			index = NULL, 
-			tf_id = NULL, 
-			motif_id = NULL, 
-			tf_name = NULL, 
-			family_name = NULL, 
-			tf_status = NULL, 
-			groupby = NULL) 
+setGeneric("tfbs.drawLogo",
+	def = function(tfbs,
+			file.pdf = NULL,
+			index = NULL,
+			tf_id = NULL,
+			motif_id = NULL,
+			tf_name = NULL,
+			family_name = NULL,
+			tf_status = NULL,
+			groupby = NULL)
 	{
 		stopifnot(class(tfbs) == "tfbs")
 		standardGeneric("tfbs.drawLogo")
@@ -146,8 +147,8 @@ setGeneric("tfbs.drawLogo",
 setMethod("tfbs.drawLogo", c(tfbs="tfbs"), tfbs_drawLogo );
 
 ## Draws all logos for each cluster.
-setGeneric("tfbs.drawLogosForClusters", 
-	def = function(tfbs, file.pdf) {
+setGeneric("tfbs.drawLogosForClusters",
+	def = function(tfbs, file.pdf=NULL, nrow.per.page=NULL ) {
 		stopifnot(class(tfbs) == "tfbs")
 		standardGeneric("tfbs.drawLogosForClusters")
 	})
@@ -158,19 +159,19 @@ setMethod("tfbs.drawLogosForClusters", c(tfbs="tfbs"), tfbs_drawLogosForClusters
 ## find TF sites in the BED range from sequence data file(hg19/hg19.2bit);
 ## see codes in scan_sites.R
 ##
-setGeneric("tfbs.scanTFsite", 
-	def = function( tfbs, 
-					file.twoBit, 
-					gen.bed = NULL, 
-					return.type = c("matches", "maxscore", "posteriors", "maxposterior", "writedb"), 
-					file.prefix = NA,  
-					usemotifs = NA, 
-					ncores = 1,  
-					threshold = 6, 
+setGeneric("tfbs.scanTFsite",
+	def = function( tfbs,
+					file.twoBit,
+					gen.bed = NULL,
+					return.type = c("matches", "maxscore", "posteriors", "maxposterior", "writedb"),
+					file.prefix = NA,
+					usemotifs = NA,
+					ncores = 1,
+					threshold = 6,
 					threshold.type = c("score", "fdr"),
-					gc.groups = NA, 
-					background.order = 2, 
-					background.length = 100000 ) 
+					gc.groups = NA,
+					background.order = 2,
+					background.length = 100000 )
 	{
 		stopifnot(class(tfbs) == "tfbs")
 		standardGeneric("tfbs.scanTFsite")
@@ -181,23 +182,24 @@ setMethod("tfbs.scanTFsite", c(tfbs="tfbs"), tfbs_scanTFsite )
 ## Comparative TFBS enrichment between positive BED and negative BED
 ## see codes in comp_sites.R
 ##
-setGeneric("tfbs.enrichmentTest", 
-	def = function( tfbs, 
-					file.twoBit, 
-					positive.bed, 
-					negative.bed = NA, 
-					file.prefix  = NA, 
-					use.cluster  = FALSE, 
+setGeneric("tfbs.enrichmentTest",
+	def = function( tfbs,
+					file.twoBit,
+					positive.bed,
+					negative.bed = NA,
+					file.prefix  = NA,
+					use.cluster  = FALSE,
 					ncores = 1,
-					gc.correction = TRUE, 
-					gc.correction.pdf=NA, 
+					gc.correction = TRUE,
+					gc.correction.pdf = NA,
+					gc.correction.pvalue = 0.01,
 					gc.robust.rep = NA,
-					threshold = 6, 
-					threshold.type = c("score", "fdr"), 
-					gc.groups=1, 
-					background.order = 2, 
-					background.length = 100000, 
-					pv.adj=p.adjust.methods) 
+					threshold = 6,
+					threshold.type = c("score", "fdr"),
+					gc.groups=1,
+					background.order = 2,
+					background.length = 100000,
+					pv.adj=p.adjust.methods)
 	{
 		stopifnot(class(tfbs) == "tfbs");
 		standardGeneric("tfbs.enrichmentTest");
@@ -205,7 +207,7 @@ setGeneric("tfbs.enrichmentTest",
 
 setMethod("tfbs.enrichmentTest", c(tfbs="tfbs"), tfbs_enrichmentTest)
 
-setGeneric("tfbs.selectByGeneExp", 
+setGeneric("tfbs.selectByGeneExp",
 	def = function( tfbs ) {
 		stopifnot(class(tfbs) == "tfbs")
 		standardGeneric("tfbs.selectByGeneExp")
@@ -213,9 +215,9 @@ setGeneric("tfbs.selectByGeneExp",
 
 setMethod("tfbs.selectByGeneExp", c(tfbs="tfbs"),
 	function( tfbs ) {
-	
+
 		stopifnot( NROW(tfbs@expressionlevel)>0 && NROW(tfbs@cluster)>0 );
-	
+
 		cluster <- tfbs@cluster[,2]
 
 		usemotifs <- sapply(1:max(cluster), function(x) {
@@ -223,7 +225,7 @@ setMethod("tfbs.selectByGeneExp", c(tfbs="tfbs"),
 			if(length(a) > 1) {
 				a.min <- which.min( tfbs@expressionlevel$prob[a] );
 			if(length(a.min)>0)
-				return( a[ a.min[1] ] ) 
+				return( a[ a.min[1] ] )
 			else
 				return( sample(a, 1) );
 			} else {
@@ -233,20 +235,20 @@ setMethod("tfbs.selectByGeneExp", c(tfbs="tfbs"),
 		select.col <- rep( 0, NROW(tfbs@cluster) );
 		select.col[ usemotifs ]<-1;
 		tfbs@cluster <- cbind( tfbs@cluster, selected=select.col);
-		
+
 		return( tfbs );
 	})
 
-setGeneric("tfbs.selectByRandom", 
+setGeneric("tfbs.selectByRandom",
 	def=function( tfbs ) {
 		stopifnot(class(tfbs) == "tfbs")
 		standardGeneric("tfbs.selectByRandom")
 	})
 
-	
+
 setMethod("tfbs.selectByRandom", c(tfbs="tfbs"),
 	function( tfbs ) {
-	
+
 		stopifnot( NROW(tfbs@cluster)>0 );
 
 		cluster <- tfbs@cluster[,2]
@@ -258,10 +260,10 @@ setMethod("tfbs.selectByRandom", c(tfbs="tfbs"),
 			} else {
 				return(a)
 		}})
-		
+
 		select.col <- rep( 0, NROW(tfbs@cluster) );
 		select.col[ usemotifs ]<-1;
 		tfbs@cluster <- cbind( tfbs@cluster, selected=select.col);
-		
+
 		return( tfbs );
 	})

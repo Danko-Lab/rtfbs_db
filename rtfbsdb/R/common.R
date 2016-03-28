@@ -1,25 +1,49 @@
 ## Write.seqfile.
 ## Writes a fasta file containing all sequences in a bed region.
-read.seqfile.from.bed <- function(bed, twoBitPath, tmpdir = getwd()) {
+read.seqfile.from.bed <- function(bed, twoBitPath, rm.dup = TRUE, tmpdir = getwd())
+{
 	# create temporary filenames
 	tmp.seq = tempfile(tmpdir=tmpdir)
 	tmp.fa = tempfile(tmpdir=tmpdir)
 
 	# write sequence list
 	seqList = paste(bed[,1],":", as.integer(bed[,2]), "-", as.integer(bed[,3]), sep="")
-	writeLines(seqList, tmp.seq)
+
+	if(length(seqList) != length(unique(seqList)))
+	{
+		seqStat <- table(seqList);
+		if (length(which(seqStat>1)))
+		{
+			dup.id <- names(seqStat)[which(seqStat>1)]
+			if(rm.dup)
+			{
+				warning( paste( "Identical loci are removed from the BED data. (e.g. ", paste(head(dup.id), collapse =",", se=""), ")" ) );
+				seqList <- unique(seqList);
+			}
+			else
+				warning( paste( "Identical loci are found in the BED data. (e.g. ", paste(head(dup.id), collapse =",", se=""), ")" ) );
+		}
+	}
+
+	writeLines(seqList, tmp.seq);
 
 	# generate fasta file
 	cmd = paste("twoBitToFa -seqList=", tmp.seq, " ", twoBitPath, " ", tmp.fa, sep="")
-	system(cmd, wait = TRUE)
-
-	# read data
-	ms_data <- read.ms(tmp.fa)
-
-	# clean up
-	unlink(c(tmp.seq, tmp.fa))
-
-	return(ms_data)
+	err_code <- system(cmd, wait = TRUE);
+	if( err_code != 0 )
+	{
+		cat("Failed to call twoBitToFa to get the sequence data.\n");
+		unlink(c(tmp.seq, tmp.fa))
+		return(NULL);
+	}
+	else
+	{
+		# read data
+		ms_data <- read.ms(tmp.fa)
+		# clean up
+		unlink(c(tmp.seq, tmp.fa))
+		return(ms_data)
+	}
 }
 
 ## For drawing a levelplot.
@@ -43,16 +67,18 @@ yb.sig.pal <- function(n, scale=10) {
 
 write.starchbed <- function(bed, file.starch) {
 	# pipe bed into starch file
-	r <- try( write.table(bed, file = pipe(paste("sort-bed - | starch - >", file.starch)), quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t") );
-
-	if(class(r)=="try-error") 
+	r <- try( write.table(bed, file = pipe(paste("sort-bed - | starch - >", file.starch)), quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t"), silent=F );
+	if(class(r)=="try-error")
+	{
+		cat("Failed to write starch file using 'sort-bed' and 'starch' command.\n")
 		return("ERROR");
+	}
 
-	if( !file.exists(file.starch) )    
+	if( !file.exists(file.starch) )
 	{
 		cat("! Failed to write starch file (", file.starch, ") using the sort-bed and starch commands.\n");
 		return("ERROR");
-	}		
+	}
 	else
 		return(file.starch);
 }
@@ -90,10 +116,10 @@ check_folder_writable<-function(file.prefix)
 		dir.create( dirname(file.prefix), showWarnings = TRUE, recursive = FALSE );
 
 	file.temp <- tempfile( tmpdir = dirname(file.prefix), fileext = "")
-	r.try <- try( file.create(file.temp) )	
+	r.try <- try( file.create(file.temp) )
 	if( class(r.try)=="try-error" || r.try==FALSE )
 		return(FALSE);
-	
+
 	unlink(file.temp);
 	return(TRUE);
 }
@@ -104,36 +130,37 @@ check_bed<-function( df.bed )
 	{
 		warning("At least 3 columns in BED file.");
 		return (FALSE);
-	}	
+	}
 
-	if (any(is.na(df.bed[,c(1:3)]))) 
+	if (any(is.na(df.bed[,c(1:3)])))
 	{
 		warning("NA values in first three columns in BED file.");
 		return (FALSE);
-	}	
+	}
 
 	if (  !(class(df.bed[,3]) == "numeric" || class(df.bed[,3]) == "integer")
-	   || !(class(df.bed[,2]) == "numeric" || class(df.bed[,2]) == "integer") ) 
+	   || !(class(df.bed[,2]) == "numeric" || class(df.bed[,2]) == "integer") )
 	{
 		warning("The 2nd column or 3rd column are not numeric in BED file.");
 		return (FALSE);
-	}	
-	
-	if ( any(df.bed[,2] > df.bed[,3])) 
+	}
+
+	if ( any(df.bed[,2] > df.bed[,3]))
 	{
-		warning("The 2nd column is greater than the 3rd column in BED file.");
+		idx.equal <- which (df.bed[,2] > df.bed[,3]);
+		warning(paste("The 2nd column is greater than the 3rd column in BED data. (e.g. Index =", idx.equal[1], "\n") );
 		return (FALSE);
-	}	
-	
+	}
+
 	if ( NCOL(df.bed)==6 )
 	{
 		if (!(unique(df.bed[,6]) %in% c("+", "-", ".")))
 		{
 			warning("Three values are avalaible for the 6th column in BED file, '+', '-' or '.'.");
 			return (FALSE);
-		}	
-	}	
-	
+		}
+	}
+
 	return(TRUE);
 }
 
@@ -144,8 +171,8 @@ get_os <- function()
     	os <- sysinf['sysname']
     	if (os == 'Darwin')
       		os <- "osx"
-  	} 
-  	else 
+  	}
+  	else
   	{ ## mystery machine
   	  	os <- .Platform$OS.type
     		if (grepl("^darwin", R.version$os))
@@ -154,4 +181,18 @@ get_os <- function()
       		os <- "linux"
   	}
   	tolower(os);
+}
+
+check_command_error<-function( r.tryerror, commands)
+{
+	if(class(r.tryerror)=="try-error")
+	{
+		if( any( Sys.which(commands)=="") )
+		{
+			ccommand.str <- paste(commands, collapse="','")
+			stop(paste("Failed to call '", ccommand.str , "' command, use Sys.which() to check its path or system() to verify its function.", sep=""));
+		}
+		else
+			stop(as.character(r.tryerror));
+	}
 }

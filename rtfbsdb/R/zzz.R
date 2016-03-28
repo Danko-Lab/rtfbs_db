@@ -28,6 +28,10 @@
 	if( exit_code != 0 )
 		packageStartupMessage("* The awk command in bedops package doesn't work normally.")
 
+	exit_code <- system("zcat --version",  ignore.stderr=T, ignore.stdout=T, wait = T );
+	if( exit_code != 0 )
+		packageStartupMessage("* The zcat command in bedops package doesn't work normally.")
+
 	exit_code <- system("twoBitInfo",  ignore.stderr=T, ignore.stdout=T, wait = T );
 	if( exit_code == 127 )
 		packageStartupMessage("* The twoBitInfo command in UCSC package doesn't work normally.")
