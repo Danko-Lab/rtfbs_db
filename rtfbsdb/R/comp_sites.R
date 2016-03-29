@@ -222,14 +222,14 @@ tfbs_to_bed <- function(sites, tf.name)
 	return(bed)
 }
 
-background.check<-function( gc.pos, gc.neg, gc.correction, file.pdf.vioplot=NA, gc.correction.pvalue=0.01, verbose=TRUE )
+background.check<-function( gc.pos, gc.neg, gc.correction, file.pdf.vioplot=NA, gc.min.sample = 500, verbose=TRUE )
 {
 	pdf.output <- FALSE;
 	gc.test <- wilcox.test(gc.pos, gc.neg, conf.int=TRUE, conf.level=0.9 );
 
 	# Actually 0.01 is not good for wilcox.test,
 	# We use the customizable pvalue in this function.
-	if( gc.test$p.value < gc.correction.pvalue && verbose)
+	if( gc.test$p.value < 0.01 && verbose)
 	{
 		cat("! Difference between GC content in negative and positive TREs (use 'gc.correction.pdf' to see pdf figure):\n");
 		cat("  p-value (Wilcoxon-Mann-Whitney test) =", gc.test$p.value, "\n");
@@ -251,7 +251,7 @@ background.check<-function( gc.pos, gc.neg, gc.correction, file.pdf.vioplot=NA, 
 	}
 
 	# No need to do sampling the background data.
-	if( gc.test$p.value > gc.correction.pvalue || gc.correction==FALSE )
+	if( gc.test$p.value > 0.01 || gc.correction==FALSE )
 	{
 		# PDF has not been finished until dev.off();
 		if( pdf.output )
@@ -302,14 +302,10 @@ background.check<-function( gc.pos, gc.neg, gc.correction, file.pdf.vioplot=NA, 
 	#ns.sample <- ns.sample[ ns.sample>=1000 ];
 
 	ns.sample <- c ( round(length(gc.neg)/c( 2:10,15,20,25)), 1000, 800, 500 );
-	ns.sample <- ns.sample[ ns.sample >= 500 ];
-	ns.pvalue <- unlist(lapply(ns.sample, try.sample));
+	ns.sample <- ns.sample[ ns.sample >= gc.min.sample  ];
 
-	## 1st condition: the p-value >= gc.correction.pvalue(0.01)
-	## or
-	## 2nd condition: maximum p-value
-	idx.optim <- min ( unique( c( which.max(ns.pvalue), which(ns.pvalue>=gc.correction.pvalue) ) ) );
-	n.sample  <- ns.sample[ idx.optim ];
+	ns.pvalue <- unlist(lapply(ns.sample, try.sample));
+	n.sample  <- ns.sample[ which.max(ns.pvalue) ];
 
 	indx.bgnew <- resample( gc.pos, gc.neg, n=n.sample)
 	gc.test2 <- wilcox.test(gc.pos, gc.neg[indx.bgnew], conf.int=TRUE, conf.level=0.9 );
@@ -347,7 +343,7 @@ background.generate <- function( positive.bed )
 
 	pipe.cmd <- paste("sort-bed ", file.pos.bed, " | bedtools complement -i - -g ", file.chr.size, sep=" ");
 	bed.complement <- try( read.table( pipe( pipe.cmd ), header=F ), silent=T);
-	if( bed.complement == "try-error" )
+	if( class(bed.complement) == "try-error" )
 		check_command_error(bed.complement, c("bedtools", "sort-bed"));
 
 	bed.complement <- bed.complement[ -which( bed.complement[,3] - bed.complement[,2] <= pos.range[2] ),]
@@ -373,7 +369,7 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit,
 					ncores = 1,
 					gc.correction = TRUE,
 					gc.correction.pdf = NA,
-					gc.correction.pvalue = 0.01,
+					gc.min.sample = 500,
 					gc.correction.verbose = TRUE,
 					threshold = NA,
 					threshold.type = NA,
@@ -422,7 +418,7 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit,
 								 gc.neg,
 								 gc.correction,
 								 gc.correction.pdf,
-								 gc.correction.pvalue,
+								 gc.min.sample ,
 								 verbose=gc.correction.verbose )
 	if(!is.null(bg.sample))
 	{
@@ -554,7 +550,7 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 					ncores = 1,
 					gc.correction = TRUE,
 					gc.correction.pdf = NA,
-					gc.correction.pvalue = 0.01,
+					gc.min.sample = 500,
 					gc.robust.rep = NA,
 					threshold = 6,
 					threshold.type = c("score", "fdr"),
@@ -585,7 +581,7 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 	if( missing(gc.robust.rep) || is.na(gc.robust.rep)) gc.robust.rep <- 1;
 	if( gc.robust.rep >1 && gc.robust.rep<3 ) gc.robust.rep <- 3;
 
-	if( missing( gc.correction.pvalue ) ) gc.correction.pvalue <- 0.01;
+	if( missing( gc.min.sample ) ) gc.min.sample<- 500;
 	if( missing( ncores) ) ncores <- 1;
 	if( missing( gc.groups) ) gc.groups <- 1;
 	if( missing( gc.correction) ) gc.correction <- FALSE;
@@ -623,7 +619,7 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 							ncores = ncores,
 							gc.correction = gc.correction,
 							gc.correction.pdf = gc.correction.pdf,
-							gc.correction.pvalue = gc.correction.pvalue,
+							gc.min.sample = gc.min.sample,
 							gc.correction.verbose = TRUE,
 							threshold = threshold ,
 							threshold.type = threshold.type,
@@ -652,7 +648,7 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 								ncores = ncores,
 								gc.correction = gc.correction,
 								gc.correction.pdf = gc.correction.pdf,
-								gc.correction.pvalue = gc.correction.pvalue,
+								gc.min.sample = gc.min.sample,
 								gc.correction.verbose = FALSE,
 								threshold = threshold ,
 								threshold.type = threshold.type,
@@ -729,7 +725,7 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 				pv.adj            = pv.adj,
 				background.order  = background.order,
 				background.length = background.length,
-				gc.correction.pvalue = gc.correction.pvalue,
+				gc.min.sample     = gc.min.sample,
 				gc.correction     = gc.correction );
 
 	r <- list( result = ret, parm = r.parm);
@@ -753,7 +749,7 @@ print.tfbs.enrichment<-function( x, ..., pv.threshold=0.05, pv.adj=NA )
 	cat("Background.order:", r.comp$parm$background.order, "\n");
 	cat("Background.length:", r.comp$parm$background.length, "\n");
 	cat("GC robust replication:", r.comp$parm$gc.robust.rep, "\n");
-	cat("GC pavlue threshold:", r.comp$parm$gc.correction.pvalue, "\n");
+	cat("GC minimum sample size:", r.comp$parm$gc.min.sample, "\n");
 
 	cat("Total Motif:", NROW(r.comp$result), "\n");
 	cat("\nSignificant Motifs(or top 20):\n");

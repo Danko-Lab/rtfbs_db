@@ -16,7 +16,7 @@ tfbs.enrichmentTest(tfbs,
       ncores=1,
       gc.correction=TRUE, 
       gc.correction.pdf=NA, 
-      gc.correction.pvalue=0.01, 
+      gc.min.sample = 500, 
       gc.robust.rep=NA, 
       threshold = 6, 
       threshold.type = c("score", "fdr"),
@@ -35,7 +35,7 @@ tfbs.enrichmentTest(tfbs,
   \item{ncores}{Number, comupting nodes in parallel environment.(default=1)}
   \item{gc.correction}{Logical value, if the difference between positive and negative TREs is significant,the resampling will be applied to the correction for the negative TREs. (default=TRUE) }
   \item{gc.correction.pdf}{String, indicating the pdf file name if the GC correction is checked. (default=NA) }
-  \item{gc.correction.pvalue}{Number, indicating stop criteria when resamping the negative genomic loci for the GC correct. (default=0.01) }
+  \item{gc.min.sample}{Number, indicating minimum sample size when resamping the negative genomic loci for the GC correct. (default=500) }
   \item{gc.robust.rep}{Number, indicating whether resampling background set multiple times is applied to get the median of binding sites. (default=NA) }
   \item{threshold}{Numeric value, if 'score' is specified in \code{threshold.type}, only binding sites with scores above this threshold are returned, 
   if 'fdr' is specified in \code{threshold.type}, only binding sites with FDR (False Discovery Rate) less than this value can be selected. Default value is 6 for 'score' and 0.1 for 'fdr'.} 
@@ -116,7 +116,7 @@ t1 <- tfbs.enrichmentTest( tfs,
       pos.bed, 
       neg.bed, 
       gc.correction=TRUE,
-      gc.correction.pvalue = 1e-5,
+      gc.min.sample = 1000,
       ncores = 1); #ncores=3
 
 #Show a brief result
