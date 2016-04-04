@@ -278,7 +278,7 @@ cpu.PRO.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, file.bigwig
 
 			r.df   <- c(
 					"dbid"      = dbid,
-					"chr"       = r.bed [bed.max, 1],
+					"chr"       = as.character(r.bed [bed.max, 1]),
 					"start"     = r.bed [bed.max, 2],
 					"end"       = r.bed [bed.max, 3],
 					"length"    = length,
@@ -369,7 +369,7 @@ cpu.RNA.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, gencode_exo
 
 					r.df   <- c(
 						"dbid"      = dbid,
-						"chr"       = r.bed.rna [max.idx, 1],
+						"chr"       = as.character(r.bed.rna [max.idx, 1]),
 						"start"     = r.bed.rna [max.idx, 2],
 						"end"       = r.bed.rna [max.idx, 3],
 						"length"    = length,
