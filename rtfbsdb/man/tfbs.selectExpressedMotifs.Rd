@@ -62,7 +62,7 @@ For RNA-seq data:\cr
 3) This function heavily relys on some Unix commands to operate bed data and gencode data. Please make sure
 the following commands work normally in R terminal.\cr
 
-\code{awk}, \code{zcat}, \code{sort-bed}, \code{twoBitInfo}, \code{bedtools}, \code{samtools}.\cr
+\code{awk}, \code{zcat}, \code{sort-bed}, \code{twoBitInfo}, \code{bedtools}.\cr
 
 The function \code{\link{Sys.which}} and \code{\link{system}} help you to locate these commands and test its availability.\cr
 
