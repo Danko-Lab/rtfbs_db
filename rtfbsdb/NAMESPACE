@@ -31,6 +31,7 @@ exportMethods(tfbs.scanTFsite )
 exportMethods(tfbs.enrichmentTest)
 export(tfbs.reportFinding)
 export(tfbs.reportEnrichment)
+export(tfbs.plotEnrichment)
 
 S3method(print, tfbs.finding)
 S3method(summary, tfbs.finding)

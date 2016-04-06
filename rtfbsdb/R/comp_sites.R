@@ -728,8 +728,17 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 				gc.min.sample     = gc.min.sample,
 				gc.correction     = gc.correction );
 
-	r <- list( result = ret, parm = r.parm);
+	## result structure
+	## 'motif.id'   Motif ID.
+	## 'tf.name'    TF name.
+	## 'Npos'       TF site count found in positive ranges.
+	## 'expected'   TF site count found in negative ranges.
+	## 'fe.ratio'   Ratio of fold enrichment.
+	## 'pvalue'     p-value calculated by fisher test.
+	## 'pv.adj'     p-value corrected by the multiple correction.
+	## 'starch'     Binary filename of detected TF sites.
 
+	r <- list( result = ret, parm = r.parm);
 	class(r) <- c("tfbs.enrichment");
 
 	return(r);
@@ -957,4 +966,160 @@ tfbs.reportEnrichment<-function( tfbs,
 						report.title,
 						df.style,
 						"*Enrichment: Enrichment ratio for positive reads against negative reads." );
+}
+
+
+tfbs.plotEnrichment <- function( tfbs, r.comp, file.pdf, plot.title="", top.motif.labels=5, bottom.motif.labels=5, xlab="Order", ylab="-log10(p-value)", y.max=NULL,
+	enrichment.type = c ("both", "enriched", "depleted"), plot.type=c("nonpolar", "polar"), color.scheme = 2 )
+{
+	if(missing(plot.type)) plot.type <- "nonpolar";
+	if(missing(enrichment.type)) enrichment.type <- "both";
+	if( (enrichment.type == "enriched" && plot.type == "polar" ) | (enrichment.type == "depleted" && plot.type == "polar" ) )
+		warning("'polar' figure only can be applied to the motifs enriched and depleted 'both'." );
+
+	scheme1 <- data.frame( min.col = c( 0.9,0.6,0 ), max.col = c( 0, 0, 1 ) );
+	scheme2 <- data.frame( min.col = c( 0,0.99,0 ), max.col = c( 0.9, 0.01, 0.9 ) );
+
+	get_rgbcol<-function(pvalue, p.min=0.001, p.max=1, log10=T, scheme=1)
+	{
+		pvalue[ pvalue > p.max] <- p.max;
+		pvalue[ pvalue < p.min] <- p.min;
+
+		if(log10)
+		{
+			pvalue <- log10(pvalue)
+			p.min  <- log10(p.min)
+			p.max  <- log10(p.max)
+		}
+
+		if(scheme==1) col.scheme <- scheme1 else col.scheme <- scheme2;
+
+		c1 <- (col.scheme$min.col[1] - col.scheme$max.col[1]) / (p.min-p.max)*(pvalue-p.max) + col.scheme$max.col[1];
+		c2 <- (col.scheme$min.col[2] - col.scheme$max.col[2]) / (p.min-p.max)*(pvalue-p.max) + col.scheme$max.col[2];
+		c3 <- (col.scheme$min.col[3] - col.scheme$max.col[3]) / (p.min-p.max)*(pvalue-p.max) + col.scheme$max.col[3];
+
+		c <- rgb(c1,c2,c3)
+
+		return(c);
+	}
+
+	drawlegend<-function( x0, y0, width, height, title, pv.min=0.001, pv.max=1, pv.log10=T, scheme=1)
+	{
+		bar.len <- 50;
+		if(pv.log10)
+			pv <- 10^seq(log10(pv.min), log10(pv.max), length.out=bar.len)
+		else
+			pv <- seq(pv.min, pv.max, length.out=bar.len);
+
+		bar.width <- width*0.9;
+		for( i in 1:length(pv) )
+		{
+			col <- get_rgbcol( pv[i], pv.min, pv.max, log10=pv.log10, scheme=scheme);
+			rect(  x0 + 0.1*width + i*bar.width/bar.len, y0, x0 + 0.1*width + i*bar.width/bar.len+bar.width/bar.len, y0+height*0.4, col=col,border=NA );
+		}
+
+		text( x0 + 0.1*width,  y0 + height*0.55, title, cex=2/3, adj= c(0, 0.5));
+		text( x0 + 0.1*width,  y0 - height*0.15,  sprintf("%1g", pv.min), cex=2/3, adj = c(0, 0.5));
+		text( x0 + 1*width,  y0 - height*0.15,  sprintf("%1g", pv.max), cex=2/3, adj = c(1, 0.5));
+	}
+
+	df.ret <- r.comp$result[,c('motif.id','tf.name', 'fe.ratio', 'pvalue' ) ];
+	df.ret$y.log <- -log10( df.ret$pvalue );
+	df.ret$y.log [ is.infinite(df.ret$y.log) | (df.ret$y.log>=y.max) ] <- y.max;
+
+	if(enrichment.type == "enriched")
+		df.ret  <- df.ret [ df.ret$fe.ratio >= 1,  ]
+	else if (enrichment.type == "depleted")
+		df.ret  <- df.ret [ df.ret$fe.ratio < 1,  ];
+
+	if(plot.type=="polar")
+	{
+		idx.enrich  <- which( df.ret$fe.ratio >= 1 );
+		idx.deple  <- which( df.ret$fe.ratio < 1 );
+		df.ret$y.log[idx.deple] <- - df.ret$y.log[idx.deple];
+	}
+
+	df.ret <- df.ret[order( df.ret$y.log, decreasing = F ),];
+	xlim = c(0, NROW(df.ret) );
+
+	pdf( file.pdf );
+	plot(NA, NA, type="n",
+			xlab = xlab,
+			ylab = ylab,
+			ylim = range(df.ret$y.log),
+			xlim = xlim,
+			cex  = 1.0,
+			main = plot.title,
+			cex.axis=1.0,
+			pch  = 19 );
+
+	abline( h = -log10(0.05/NROW(df.ret)), lty=22, lwd=0.5);
+	if(plot.type=="polar")
+	{
+		abline( h = +log10(0.05/NROW(df.ret)), lty=22, lwd=0.5);
+		abline( h = 0, lty=1, lwd=0.5);
+	}
+
+	old.xpd <- par(xpd=NA);
+
+	y     <- df.ret$y.log;
+	y.cex <- (log(abs(y))+1)/3;
+	y.cex [ y.cex < 0.6 ] <- 0.6;
+	y.cex [ y.cex > 3 ]   <- 3;
+	y.col <- get_rgbcol( df.ret$fe.ratio, 0.4, 2.5, F, color.scheme );
+
+	points(1:NROW(y), y, pch=19, col = y.col, cex=y.cex);
+
+	## exclude this condition: polar && only 'depleted'
+	if( !(plot.type== "polar"  && enrichment.type == "depleted") )
+	{
+		if(is.null(top.motif.labels) | is.numeric(top.motif.labels) )
+		{
+			n.revse <- NROW(df.ret) - c(1:as.numeric(top.motif.labels)) + 1;
+			top.motif.labels <- unlist(lapply(n.revse , function(i) {paste(df.ret[i,1],df.ret[i,2], sep="/" );}));
+		}
+
+		old.y <- max(abs(df.ret$y.log))+10;
+		for(k in 1:length(top.motif.labels) )
+		{
+			if( top.motif.labels [k] == "" ) next;
+
+			i <- NROW(df.ret) - k + 1;
+			y.pos <- y [i];
+			if(y.pos > old.y) y.pos <- old.y
+
+			label <- top.motif.labels[k];
+			text( i - strwidth("A")*1.2, y.pos, label, cex=2/3, adj=c(1,0.5), srt=0, col=y.col[i]);
+			old.y <- y.pos - strheight(label, cex=0.8 )*1.2;
+		}
+	}
+
+	## only include this condition: polar && not 'enriched'
+	if( plot.type== "polar" && enrichment.type != "enriched")
+	{
+		if(is.null(bottom.motif.labels) | is.numeric(bottom.motif.labels) )
+		{
+			n.order <-  c(1:as.numeric(bottom.motif.labels)) ;
+			bottom.motif.labels <- unlist(lapply(n.order , function(i) {paste(df.ret[i,1],df.ret[i,2], sep="/" );}));
+		}
+
+		old.y <- min(abs(df.ret$y.log))-10;
+		for(k in 1:length(bottom.motif.labels) )
+		{
+			if( bottom.motif.labels [k] == "" ) next;
+
+			y.pos <- y [k];
+			if(y.pos < old.y) y.pos <- old.y
+
+			label <- bottom.motif.labels[k];
+			text( k + strwidth("A")*1.2, y.pos, label, cex=2/3, adj=c(0,0.5), srt=0, col=y.col[k]);
+			old.y <- y.pos + strheight(label, cex=0.8 )*1.2;
+		}
+	}
+
+    par(xpd=old.xpd);
+
+	drawlegend( 0, (max(y)-min(y))*0.9+min(y), width=NROW(y)*0.2, height=(max(y)-min(y))*0.15, title="Enrichment Ratio", 0.4, 2.5, F, color.scheme );
+
+	dev.off();
 }

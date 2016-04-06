@@ -8,7 +8,7 @@ detach("package:rtfbsdb", unload=TRUE);
 library(rtfbsdb);
 
 file.dREG.H.change.bed <- "/home/zw355/src/rtfbs_db/testdata/dREG.H.change.bed"
-file.dREG.all.bed    <- "/home/zw355/src/rtfbs_db/testdata/dREG.all.bed" 
+file.dREG.all.bed    <- "/home/zw355/src/rtfbs_db/testdata/dREG.all.bed"
 file.twoBit_path     <- "/local/storage/data/hg19/hg19.2bit";
 
 db <- CisBP.extdata("Homo_sapiens");
@@ -60,4 +60,8 @@ t9.comp;
 tfbs.reportEnrichment(tfs, t1.comp, file.pdf="test.tfbs.comp.report1.pdf", sig.only=F, report.title="Test Report");
 
 tfbs.reportEnrichment(tfs, t9.comp, file.pdf="test.tfbs.comp.report2.pdf", sig.only=T, enrichment.type="depleted", report.title="Significant Report", pv.threshold=0.1, pv.adj="fdr");
+
+tfbs.plotEnrichment(tfs, t9.comp, file.pdf="test.tfbs.comp.plot.depleted.pdf", enrichment.type="depleted", plot.title="QQ plot2", top.motif.labels=6, color.scheme=1);
+
+tfbs.plotEnrichment(tfs, t8.comp, file.pdf="test.tfbs.comp.plot.pdf", enrichment.type="both", plot.title="QQ plot2", top.motif.labels=6, plot.type="polar", color.scheme=1);
 

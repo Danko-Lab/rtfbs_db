@@ -80,5 +80,10 @@ B: Source:
 
 6) Importing motifs from HOCOMOCO and MotifDB database.
 
+4/6/2016 version 0.3.9
+
+1) Samtools dependency is removed.
+
+2) New function 'tfbs.plotEnrichment' is added to plot QQ-like plot for the p-values of enrichment result.
 
 
