@@ -53,16 +53,17 @@ The function \code{\link{Sys.which}} and \code{\link{system}} help you to locate
 A tbfs object with new expression data frame including the follwing columns:
 \item{Motif_ID}{ Motif_ID from CisBP dataset or other data source.}
 \item{DBID}{ DBID from CisBP dataset or other data source.}
-\item{chr}{String, chromosome name.}
-\item{start}{Integer, start postion in which gene ID can be detected.}
-\item{end}{Integer, end postion in which gene ID can be detected.}
+\item{txID}{ Transcript ID from GTF file transcript which is mapped by DBID.}
+\item{chr}{String, chromosome name of transcript which is mapped by DBID.}
+\item{txStart}{Integer, start postion of transcript.}
+\item{txEnd}{Integer, end postion of transcript.}
+\item{txLength or exonLen}{Integer, the length of transcript for GRO-seq data and PRO-seq data or sum length of exons on the transcript for RNA-seq data.}
 \item{strand}{String, + or -, indicating the strand direction.}
-\item{bed_length}{Integer, the length of range which gene ID can be detected.}
 \item{reads}{The reads number queried by BigWig function from the bigwig files( plus and minus) }
 \item{lambda}{The lambda parameter in poison distribution. }
 \item{reads.RPKM}{The RPKM value of \code{reads} column.}
 \item{lambda.RPKM}{The RPKM value of \code{lambda} column.}
-\item{prob}{The probability calculated based on Poisson distribution.}
+\item{p.pois}{The probability calculated based on Poisson distribution.}
 }
 
 \seealso{

@@ -237,6 +237,7 @@ get_bam_reads<-function(file.bam, df.bed=NULL, file.twoBit= NULL )
 
 cpu.PRO.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, file.bigwig.plus, file.bigwig.minus, reads.total, r.lambda)
 {
+	r.df.len <- 11;
 	bw.plus  <- try( bigWig::load.bigWig( file.bigwig.plus ) );
 	bw.minus <- try( bigWig::load.bigWig( file.bigwig.minus ) );
 
@@ -248,9 +249,9 @@ cpu.PRO.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, file.bigwig
 		r.bed.idx2 <- grep( paste(dbid, ".", sep=""), gencode_transcript_ext$gene_id );
 		r.bed.idx <- unique( c(r.bed.idx1 ,r.bed.idx2) );
 
-		if(length(r.bed.idx)<1) return(c(dbid=dbid, rep(NA, 10)));
+		if(length(r.bed.idx)<1) return(c(dbid=dbid, rep(NA, r.df.len)));
 
-		r.bed <- gencode_transcript_ext[r.bed.idx, c(1,4,5,6,9,7), drop=F ];
+		r.bed <- gencode_transcript_ext[r.bed.idx, c(1,4,5,12,6,7), drop=F ];
 		colnames(r.bed) <- c('chr','start','end','id','score','strand');
 
 		idx.bed.size1 <- which(r.bed$start >= r.bed$end);
@@ -265,7 +266,7 @@ cpu.PRO.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, file.bigwig
 		r.reads  <- try( bigWig::bed6.region.bpQuery.bigWig( bw.plus, bw.minus, r.bed ) )
 
 		if( class(r.reads) == "try-error")
-			r.df   <- c(dbid, rep(NA, 10))
+			r.df   <- c(dbid, rep(NA, r.df.len))
 		else
 		{
 			bed.max <- which.max(abs( r.reads /((r.bed[,3] - r.bed[,2])+1)));
@@ -277,7 +278,8 @@ cpu.PRO.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, file.bigwig
 			lambda.RPKM  <- 10^9 * r.lambda / reads.total;
 
 			r.df   <- c(
-					"dbid"      = dbid,
+					"DBID"      = dbid,
+					"txID"      = as.character(r.bed [bed.max, 4]),
 					"chr"       = as.character(r.bed [bed.max, 1]),
 					"start"     = r.bed [bed.max, 2],
 					"end"       = r.bed [bed.max, 3],
@@ -301,6 +303,8 @@ cpu.PRO.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, file.bigwig
 
 cpu.RNA.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, gencode_exon_ext, file.bam, reads.total, r.lambda)
 {
+	r.df.len = 11;
+
 	r.bed.list <- lapply( i.from:i.to, function(i) 	{
 		dbid <- as.character(DBIDs[i]);
 
@@ -308,9 +312,9 @@ cpu.RNA.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, gencode_exo
 		r.bed.idx2 <- grep( paste(dbid, ".", sep=""), gencode_exon_ext$gene_id );
 		r.bed.idx <- unique( c(r.bed.idx1 ,r.bed.idx2) );
 
-		if(length(r.bed.idx)<1) return(c(dbid=dbid, rep(NA, 10)));
+		if(length(r.bed.idx)<1) return(c(dbid=dbid, rep(NA, r.df.len)));
 
-		r.bed.exon <- gencode_exon_ext[r.bed.idx, c(1,4,5,6,9,7), drop=F ];
+		r.bed.exon <- gencode_exon_ext[r.bed.idx, c(1,4,5,12,6,7), drop=F ];
 		colnames(r.bed.exon) <- c('chr','start','end','id','score','strand');
 
 		idx.bed.size1 <- which(r.bed.exon$start >= r.bed.exon$end);
@@ -323,17 +327,17 @@ cpu.RNA.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, gencode_exo
 
 		r.reads  <- try( get_bam_reads( file.bam, df.bed=r.bed.exon ) );
 		if( class(r.reads) == "try-error")
-			r.df   <- c(dbid, rep(NA, 10))
+			r.df   <- c( dbid, rep(NA, r.df.len) )
 		else
 		{
 			r.rna.idx1 <- which(gencode_transcript_ext$gene_id==dbid);
 			r.rna.idx2 <- grep( paste(dbid, ".", sep=""), gencode_transcript_ext$gene_id );
 			r.rna.idx  <- unique( c(r.rna.idx1 ,r.rna.idx2) );
 			if(length(r.rna.idx)<1)
-				r.df   <- c(dbid, rep(NA, 10))
+				r.df   <- c( dbid, rep(NA, r.df.len) )
 			else
 			{
-				r.bed.rna <- gencode_transcript_ext[r.rna.idx, c(1,4,5,6,9,7), drop=F ];
+				r.bed.rna <- gencode_transcript_ext[r.rna.idx, c(1,4,5,12,6,7), drop=F ];
 
 				rna.reads  <- c();
 				rna.length <- c();
@@ -357,7 +361,7 @@ cpu.RNA.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, gencode_exo
 
 				max.idx <- which.max( rna.reads/rna.length );
 				if(length(max.idx )<1)
-					r.df   <- c(dbid, rep(NA, 10))
+					r.df   <- c(dbid, rep(NA, r.df.len))
 				else
 				{
 					p.pois  <- ppois( abs(rna.reads[max.idx]), r.lambda * rna.length[max.idx], lower.tail=F);
@@ -368,7 +372,8 @@ cpu.RNA.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, gencode_exo
 					lambda.RPKM  <- 10^9 * lambda0/ length / reads.total;
 
 					r.df   <- c(
-						"dbid"      = dbid,
+						"DBID"      = dbid,
+						"txID"      = as.character(r.bed.rna [max.idx, 4]),
 						"chr"       = as.character(r.bed.rna [max.idx, 1]),
 						"start"     = r.bed.rna [max.idx, 2],
 						"end"       = r.bed.rna [max.idx, 3],
@@ -530,16 +535,16 @@ tfbs_getExpression <- function(tfbs,
 			r.bed.list <- cpu.PRO.seq( DBIDs, sect[i], sect[i+1]-1, gencode_transcript_ext, file.bigwig.plus, file.bigwig.minus, reads.total, r.lambda );
 
 		df.exp <- transform( do.call(rbind, r.bed.list) );
-		colnames(df.exp) <- c("dbid", "chr", "start", "end", "length", "strand", "reads","lambda", "reads.RPKM", "lambda.RPKM", "p.pois");
+		colnames(df.exp) <- c("DBID", "txID", "chr", "txStart", "txEnd", "txLength", "strand", "reads","lambda", "reads.RPKM", "lambda.RPKM", "p.pois");
 
 		return( df.exp );
 	}, mc.cores = ncores );
 
 
 	df.exp0 <- do.call( rbind, df.exp );
-	df.idx  <- match( as.character(tfbs@tf_info$DBID), as.character(df.exp0$dbid) )
+	df.idx  <- match( as.character(tfbs@tf_info$DBID), as.character(df.exp0$DBID) )
 	df.exp  <- cbind( tfbs@tf_info$Motif_ID, df.exp0[df.idx,,drop=F] );
-	colnames(df.exp) <- c("Motif_ID", "DBID", "chr", "start", "end", "length", "strand", "reads", "lambda", "reads.RPKM", "lambda.RPKM", "p.pois" );
+	colnames(df.exp) <- c("Motif_ID", "DBID", "txID", "chr", "txStart", "txEnd", "txLength", "strand", "reads", "lambda", "reads.RPKM", "lambda.RPKM", "p.pois" );
 
 	# these dummy statements are setup here to pass R CMD check rtfbsdb --as-cran
 	reads <-NA;
@@ -549,14 +554,18 @@ tfbs_getExpression <- function(tfbs,
 	lambda.RPKM <- NA;
 
 	df.exp <- transform( df.exp,
-				"start"  = as.numeric(as.character(start) ),
-				"end"    = as.numeric(as.character(end) ),
-				"length" = as.numeric(as.character(length) ),
-				"reads"  = as.numeric(as.character(reads) ),
-				"lambda" = as.numeric(as.character(lambda) ),
+				"txStart"  = as.numeric(as.character(txStart) ),
+				"txEnd"    = as.numeric(as.character(txEnd) ),
+				"txLength" = as.numeric(as.character(txLength) ),
+				"reads"    = as.numeric(as.character(reads) ),
+				"lambda"   = as.numeric(as.character(lambda) ),
 				"reads.RPKM"  = as.numeric(as.character(reads.RPKM) ),
 				"lambda.RPKM" = as.numeric(as.character(lambda.RPKM) ),
-				"p.pois" = as.numeric(as.character(p.pois) ) );
+				"p.pois"   = as.numeric(as.character(p.pois) ) );
+
+	## for RNA-seq, txLength is sum of exon length, not the length of transcipt
+	if(seq.datatype=="RNA-seq")
+		colnames(df.exp)[7] <- "exonLen";
 
 	if(NROW(df.exp)>0)  rownames(df.exp) <- c(1:NROW(df.exp));
 
@@ -580,11 +589,11 @@ import_gencode <-function( species, file.gencode.gtf, V3.type=NA )
 {
 	if( missing(V3.type)) V3.type <- "transcript";
 
-	awk.cmd <- paste( "awk '($3==\"", V3.type, "\"){gsub( /\\\";?/, \"\", $10);print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10}' ", file.gencode.gtf, sep="");
+	awk.cmd <- paste( "awk '($3==\"", V3.type, "\"){gsub( /\\\";?/, \"\", $10);gsub( /\\\";?/, \"\", $12);print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12}' ", file.gencode.gtf, sep="");
 
 	# for gzipped GTF file
 	if(file_ext(file.gencode.gtf)=="gz" )
-		awk.cmd <- paste( "zcat ", ifelse( get_os()=="osx", " < ", " " ),  file.gencode.gtf," | awk '($3==\"", V3.type, "\"){gsub( /\\\";?/, \"\", $10);gsub( /\\\";?/, \"\", $18);print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$18}' ", sep="");
+		awk.cmd <- paste( "zcat ", ifelse( get_os()=="osx", " < ", " " ),  file.gencode.gtf," | awk '($3==\"", V3.type, "\"){gsub( /\\\";?/, \"\", $10);gsub( /\\\";?/, \"\", $12);print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12}' ", sep="");
 
 	bigdf <- try( read.table( pipe(awk.cmd), header = F ), silent=T);
 	if (class(bigdf) =="try-error")
@@ -592,7 +601,7 @@ import_gencode <-function( species, file.gencode.gtf, V3.type=NA )
 
 	if( exists("bigdf") && !is.null(bigdf) && !is.na(bigdf) )
 	{
-		colnames(bigdf) <- c("V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "same", "gene_id");
+		colnames(bigdf) <- c("V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "gene_id_label", "gene_id", "tx_id_label", "tx_id" );
 		return(bigdf);
 	}
 	else
