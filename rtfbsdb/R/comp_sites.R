@@ -1025,6 +1025,8 @@ tfbs.plotEnrichment <- function( tfbs, r.comp, file.pdf, plot.title="", top.moti
 
 	df.ret <- r.comp$result[,c('motif.id','tf.name', 'fe.ratio', 'pvalue' ) ];
 	df.ret$y.log <- -log10( df.ret$pvalue );
+	if(missing(y.max) || is.null(y.max))
+		y.max <- max( df.ret$y.log [ !is.infinite(df.ret$y.log) ] );
 	df.ret$y.log [ is.infinite(df.ret$y.log) | (df.ret$y.log>=y.max) ] <- y.max;
 
 	if(enrichment.type == "enriched")
