@@ -1034,11 +1034,13 @@ tfbs.plotEnrichment <- function( tfbs, r.comp, file.pdf, plot.title="", top.moti
 	else if (enrichment.type == "depleted")
 		df.ret  <- df.ret [ df.ret$fe.ratio < 1,  ];
 
+	y.lim <- c(0, 1) * y.max ;
 	if(plot.type=="polar")
 	{
 		idx.enrich  <- which( df.ret$fe.ratio >= 1 );
 		idx.deple  <- which( df.ret$fe.ratio < 1 );
 		df.ret$y.log[idx.deple] <- - df.ret$y.log[idx.deple];
+		y.lim <- c(-1,1) * y.max;
 	}
 
 	df.ret <- df.ret[order( df.ret$y.log, decreasing = F ),];
@@ -1048,7 +1050,7 @@ tfbs.plotEnrichment <- function( tfbs, r.comp, file.pdf, plot.title="", top.moti
 	plot(NA, NA, type="n",
 			xlab = xlab,
 			ylab = ylab,
-			ylim = range(df.ret$y.log),
+			ylim = y.lim,
 			xlim = xlim,
 			cex  = 1.0,
 			main = plot.title,
