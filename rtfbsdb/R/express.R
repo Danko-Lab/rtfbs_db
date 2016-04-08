@@ -547,9 +547,12 @@ tfbs_getExpression <- function(tfbs,
 	colnames(df.exp) <- c("Motif_ID", "DBID", "txID", "chr", "txStart", "txEnd", "txLength", "strand", "reads", "lambda", "reads.RPKM", "lambda.RPKM", "p.pois" );
 
 	# these dummy statements are setup here to pass R CMD check rtfbsdb --as-cran
-	reads <-NA;
-	lambda <- NA;
-	p.pois <-NA;
+	txStart  <-NA;
+	txEnd    <-NA;
+	txLength <-NA;
+	reads    <-NA;
+	lambda   <- NA;
+	p.pois   <-NA;
 	reads.RPKM <- NA;
 	lambda.RPKM <- NA;
 
