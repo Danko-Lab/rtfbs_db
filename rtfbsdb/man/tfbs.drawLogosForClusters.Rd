@@ -7,7 +7,7 @@ Draw the motif logos by clustering.
 Draw the motif logos by one cluster per page.
 }
 \usage{
-tfbs.drawLogosForClusters(tfbs, file.pdf, nrow.per.page=NULL )
+tfbs.drawLogosForClusters(tfbs, file.pdf, nrow.per.page=6 )
 }
 \arguments{
   \item{tfbs}{A tfbs object(\code{"\linkS4class{tfbs}"}).}

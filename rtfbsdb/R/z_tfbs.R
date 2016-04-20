@@ -101,6 +101,7 @@ setGeneric("tfbs.getExpression",
 			file.bigwig.minus = NA,
 			file.bam = NA,
 			seq.datatype=c( "GRO-seq", "PRO-seq", "RNA-seq" ),
+			use.strand=FALSE,
 			ncores = 1)
 	{
 		stopifnot(class(tfbs) == "tfbs")
@@ -148,7 +149,7 @@ setMethod("tfbs.drawLogo", c(tfbs="tfbs"), tfbs_drawLogo );
 
 ## Draws all logos for each cluster.
 setGeneric("tfbs.drawLogosForClusters",
-	def = function(tfbs, file.pdf=NULL, nrow.per.page=NULL ) {
+	def = function(tfbs, file.pdf = NULL, nrow.per.page = 6 ) {
 		stopifnot(class(tfbs) == "tfbs")
 		standardGeneric("tfbs.drawLogosForClusters")
 	})

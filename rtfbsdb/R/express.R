@@ -273,7 +273,7 @@ cpu.PRO.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, file.bigwig
 			p.pois  <- ppois( abs(r.reads[bed.max]), r.lambda * abs( r.bed[bed.max,3] - r.bed[bed.max,2] ) , lower.tail=F);
 			length  <- abs(r.bed [bed.max,3] - r.bed [bed.max,2] );
 			reads   <- abs(r.reads[bed.max]);
-			reads.RPKM   <- 10^9 * reads / length / reads.total;
+			RPKM    <- 10^9 * reads / length / reads.total;
 			lambda0      <- r.lambda * abs( r.bed[bed.max,3] - r.bed[bed.max,2] );
 			lambda.RPKM  <- 10^9 * r.lambda / reads.total;
 
@@ -287,7 +287,7 @@ cpu.PRO.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, file.bigwig
 					"strand"    = as.character(r.bed [bed.max,6]),
 					"reads"	    = reads,
 					"lambda"    = lambda0,
-					"reads.RPKM"= reads.RPKM,
+					"RPKM"      = RPKM,
 					"lambda.RPKM"= lambda.RPKM,
 					"p.pois"    = p.pois );
 		}
@@ -367,7 +367,7 @@ cpu.RNA.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, gencode_exo
 					p.pois  <- ppois( abs(rna.reads[max.idx]), r.lambda * rna.length[max.idx], lower.tail=F);
 					length  <- rna.length[max.idx];
 					reads   <- rna.reads[max.idx];
-					reads.RPKM   <- 10^9 * reads / length / reads.total;
+					RPKM    <- 10^9 * reads / length / reads.total;
 					lambda0      <- r.lambda * length ;
 					lambda.RPKM  <- 10^9 * lambda0/ length / reads.total;
 
@@ -381,7 +381,7 @@ cpu.RNA.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, gencode_exo
 						"strand"    = as.character(r.bed.rna [max.idx,6]),
 						"reads"	    = reads,
 						"lambda"    = lambda0,
-						"reads.RPKM"= reads.RPKM,
+						"RPKM"      = RPKM,
 						"lambda.RPKM"= lambda.RPKM,
 						"p.pois"    = p.pois );
 				}
@@ -416,6 +416,7 @@ tfbs_getExpression <- function(tfbs,
 								file.bigwig.minus=NA,
 								file.bam=NA,
 								seq.datatype=c("GRO-seq", "PRO-seq", "RNA-seq" ),
+								use.strand = FALSE,
 								ncores = 1 )
 {
 	stopifnot( NROW(tfbs@tf_info)>0 );
@@ -535,7 +536,7 @@ tfbs_getExpression <- function(tfbs,
 			r.bed.list <- cpu.PRO.seq( DBIDs, sect[i], sect[i+1]-1, gencode_transcript_ext, file.bigwig.plus, file.bigwig.minus, reads.total, r.lambda );
 
 		df.exp <- transform( do.call(rbind, r.bed.list) );
-		colnames(df.exp) <- c("DBID", "txID", "chr", "txStart", "txEnd", "txLength", "strand", "reads","lambda", "reads.RPKM", "lambda.RPKM", "p.pois");
+		colnames(df.exp) <- c("DBID", "txID", "chr", "txStart", "txEnd", "txLength", "strand", "reads","lambda", "RPKM", "lambda.RPKM", "p.pois");
 
 		return( df.exp );
 	}, mc.cores = ncores );
@@ -544,7 +545,7 @@ tfbs_getExpression <- function(tfbs,
 	df.exp0 <- do.call( rbind, df.exp );
 	df.idx  <- match( as.character(tfbs@tf_info$DBID), as.character(df.exp0$DBID) )
 	df.exp  <- cbind( tfbs@tf_info$Motif_ID, df.exp0[df.idx,,drop=F] );
-	colnames(df.exp) <- c("Motif_ID", "DBID", "txID", "chr", "txStart", "txEnd", "txLength", "strand", "reads", "lambda", "reads.RPKM", "lambda.RPKM", "p.pois" );
+	colnames(df.exp) <- c("Motif_ID", "DBID", "txID", "chr", "txStart", "txEnd", "txLength", "strand", "reads", "lambda", "RPKM", "lambda.RPKM", "p.pois" );
 
 	# these dummy statements are setup here to pass R CMD check rtfbsdb --as-cran
 	txStart  <-NA;
@@ -553,7 +554,7 @@ tfbs_getExpression <- function(tfbs,
 	reads    <-NA;
 	lambda   <- NA;
 	p.pois   <-NA;
-	reads.RPKM <- NA;
+	RPKM     <- NA;
 	lambda.RPKM <- NA;
 
 	df.exp <- transform( df.exp,
@@ -562,7 +563,7 @@ tfbs_getExpression <- function(tfbs,
 				"txLength" = as.numeric(as.character(txLength) ),
 				"reads"    = as.numeric(as.character(reads) ),
 				"lambda"   = as.numeric(as.character(lambda) ),
-				"reads.RPKM"  = as.numeric(as.character(reads.RPKM) ),
+				"RPKM"     = as.numeric(as.character(RPKM) ),
 				"lambda.RPKM" = as.numeric(as.character(lambda.RPKM) ),
 				"p.pois"   = as.numeric(as.character(p.pois) ) );
 
@@ -725,7 +726,7 @@ tfbs_selectExpressedMotifs <- function( tfbs,
 			tf.expresed <- which( tfs@expressionlevel$p.pois<=prob.sig );
 
 		if (!is.na(lowest.reads.RPKM) && length(tf.expresed)>0 )
-			tf.expresed <- tf.expresed[ tfs@expressionlevel[tf.expresed, 'reads.RPKM'] >= lowest.reads.RPKM ];
+			tf.expresed <- tf.expresed[ tfs@expressionlevel[tf.expresed, 'RPKM'] >= lowest.reads.RPKM ];
 
 		if(length(tf.expresed)>0)
 		{

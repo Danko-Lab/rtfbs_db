@@ -124,7 +124,7 @@ tfbs_drawLogo <- function(tfbs, file.pdf=NULL, index=NULL, tf_id=NULL, motif_id=
 #'
 #' @file.pdf
 
-tfbs_drawLogosForClusters <- function(tfbs,  file.pdf=NULL, nrow.per.page=NULL)
+tfbs_drawLogosForClusters <- function(tfbs,  file.pdf=NULL, nrow.per.page=6 )
 {
 	if( NROW( tfbs@cluster )  == 0)
 		stop("No cluster information in the tfbs object.")
