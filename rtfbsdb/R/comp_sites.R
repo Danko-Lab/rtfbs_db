@@ -1030,9 +1030,9 @@ tfbs.plotEnrichment <- function( tfbs, r.comp, file.pdf, plot.title="", top.moti
 	df.ret$y.log [ is.infinite(df.ret$y.log) | (df.ret$y.log>=y.max) ] <- y.max;
 
 	if(enrichment.type == "enriched")
-		df.ret  <- df.ret [ df.ret$fe.ratio >= 1,  ]
+		df.ret  <- df.ret [ df.ret$fe.ratio >= 1, ,drop=F ]
 	else if (enrichment.type == "depleted")
-		df.ret  <- df.ret [ df.ret$fe.ratio < 1,  ];
+		df.ret  <- df.ret [ df.ret$fe.ratio < 1, ,drop=F];
 
 	y.lim <- c(0, 1) * y.max ;
 	if(plot.type=="polar")
@@ -1079,6 +1079,8 @@ tfbs.plotEnrichment <- function( tfbs, r.comp, file.pdf, plot.title="", top.moti
 	{
 		if(is.null(top.motif.labels) | is.numeric(top.motif.labels) )
 		{
+			if ( top.motif.labels> NROW(df.ret) ) top.motif.labels <- NROW(df.ret);
+				
 			n.revse <- NROW(df.ret) - c(1:as.numeric(top.motif.labels)) + 1;
 			top.motif.labels <- unlist(lapply(n.revse , function(i) {paste(df.ret[i,1],df.ret[i,2], sep="/" );}));
 		}
@@ -1103,6 +1105,8 @@ tfbs.plotEnrichment <- function( tfbs, r.comp, file.pdf, plot.title="", top.moti
 	{
 		if(is.null(bottom.motif.labels) | is.numeric(bottom.motif.labels) )
 		{
+			if ( bottom.motif.labels> NROW(df.ret) ) bottom.motif.labels <- NROW(df.ret);
+
 			n.order <-  c(1:as.numeric(bottom.motif.labels)) ;
 			bottom.motif.labels <- unlist(lapply(n.order , function(i) {paste(df.ret[i,1],df.ret[i,2], sep="/" );}));
 		}
@@ -1123,7 +1127,7 @@ tfbs.plotEnrichment <- function( tfbs, r.comp, file.pdf, plot.title="", top.moti
 
     par(xpd=old.xpd);
 
-	drawlegend( 0, (max(y)-min(y))*0.9+min(y), width=NROW(y)*0.2, height=(max(y)-min(y))*0.15, title="Enrichment Ratio", 0.4, 2.5, F, color.scheme );
+	drawlegend( 0, (max(y.lim)-min(y.lim))*0.9+min(y.lim), width=NROW(y)*0.2, height=(max(y.lim)-min(y.lim))*0.15, title="Enrichment Ratio", 0.4, 2.5, F, color.scheme );
 
 	dev.off();
 }

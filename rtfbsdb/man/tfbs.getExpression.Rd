@@ -15,6 +15,7 @@ tfbs.getExpression(tfbs,
       file.bigwig.minus=NA, 
       file.bam=NA, 
       seq.datatype = c("GRO-seq", "PRO-seq", "RNA-seq"),
+      use.strand=FALSE,
       ncores =1 )
 }
 \arguments{
@@ -25,6 +26,7 @@ tfbs.getExpression(tfbs,
   \item{file.bigwig.minus}{String, indicating bigwig file for strand minus(-) if \code{seq.datatype} is GRO-seq or PRO-seq.}
   \item{file.bam}{String, indicating BAM file for rna reads if \code{seq.datatype} is RNA-seq.}
   \item{seq.datatype}{String,indicating which kind of seq data is applied to this function, three values are available: GRO-seq, PRO-seq and RNA-seq. (Default=GRO-seq)}
+  \item{use.strand}{Logical, indicating whether same strandedness is required when getting the number of mapped reads from BAM files for RNA-seq. }
   \item{ncores}{Number, comupting nodes in parallel environment.}
 }
 

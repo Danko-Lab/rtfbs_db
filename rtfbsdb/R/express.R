@@ -76,7 +76,7 @@ simple_reduce_bed<-function( r.bed )
 	return(r.bed);
 }
 
-lambda_estimate_in_bam <- function( file.bam, file.twoBit, file.gencode.gtf, sample.size=100*1000, win.size=1000, pseudo_lambda=0.01)
+lambda_estimate_in_bam <- function( file.bam, file.twoBit, file.gencode.gtf, sample.size=100*1000, win.size=1000, pseudo_lambda=0.01, use.strand)
 {
 	import_gene_loci <-function(file.gencode.gtf)
 	{
@@ -163,8 +163,11 @@ lambda_estimate_in_bam <- function( file.bam, file.twoBit, file.gencode.gtf, sam
 	df.comp.win <- df.comp.win[sub.sample, ];
 
 	df.comp.strand <- rbind( cbind( df.comp.win, V4=".", V5=".", V6="+"),
-	 				 cbind( df.comp.win, V4=".", V5=".", V6="-") );
-	reads <- get_bam_reads( file.bam, df.bed=df.comp.strand );
+	 				 		 cbind( df.comp.win, V4=".", V5=".", V6="-") );
+	if(use.strand)
+		reads <- get_bam_reads( file.bam, df.bed = df.comp.strand, use.strand=use.strand )
+	else	
+		reads <- get_bam_reads( file.bam, df.bed = df.comp.win, use.strand=use.strand )
 
 	## NO BAM file or BAM file is not indexed
 	if( all(is.na(reads)))  return( NULL );
@@ -173,18 +176,36 @@ lambda_estimate_in_bam <- function( file.bam, file.twoBit, file.gencode.gtf, sam
 	if( quantile(reads, 0.99) > 0)
 		reads <- reads[ which( reads <= quantile(reads, 0.99) ) ];
 
+	# option 1: Mode 
 	lambda1 <- Stats_mode(reads);
-	## if we calculate double strands,
-	lambda2 <- mean(reads)/2;
+	# option 2: Average
+	lambda2 <- mean(reads);
 
 	lambda <- max( lambda1, lambda2, pseudo_lambda);
 
 	return( lambda );
 }
 
-get_bam_reads<-function(file.bam, df.bed=NULL, file.twoBit= NULL )
+get_bam_reads<-function(file.bam, df.bed = NULL, file.twoBit = NULL, use.strand = FALSE )
 {
 	options("scipen"=100, "digits"=4)
+	
+	read_bam <- function(df.bed, use.strand)
+	{
+		file.df3 <- tempfile();
+		write.table( df.bed, file=file.df3, quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t");
+		pipe.cmd <- paste( "sort-bed ", file.df3, " | bedtools multicov -bams", file.bam, " -bed - ");
+		if(use.strand)
+			pipe.cmd <- paste( pipe.cmd, "-s");
+			
+		ts <- try(read.table( pipe(pipe.cmd) ), silent=T);
+		unlink(file.df3);
+
+		if(class(ts) == "try-error")
+			check_command_error( ts, c("bedtools", "sort-bed") )
+		else
+			return(ts[, NCOL(ts) ] )
+	}
 
 	filename <- tempfile();
 	## suppress samtools command, keep codes here
@@ -202,40 +223,32 @@ get_bam_reads<-function(file.bam, df.bed=NULL, file.twoBit= NULL )
 
 	if(!is.null(df.bed))
 	{
-		file.df6 <- tempfile();
-
-		## include 'strand' field.
-		write.table( df.bed[,c(1:6),drop=F], file=file.df6, quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t");
-		pipe.cmd <- paste( "sort-bed ", file.df6, " | bedtools multicov -bams", file.bam, " -bed - ");
-		ts <- try(read.table( pipe(pipe.cmd) ), silent=T);
-		unlink(file.df6);
-
-		if(class(ts) == "try-error")
-			check_command_error( ts, c("bedtools", "sort-bed") )
+		if( !use.strand )
+			return( read_bam(df.bed[, c(1:3)], FALSE) )
 		else
-			return(ts[,7])
+			return( read_bam( df.bed[, c(1:6)], TRUE) );
 	}
-
-	if(!is.null(file.twoBit))
+	else
+	if( !is.null(file.twoBit) )
 	{
 		tb.gen <- get_chromosome_size( file.twoBit );
 		df.bed <- data.frame(tb.gen[,1], 1, tb.gen[,2]);
 
-		file.df3 <- tempfile();
-		write.table( df.bed, file=file.df3, quote=FALSE, row.names=FALSE, col.names=FALSE, sep="\t");
-		pipe.cmd <- paste( "sort-bed ", file.df3, " | bedtools multicov -bams", file.bam, " -bed - ");
-		ts <- try(read.table( pipe(pipe.cmd) ), silent=T);
-		unlink(file.df3);
-
-		if(class(ts) == "try-error")
-			check_command_error( ts, c("bedtools", "sort-bed") )
+		if( !use.strand )
+			return( sum(read_bam(df.bed, FALSE) ) )
 		else
-			return(sum(ts[,4]))
+		{
+			reads.plus <- read_bam( data.frame(df.bed, ".", ".", "+"), TRUE);
+			reads.minus <- read_bam( data.frame(df.bed, ".", ".", "-"), TRUE);
+			return( sum(reads.plus + reads.minus) );
+		}	
 	}
+	else
+		return(NA);
 }
 
 
-cpu.PRO.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, file.bigwig.plus, file.bigwig.minus, reads.total, r.lambda)
+cpu.PRO.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, file.bigwig.plus, file.bigwig.minus, reads.total, r.lambda, use.strand)
 {
 	r.df.len <- 11;
 	bw.plus  <- try( bigWig::load.bigWig( file.bigwig.plus ) );
@@ -301,7 +314,7 @@ cpu.PRO.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, file.bigwig
 	return(r.bed.list);
 }
 
-cpu.RNA.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, gencode_exon_ext, file.bam, reads.total, r.lambda)
+cpu.RNA.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, gencode_exon_ext, file.bam, reads.total, r.lambda, use.strand)
 {
 	r.df.len = 11;
 
@@ -314,6 +327,7 @@ cpu.RNA.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, gencode_exo
 
 		if(length(r.bed.idx)<1) return(c(dbid=dbid, rep(NA, r.df.len)));
 
+		# chr|start|stop|id|score|strand
 		r.bed.exon <- gencode_exon_ext[r.bed.idx, c(1,4,5,12,6,7), drop=F ];
 		colnames(r.bed.exon) <- c('chr','start','end','id','score','strand');
 
@@ -325,7 +339,7 @@ cpu.RNA.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, gencode_exo
 			r.bed.exon$start[idx.bed.size1] <- temp.end;
 		}
 
-		r.reads  <- try( get_bam_reads( file.bam, df.bed=r.bed.exon ) );
+		r.reads  <- try( get_bam_reads( file.bam, df.bed=r.bed.exon, use.strand=use.strand ) );
 		if( class(r.reads) == "try-error")
 			r.df   <- c( dbid, rep(NA, r.df.len) )
 		else
@@ -347,6 +361,7 @@ cpu.RNA.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, gencode_exo
 					exon.idx   <- which(  r.bed.exon[,2]<r.bed.rna[i,3] &
 										  r.bed.exon[,3]>r.bed.rna[i,2] &
 										  as.character(r.bed.rna[i,6])==as.character(r.bed.exon[,6]) );
+
 					if(length(exon.idx)>0)
 					{
 						rna.reads  <- c( rna.reads, sum(r.reads[exon.idx]));
@@ -378,12 +393,13 @@ cpu.RNA.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, gencode_exo
 						"start"     = r.bed.rna [max.idx, 2],
 						"end"       = r.bed.rna [max.idx, 3],
 						"length"    = length,
-						"strand"    = as.character(r.bed.rna [max.idx,6]),
+						"strand"    = if(use.strand) as.character(r.bed.rna [max.idx,6]) else ".", 
 						"reads"	    = reads,
 						"lambda"    = lambda0,
 						"RPKM"      = RPKM,
 						"lambda.RPKM"= lambda.RPKM,
 						"p.pois"    = p.pois );
+						
 				}
 			}
 		}
@@ -496,10 +512,10 @@ tfbs_getExpression <- function(tfbs,
 		else
 			cat(" ", NROW(gencode_exon_ext), "exons are selected from GENCODE dataset.\n");
 
-		reads.total <- get_bam_reads( file.bam, file.twoBit = file.twoBit);
+		reads.total <- get_bam_reads( file.bam, file.twoBit = file.twoBit, use.strand=use.strand);
 		cat(" ", reads.total, "mapped reads in", file.bam, "\n");
 
-		reads.lambda.kb <- lambda_estimate_in_bam( file.bam, file.twoBit, file.gencode.gtf, win.size=win.size, pseudo_lambda=pseudo_lambda );
+		reads.lambda.kb <- lambda_estimate_in_bam( file.bam, file.twoBit, file.gencode.gtf, win.size=win.size, pseudo_lambda=pseudo_lambda, use.strand=use.strand );
 		if( is.null(reads.lambda.kb) )
 			stop("Failed to load the BAM file.");
 
@@ -531,9 +547,9 @@ tfbs_getExpression <- function(tfbs,
 
 		r.bed.list <- c();
 		if(seq.datatype=="RNA-seq")
-			r.bed.list <- cpu.RNA.seq( DBIDs, sect[i], sect[i+1]-1, gencode_transcript_ext, gencode_exon_ext, file.bam, reads.total, r.lambda)
+			r.bed.list <- cpu.RNA.seq( DBIDs, sect[i], sect[i+1]-1, gencode_transcript_ext, gencode_exon_ext, file.bam, reads.total, r.lambda, use.strand)
 		else
-			r.bed.list <- cpu.PRO.seq( DBIDs, sect[i], sect[i+1]-1, gencode_transcript_ext, file.bigwig.plus, file.bigwig.minus, reads.total, r.lambda );
+			r.bed.list <- cpu.PRO.seq( DBIDs, sect[i], sect[i+1]-1, gencode_transcript_ext, file.bigwig.plus, file.bigwig.minus, reads.total, r.lambda, use.strand );
 
 		df.exp <- transform( do.call(rbind, r.bed.list) );
 		colnames(df.exp) <- c("DBID", "txID", "chr", "txStart", "txEnd", "txLength", "strand", "reads","lambda", "RPKM", "lambda.RPKM", "p.pois");
@@ -716,6 +732,7 @@ tfbs_selectExpressedMotifs <- function( tfbs,
 							pvalue.threshold = 0.05,
 							lowest.reads.RPKM = NA,
 							include.DBID.missing = TRUE,
+							use.strand = FALSE,
 							ncores = 1)
 {
 	selectExpressed<-function( tfs, prob.sig=0.05, include.DBID.Missing=FALSE )
@@ -724,10 +741,10 @@ tfbs_selectExpressedMotifs <- function( tfbs,
 			tf.expresed <- which( tfs@expressionlevel$p.pois<=prob.sig | is.na(tfs@expressionlevel$p.pois) )
 		else
 			tf.expresed <- which( tfs@expressionlevel$p.pois<=prob.sig );
-
+			
 		if (!is.na(lowest.reads.RPKM) && length(tf.expresed)>0 )
 			tf.expresed <- tf.expresed[ tfs@expressionlevel[tf.expresed, 'RPKM'] >= lowest.reads.RPKM ];
-
+			
 		if(length(tf.expresed)>0)
 		{
 			tfs@expressionlevel <- tfs@expressionlevel[ tf.expresed,,drop=F ];
@@ -754,6 +771,7 @@ tfbs_selectExpressedMotifs <- function( tfbs,
 								file.bigwig.minus,
 								file.bam = file.bam,
 								seq.datatype = seq.datatype,
+								use.strand = use.strand,
 								ncores = ncores  );
 
 	if( NROW( tfs@expressionlevel ) > 0 )

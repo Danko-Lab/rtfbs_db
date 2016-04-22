@@ -82,6 +82,7 @@ setGeneric("tfbs.selectExpressedMotifs",
 			pvalue.threshold = 0.05,
 			lowest.reads.RPKM = NA,
 			include.DBID.missing = TRUE,
+			use.strand=FALSE,
 			ncores = 1 )
 	{
 		stopifnot(class(tfbs) == "tfbs");

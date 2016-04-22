@@ -17,6 +17,7 @@ tfbs.selectExpressedMotifs(tfbs,
       pvalue.threshold = 0.05, 
       lowest.reads.RPKM = NA,
       include.DBID.missing=TRUE, 
+      use.strand = FALSE,
       ncores = 1 )       
 
 }
@@ -31,6 +32,7 @@ tfbs.selectExpressedMotifs(tfbs,
   \item{pvalue.threshold}{Numeric, indicating p-value criteria for expressed motifs. Default: 0.05 }
   \item{lowest.reads.RPKM}{Numeric, implying the motifs with lower reads than this threshold will be removed from expressed list. Default: NA}
   \item{include.DBID.missing}{Logical, indicating whether the TFs without association with GENCODE through the DBID are selected. }
+  \item{use.strand}{Logical, indicating whether same strandedness is required when getting the number of mapped reads from BAM files for RNA-seq. }
   \item{ncores}{Number, comuputing nodes in parallel environment for gencode data converting.}
 }
 \details{
