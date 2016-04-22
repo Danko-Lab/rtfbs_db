@@ -43,9 +43,20 @@ tfs3 <- tfbs.selectExpressedMotifs(tfs3, file.twoBit_path,
 			file.gencode.gtf,
 			file.bam    = file.bam,
 			seq.datatype="RNA-seq",
-			lowest.reads.RPKM = 3,
+			lowest.reads.RPKM = 0.003,
 			ncores      = 1);
-head(tfs3@expressionlevel)
+
+tfs3@expressionlevel;
+
+tfs3x <- tfbs.selectExpressedMotifs(tfs3, file.twoBit_path,
+			file.gencode.gtf,
+			file.bam    = file.bam,
+			seq.datatype="RNA-seq",
+			lowest.reads.RPKM = 0.003,
+			use.strand=TRUE,
+			ncores      = 1);
+head(tfs3x@expressionlevel)
+
 
 tfs4 <- tfbs.createFromCisBP(db);
 tfs4 <- tfbs.selectExpressedMotifs(tfs4, file.twoBit_path,

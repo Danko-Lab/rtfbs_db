@@ -129,12 +129,11 @@ compare.motifs <- function(motif1, motif2, BG=log(c(0.25, 0.25, 0.25, 0.25)))
 	}
 
 	score1 <- c( align_strong_part( motif1, motif2 ), align_strong_part( motif2, motif1) );
-
 	motif1_rc <- reverse.complement(motif1);
 	motif2_rc <- reverse.complement(motif2);
 	score2 <- c( align_strong_part( motif1_rc, motif2 ), align_strong_part( motif2_rc, motif1) );
 
 	score <- c(score1, score2, compare.motifs.inner( motif1, motif2, BG ) );
 
-	return(max(score));
+	return(max(score, na.rm=T));
 }

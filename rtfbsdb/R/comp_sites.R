@@ -974,6 +974,11 @@ tfbs.plotEnrichment <- function( tfbs, r.comp, file.pdf, plot.title="", top.moti
 {
 	if(missing(plot.type)) plot.type <- "nonpolar";
 	if(missing(enrichment.type)) enrichment.type <- "both";
+	if(!(enrichment.type %in% c("both", "enriched", "depleted")))
+		stop("The option 'enrichment.type' has three values: both, enriched, depleted.");
+	if(!(plot.type %in% c("nonpolar", "polar")))
+		stop("The option 'plot.type' has two values: nonpolar, polar.");
+
 	if( (enrichment.type == "enriched" && plot.type == "polar" ) | (enrichment.type == "depleted" && plot.type == "polar" ) )
 		warning("'polar' figure only can be applied to the motifs enriched and depleted 'both'." );
 
@@ -1077,41 +1082,54 @@ tfbs.plotEnrichment <- function( tfbs, r.comp, file.pdf, plot.title="", top.moti
 	## exclude this condition: polar && only 'depleted'
 	if( !(plot.type== "polar"  && enrichment.type == "depleted") )
 	{
+		df.top <- df.ret;
 		if(is.null(top.motif.labels) | is.numeric(top.motif.labels) )
 		{
-			if ( top.motif.labels> NROW(df.ret) ) top.motif.labels <- NROW(df.ret);
-				
-			n.revse <- NROW(df.ret) - c(1:as.numeric(top.motif.labels)) + 1;
-			top.motif.labels <- unlist(lapply(n.revse , function(i) {paste(df.ret[i,1],df.ret[i,2], sep="/" );}));
+			if( plot.type == "polar" ) df.top <- df.ret[ df.ret[, "fe.ratio"] >= 1.0,,drop=F]
+			if( top.motif.labels> NROW(df.top) ) top.motif.labels <- NROW(df.top);
+
+			if(top.motif.labels>0)
+			{
+				n.revse <- NROW(df.top) - c(1:as.numeric(top.motif.labels)) + 1;
+				top.motif.labels <- unlist(lapply(n.revse , function(i) {paste(df.top[i,1], df.top[i,2], sep="/" );}));
+			}
 		}
 
-		old.y <- max(abs(df.ret$y.log))+10;
-		for(k in 1:length(top.motif.labels) )
+		if( length(top.motif.labels) >0 )
 		{
-			if( top.motif.labels [k] == "" ) next;
+			old.y <- max( y )+10;
+			for(k in 1:length(top.motif.labels) )
+			{
+				if( top.motif.labels [k] == "" ) next;
 
-			i <- NROW(df.ret) - k + 1;
-			y.pos <- y [i];
-			if(y.pos > old.y) y.pos <- old.y
+				i <- NROW(df.ret) - k + 1;
+				y.pos <- y [i];
+				if(y.pos > old.y) y.pos <- old.y
 
-			label <- top.motif.labels[k];
-			text( i - strwidth("A")*1.2, y.pos, label, cex=2/3, adj=c(1,0.5), srt=0, col=y.col[i]);
-			old.y <- y.pos - strheight(label, cex=0.8 )*1.2;
+				label <- top.motif.labels[k];
+				text( i - strwidth("A")*1.2, y.pos, label, cex=2/3, adj=c(1,0.5), srt=0, col=y.col[i]);
+				old.y <- y.pos - strheight(label, cex=0.8 )*1.2;
+			}
 		}
 	}
 
 	## only include this condition: polar && not 'enriched'
 	if( plot.type== "polar" && enrichment.type != "enriched")
 	{
+		df.bottom <- df.ret[ df.ret[, "fe.ratio"] < 1.0,,drop=F]
+
 		if(is.null(bottom.motif.labels) | is.numeric(bottom.motif.labels) )
 		{
-			if ( bottom.motif.labels> NROW(df.ret) ) bottom.motif.labels <- NROW(df.ret);
+			if ( bottom.motif.labels> NROW(df.bottom) ) bottom.motif.labels <- NROW(df.bottom);
 
-			n.order <-  c(1:as.numeric(bottom.motif.labels)) ;
-			bottom.motif.labels <- unlist(lapply(n.order , function(i) {paste(df.ret[i,1],df.ret[i,2], sep="/" );}));
+			if(bottom.motif.labels>0)
+			{
+				n.order <-  c(1:as.numeric(bottom.motif.labels)) ;
+				bottom.motif.labels <- unlist(lapply(n.order , function(i) {paste(df.bottom[i,1], df.bottom[i,2], sep="/" );}));
+			}
 		}
 
-		old.y <- min(abs(df.ret$y.log))-10;
+		old.y <- min(y)-10;
 		for(k in 1:length(bottom.motif.labels) )
 		{
 			if( bottom.motif.labels [k] == "" ) next;
