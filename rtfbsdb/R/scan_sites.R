@@ -12,12 +12,25 @@
 
 extend.bed <- function( bed, len, file.twoBit )
 {
+	chr_info <- get_chromosome_size( file.twoBit );
+	chr_max  <- chr_info[ match( bed[,1], chr_info[,1]), 2 ];
+
+	# if remove some loci which fall outside the chromosome range.
+	if(length(which( bed[,2] > chr_max) ) >0 )
+	{
+		idx.abnormal <- which( bed[,2] > chr_max );
+		loci.abnormal <- paste(bed[idx.abnormal,1],":", bed[idx.abnormal,2],"-",bed[idx.abnormal,3], sep="");
+		warning( paste( "Some loci fall outside the chromosome range. (e.g. ", paste(head(loci.abnormal), collapse =",", se=""), ")" ) );
+
+		## remove  the loci which fall outside.
+		bed <- bed[ -idx.abnormal, ];
+		chr_max <- chr_max [ -idx.abnormal ];
+	}
+
 	starts = as.integer(bed[,2] - len);
 	ends   = as.integer(bed[,3] + len);
 	chr    = bed[,1];
 
-	chr_info <- get_chromosome_size( file.twoBit );
-	chr_max  <- chr_info[ match(chr, chr_info[,1]), 2 ];
 	ends[ ends >  chr_max ] <- chr_max[ ends >  chr_max ];
 	starts[ starts <=1 ] <- 1;
 
