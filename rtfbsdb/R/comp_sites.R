@@ -968,20 +968,8 @@ tfbs.reportEnrichment<-function( tfbs,
 						"*Enrichment: Enrichment ratio for positive reads against negative reads." );
 }
 
-
-tfbs.plotEnrichment <- function( tfbs, r.comp, file.pdf, plot.title="", top.motif.labels=5, bottom.motif.labels=5, xlab="Order", ylab="-log10(p-value)", y.max=NULL,
-	enrichment.type = c ("both", "enriched", "depleted"), plot.type=c("nonpolar", "polar"), color.scheme = 2 )
+tfbs.draw.enrichment <- function( tfbs, file.pdf, df.ret, enrichment.type, plot.type, df.top, df.bottom, options )
 {
-	if(missing(plot.type)) plot.type <- "nonpolar";
-	if(missing(enrichment.type)) enrichment.type <- "both";
-	if(!(enrichment.type %in% c("both", "enriched", "depleted")))
-		stop("The option 'enrichment.type' has three values: both, enriched, depleted.");
-	if(!(plot.type %in% c("nonpolar", "polar")))
-		stop("The option 'plot.type' has two values: nonpolar, polar.");
-
-	if( (enrichment.type == "enriched" && plot.type == "polar" ) | (enrichment.type == "depleted" && plot.type == "polar" ) )
-		warning("'polar' figure only can be applied to the motifs enriched and depleted 'both'." );
-
 	scheme1 <- data.frame( min.col = c( 0.9,0.6,0 ), max.col = c( 0, 0, 1 ) );
 	scheme2 <- data.frame( min.col = c( 0,0.99,0 ), max.col = c( 0.9, 0.01, 0.9 ) );
 
@@ -1023,129 +1011,324 @@ tfbs.plotEnrichment <- function( tfbs, r.comp, file.pdf, plot.title="", top.moti
 			rect(  x0 + 0.1*width + i*bar.width/bar.len, y0, x0 + 0.1*width + i*bar.width/bar.len+bar.width/bar.len, y0+height*0.4, col=col,border=NA );
 		}
 
-		text( x0 + 0.1*width,  y0 + height*0.55, title, cex=2/3, adj= c(0, 0.5));
-		text( x0 + 0.1*width,  y0 - height*0.15,  sprintf("%1g", pv.min), cex=2/3, adj = c(0, 0.5));
-		text( x0 + 1*width,  y0 - height*0.15,  sprintf("%1g", pv.max), cex=2/3, adj = c(1, 0.5));
+		text( x0 + 0.1*width,  y0 + height*0.55, title, cex=2/3*options$zoom.legend.label, adj= c(0, 0.5));
+		text( x0 + 0.1*width,  y0 - height*0.15,  sprintf("%1g", pv.min), cex=2/3*options$zoom.legend.label, adj = c(0, 0.5));
+		text( x0 + 1*width,  y0 - height*0.15,  sprintf("%1g", pv.max), cex=2/3*options$zoom.legend.label, adj = c(1, 0.5));
 	}
+
+	draw_top_motif<- function( df.motifs )
+	{
+		labels <- unlist(lapply( 1:NROW(df.motifs) , function(i) {paste(df.motifs[i,"motif.id"], df.motifs[i,"tf.name"], sep="/" );}));
+
+		old.y <- max( df.motifs[, "y"] )+10;
+		vps <- baseViewports();
+		pushViewport(vps$inner, vps$figure, vps$plot);
+
+		for(i in 1:NROW(df.motifs))
+		{
+			if( labels [i] == "" ) next;
+
+			x.pos <- df.motifs[i, "x"];
+			y.pos <- distortY( df.motifs[i, "y"] );
+
+			if(y.pos > old.y) y.pos <- old.y
+
+			r.grid.left <- x.pos - (options$xlim[2]-options$xlim[1])*0.6
+			r.grid.right <-  x.pos - 0.01*(options$xlim[2]-options$xlim[1]);
+			r.grid <- c( r.grid.left, y.pos - motif.logo.height/2, r.grid.right, y.pos + motif.logo.height/2 );
+
+			if(r.grid[1] < options$xlim[1] ) r.grid[1] <- options$xlim[1];
+			if(r.grid[3] > options$xlim[2] ) r.grid[3] <- options$xlim[2];
+
+			text( (r.grid[1] + r.grid[3])/2,  y.pos - motif.logo.height/2 - motif.label.height*0.95, labels[i], srt=0, adj=c(1/2,0.5),
+					cex=2/3* options$zoom.motif.label,
+					col= "black" ); # get_rgbcol( df.motifs$fe.ratio[i], 0.4, 2.5, F, options$color.scheme )
+
+			idx <-which( as.character(df.motifs[i,"motif.id"]) == as.character(tfbs@tf_info$Motif_ID) );
+			if(length(idx)>1)
+			{
+				warning(paste("Multiple matrice in the tfbs object for Motif ID:", as.character(df.motifs[i,"motif.id"]),
+					", first matrix (index:", idx[1], ") is used to draw logo.\n"));
+				idx <- idx[1];
+			}
+
+			if(length(idx)>0)
+			{
+
+				pushViewport( viewport(
+								x  = unit(r.grid[1], "native"),
+								y  = unit(r.grid[2], "native"),
+								width  = unit(r.grid[3] - r.grid[1], "native"),
+								height = unit(r.grid[4] - r.grid[2], "native"),
+								just = c("left","bottom")));
+
+				seqLogo( exp(t(tfbs@pwm[[idx]])), xaxis = FALSE, yaxis = FALSE);
+				popViewport();
+			}
+			else
+				warning(paste("No PWM is found in the tfbs object for Motif ID:", as.character(df.motifs[i,"motif.id"]), "\n"));
+
+			old.y <- y.pos - motif.height;
+		}
+
+		popViewport();
+	}
+
+	draw_bottom_motif <- function(df.motifs )
+	{
+		labels <- unlist(lapply( 1:NROW(df.motifs) , function(i) {paste(df.motifs[i,"motif.id"], df.motifs[i,"tf.name"], sep="/" );}));
+
+		old.y <- min( df.motifs[, "y"] )-10;
+		vps <- baseViewports();
+		pushViewport(vps$inner, vps$figure, vps$plot);
+
+		for(i in 1:NROW(df.motifs))
+		{
+			if( labels [i] == "" ) next;
+
+			x.pos <- df.motifs[i, "x"];
+			y.pos <- distortY( df.motifs[i, "y"] );
+			if(y.pos < old.y) y.pos <- old.y
+
+			r.grid.left <- x.pos + 2/(options$xlim[2]-options$xlim[1]);
+			r.grid.right <-  x.pos + (options$xlim[2]-options$xlim[1])*0.6
+			r.grid <- c( r.grid.left , y.pos - motif.logo.height/2, r.grid.right, y.pos + motif.logo.height/2 );
+
+			if(r.grid[1] < options$xlim[1] ) r.grid[1] <- options$xlim[1];
+			if(r.grid[3] > options$xlim[2] ) r.grid[3] <- options$xlim[2];
+
+			text( (r.grid[1] + r.grid[3])/2, y.pos - motif.logo.height/2*1.1, labels[i], srt=0, adj=c( 0.5, 1),
+					cex = 2/3 * options$zoom.motif.label,
+					col= "black" ); # get_rgbcol( df.motifs$fe.ratio[i], 0.4, 2.5, F, options$color.scheme )
+
+			idx <-which( as.character(df.motifs[i,"motif.id"]) == as.character(tfbs@tf_info$Motif_ID) );
+			if(length(idx)>1)
+			{
+				warning(paste("Multiple matrice in the tfbs object for Motif ID:", as.character(df.motifs[i,"motif.id"]),
+					", first matrix (index:", idx[1], ") is used to draw logo.\n"));
+				idx <- idx[1];
+			}
+
+			if(length(idx)>0)
+			{
+				pushViewport( viewport(
+								x  = unit(r.grid[1], "native"),
+								y  = unit(r.grid[2], "native"),
+								width  = unit(r.grid[3] - r.grid[1], "native"),
+								height = unit(r.grid[4] - r.grid[2], "native"),
+								just = c("left","bottom")));
+
+				seqLogo( exp(t(tfbs@pwm[[idx]])), xaxis = FALSE, yaxis = FALSE);
+				popViewport();
+			}
+			else
+				warning(paste("No PWM is found in the tfbs object for Motif ID:", as.character(df.motifs[i,"motif.id"]), "\n"));
+
+			old.y <- y.pos + motif.height;
+		}
+
+		popViewport();
+	}
+
+	get_distortion<-function( df.ret, options)
+	{
+		logo.area.min.height <- motif.height * NROW(df.ret);
+		logo.area.org.height <- max(df.ret$y)-min(df.ret$y) + 0.5*motif.height;
+
+		if( logo.area.min.height < logo.area.org.height )
+			return(1);
+
+		##distored curve: y.orinial^a = y.distorted.
+		##                a = log(y.distored)/log(y.orignial)
+		y.original  <- logo.area.min.height/(options$ylim[2]);
+		y.distorted <- logo.area.org.height/(options$ylim[2]);
+		return( log(y.distorted)/log(y.original) );
+	}
+
+	distortY<-function( y )
+	{
+		y.sgn <- sapply(1:NROW(y), function(i){ifelse(y[i]>0, 1, -1)} );
+		y.original  <- ( abs(y) - 0 )/(options$ylim[2]-0);
+		return( (y.original ^ distort.a)*options$ylim[2]*y.sgn )
+	}
+
+
+	library(gridBase);
+	plot(NA, NA, type="n",
+			xlab = options$xlab,
+			ylab = options$ylab,
+			ylim = options$ylim,
+			xlim = options$xlim,
+			yaxt = "n",
+			cex  = 1.0,
+			cex.axis = options$zoom.tick,
+			cex.lab = options$zoom.label,
+			main = options$title,
+			pch  = 19 );
+
+
+	motif.logo.height  <- strheight("A", cex=1.5) * options$zoom.motif.logo;
+	motif.label.height <- strheight("A", cex=2/3 * options$zoom.motif.label)
+	motif.height <- motif.logo.height + motif.label.height + strheight("A", cex=1/3* options$zoom.motif.label);
+
+	distort.a <- get_distortion( df.top, options);
+	if( NROW( df.bottom) > 0 )
+	{
+		distort.a2 <- get_distortion( df.bottom, options);
+		if(is.na(distort.a))
+			distort.a <-distort.a2
+		else
+		{
+			if(distort.a2<distort.a) distort.a <- distort.a2;
+		}
+	}
+
+	if(!is.null(options$abline))
+		abline( h = distortY( options$abline ), lty=22, lwd=0.5);
+
+	if(plot.type=="polar")
+	{
+		if(!is.null(options$abline)) abline( h = distortY( -1*options$abline ), lty=22, lwd=0.5);
+		abline( h = distortY( 0 ), lty=1, lwd=0.5);
+	}
+
+	axis(2, at=distortY( axTicks(2) ), labels = axTicks(2), cex.axis = options$zoom.tick, cex.lab = options$zoom.label );
+
+	old.xpd <- par( xpd=NA );
+
+	y     <- df.ret$y.log;
+	y.cex <- (log(abs(y))+1)/3;
+	y.cex [ y.cex < 0.6 ] <- 0.6;
+	y.cex [ y.cex > 3 ]   <- 3;
+	y.col <- get_rgbcol( df.ret$fe.ratio, 0.4, 2.5, F, options$color.scheme );
+
+	points(1:NROW(y), distortY( y ), pch=19, col = y.col, cex=y.cex);
+
+	if( NROW(df.top)>0) draw_top_motif( df.top);
+	if( NROW(df.bottom)>0) draw_bottom_motif( df.bottom);
+
+    par(xpd=old.xpd);
+
+	drawlegend( 0, (max( options$ylim)-min( options$ylim ))*0.9+min( options$ylim ),
+			width=NROW(y)*0.2,
+			height=(max( options$ylim)-min( options$ylim ))*0.15, title="Enrichment Ratio", 0.4, 2.5, F, options$color.scheme );
+
+	popViewport();
+
+}
+
+tfbs.plotEnrichment <- function( tfbs, r.comp, file.pdf, enrichment.type = c ("both", "enriched", "depleted"), plot.type=c("nonpolar", "polar"), options=list() )
+{
+	get_default_options<-function()
+	{
+		options=list(
+				abline = NULL,
+				title  = "",
+				xlab   = "Order",
+				ylab   = "-log10(p-value)",
+				y.max  = NULL,
+				top.motif.labels = 5,
+				bottom.motif.labels = 5,
+				color.scheme = 2,
+				width = 7,
+				height = 7,
+				zoom.tick = 1,
+				zoom.label = 1,
+				zoom.motif.logo = 1,
+				zoom.legend.label=1,
+				zoom.motif.label = 1 );
+
+		return(options);
+	}
+
+	options0 <- get_default_options();
+	options0[names(options)] <- options;
+	options <- options0;
+
+	if( options$width > 7 || options$height > 7	)
+		warning("PDF size exceeds 7 inches.")
+	if(missing(plot.type)) plot.type <- "nonpolar";
+	if(missing(enrichment.type)) enrichment.type <- "both";
+	if(!(enrichment.type %in% c("both", "enriched", "depleted")))
+		stop("The option 'enrichment.type' has three values: both, enriched, depleted.");
+	if(!(plot.type %in% c("nonpolar", "polar")))
+		stop("The option 'plot.type' has two values: nonpolar, polar.");
+	if( (enrichment.type == "enriched" && plot.type == "polar" ) | (enrichment.type == "depleted" && plot.type == "polar" ) )
+		warning("'polar' figure only can be applied to the motifs enriched and depleted 'both'." );
 
 	df.ret <- r.comp$result[,c('motif.id','tf.name', 'fe.ratio', 'pvalue' ) ];
 	df.ret$y.log <- -log10( df.ret$pvalue );
-	if(missing(y.max) || is.null(y.max))
-		y.max <- max( df.ret$y.log [ !is.infinite(df.ret$y.log) ] );
-	df.ret$y.log [ is.infinite(df.ret$y.log) | (df.ret$y.log>=y.max) ] <- y.max;
+	if( is.null( options$y.max ))
+		options$y.max <- max( df.ret$y.log [ !is.infinite(df.ret$y.log) ] );
+	df.ret$y.log [ is.infinite(df.ret$y.log) | (df.ret$y.log >= options$y.max) ] <- options$y.max;
 
 	if(enrichment.type == "enriched")
 		df.ret  <- df.ret [ df.ret$fe.ratio >= 1, ,drop=F ]
 	else if (enrichment.type == "depleted")
 		df.ret  <- df.ret [ df.ret$fe.ratio < 1, ,drop=F];
 
-	y.lim <- c(0, 1) * y.max ;
+	options$ylim <- c(0, 1) * options$y.max ;
 	if(plot.type=="polar")
 	{
 		idx.enrich  <- which( df.ret$fe.ratio >= 1 );
 		idx.deple  <- which( df.ret$fe.ratio < 1 );
 		df.ret$y.log[idx.deple] <- - df.ret$y.log[idx.deple];
-		y.lim <- c(-1,1) * y.max;
+		options$ylim <- c(-1,1) * options$y.max;
 	}
 
 	df.ret <- df.ret[order( df.ret$y.log, decreasing = F ),];
-	xlim = c(0, NROW(df.ret) );
 
-	pdf( file.pdf );
-	plot(NA, NA, type="n",
-			xlab = xlab,
-			ylab = ylab,
-			ylim = y.lim,
-			xlim = xlim,
-			cex  = 1.0,
-			main = plot.title,
-			cex.axis=1.0,
-			pch  = 19 );
+	options$xlim = c(0, NROW(df.ret) );
+	options$abline.h <- -log10(0.05/NROW(df.ret));
 
-	abline( h = -log10(0.05/NROW(df.ret)), lty=22, lwd=0.5);
-	if(plot.type=="polar")
-	{
-		abline( h = +log10(0.05/NROW(df.ret)), lty=22, lwd=0.5);
-		abline( h = 0, lty=1, lwd=0.5);
-	}
-
-	old.xpd <- par(xpd=NA);
-
-	y     <- df.ret$y.log;
-	y.cex <- (log(abs(y))+1)/3;
-	y.cex [ y.cex < 0.6 ] <- 0.6;
-	y.cex [ y.cex > 3 ]   <- 3;
-	y.col <- get_rgbcol( df.ret$fe.ratio, 0.4, 2.5, F, color.scheme );
-
-	points(1:NROW(y), y, pch=19, col = y.col, cex=y.cex);
-
+	df.top <- c()
 	## exclude this condition: polar && only 'depleted'
 	if( !(plot.type== "polar"  && enrichment.type == "depleted") )
 	{
 		df.top <- df.ret;
-		if(is.null(top.motif.labels) | is.numeric(top.motif.labels) )
+		df.dummy.bottom <- c();
+		if( is.null(options$top.motif.labels) || is.numeric(options$top.motif.labels))
 		{
-			if( plot.type == "polar" ) df.top <- df.ret[ df.ret[, "fe.ratio"] >= 1.0,,drop=F]
-			if( top.motif.labels> NROW(df.top) ) top.motif.labels <- NROW(df.top);
-
-			if(top.motif.labels>0)
+			if( plot.type == "polar" )
 			{
-				n.revse <- NROW(df.top) - c(1:as.numeric(top.motif.labels)) + 1;
-				top.motif.labels <- unlist(lapply(n.revse , function(i) {paste(df.top[i,1], df.top[i,2], sep="/" );}));
+				df.top <- df.ret[ df.ret[, "fe.ratio"] >= 1.0,,drop=F]
+				df.dummy.bottom <- df.ret[ df.ret[, "fe.ratio"] < 1.0,,drop=F]
+			}
+
+			if( options$top.motif.labels> NROW(df.top) ) options$top.motif.labels <- NROW(df.top);
+			if( options$top.motif.labels>0 )
+			{
+				n.revse <- NROW(df.top) - c(1:as.numeric(options$top.motif.labels)) + 1;
+				df.top <- df.top[n.revse,,drop=F]
+
+				if(NROW(df.top)>0) df.top <- cbind( x=n.revse+NROW(df.dummy.bottom), y=df.top$y.log, df.top);
 			}
 		}
 
-		if( length(top.motif.labels) >0 )
-		{
-			old.y <- max( y )+10;
-			for(k in 1:length(top.motif.labels) )
-			{
-				if( top.motif.labels [k] == "" ) next;
-
-				i <- NROW(df.ret) - k + 1;
-				y.pos <- y [i];
-				if(y.pos > old.y) y.pos <- old.y
-
-				label <- top.motif.labels[k];
-				text( i - strwidth("A")*1.2, y.pos, label, cex=2/3, adj=c(1,0.5), srt=0, col=y.col[i]);
-				old.y <- y.pos - strheight(label, cex=0.8 )*1.2;
-			}
-		}
 	}
 
+	df.bottom <- c();
 	## only include this condition: polar && not 'enriched'
 	if( plot.type== "polar" && enrichment.type != "enriched")
 	{
 		df.bottom <- df.ret[ df.ret[, "fe.ratio"] < 1.0,,drop=F]
-
-		if(is.null(bottom.motif.labels) | is.numeric(bottom.motif.labels) )
+		if(is.null(options$bottom.motif.labels) || is.numeric(options$bottom.motif.labels) )
 		{
-			if ( bottom.motif.labels> NROW(df.bottom) ) bottom.motif.labels <- NROW(df.bottom);
+			if ( options$bottom.motif.labels> NROW(df.bottom) ) options$bottom.motif.labels <- NROW(df.bottom);
 
-			if(bottom.motif.labels>0)
+			if(options$bottom.motif.labels>0)
 			{
-				n.order <-  c(1:as.numeric(bottom.motif.labels)) ;
-				bottom.motif.labels <- unlist(lapply(n.order , function(i) {paste(df.bottom[i,1], df.bottom[i,2], sep="/" );}));
+				n.order <-  c(1:as.numeric( options$bottom.motif.labels )) ;
+				df.bottom <- df.bottom[n.order,,drop=F]
+
+				if(NROW(df.bottom)>0) df.bottom <- cbind( x=n.order, y=df.bottom$y.log, df.bottom);
 			}
-		}
-
-		old.y <- min(y)-10;
-		for(k in 1:length(bottom.motif.labels) )
-		{
-			if( bottom.motif.labels [k] == "" ) next;
-
-			y.pos <- y [k];
-			if(y.pos < old.y) y.pos <- old.y
-
-			label <- bottom.motif.labels[k];
-			text( k + strwidth("A")*1.2, y.pos, label, cex=2/3, adj=c(0,0.5), srt=0, col=y.col[k]);
-			old.y <- y.pos + strheight(label, cex=0.8 )*1.2;
 		}
 	}
 
-    par(xpd=old.xpd);
+	pdf( file.pdf, width = options$width, height = options$height );
 
-	drawlegend( 0, (max(y.lim)-min(y.lim))*0.9+min(y.lim), width=NROW(y)*0.2, height=(max(y.lim)-min(y.lim))*0.15, title="Enrichment Ratio", 0.4, 2.5, F, color.scheme );
+	try( tfbs.draw.enrichment ( tfbs, file.pdf, df.ret, enrichment.type, plot.type, df.top, df.bottom, options ) );
 
 	dev.off();
 }
