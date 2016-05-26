@@ -41,11 +41,11 @@ tfbs.scanTFsite(tfbs,
 
 (1) Five options are availabe for the function of tfbs.scanTFsite as follows.\cr
 \itemize{
-\item{matches:}{ returns all matching TF sites for all motifs.}
-\item{writedb:}{ writes a bed file with matches sites. Assumes that sort-bed and starch tools are availiable in $PATH}
-\item{maxscore:}{ returns the max score(posterior difference between motif model and background) in each bed-formatted loci.}
-\item{posteriors:}{ returns the posteriors at each position in bed-formatted loci.}
-\item{maxposterior:}{ returns the max(posterior) in each bed-formatted loci.}
+\item{\code{matches}:}{ returns all matching TF sites for all motifs.}
+\item{\code{writedb}:}{ writes a bed file with matches sites. Assumes that sort-bed and starch tools are availiable in $PATH}
+\item{\code{maxscore}:}{ returns the max score(posterior difference between motif model and background) in each bed-formatted loci.}
+\item{\code{posteriors}:}{ returns the posteriors at each position in bed-formatted loci.}
+\item{\code{maxposterior}:}{ returns the max(posterior) in each bed-formatted loci.}
 }
 
 (2) In order to make the binary file with the parameter of writedb, make sure that starchcat 

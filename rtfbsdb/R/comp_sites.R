@@ -1130,7 +1130,7 @@ tfbs.draw.enrichment <- function( tfbs, file.pdf, df.ret, enrichment.type, plot.
 		popViewport();
 	}
 
-	get_distortion<-function( df.ret, options)
+	get_distortion<-function( df.ret, options )
 	{
 		logo.area.min.height <- motif.height * NROW(df.ret);
 		logo.area.org.height <- max(df.ret$y)-min(df.ret$y) + 0.5*motif.height;
@@ -1153,7 +1153,7 @@ tfbs.draw.enrichment <- function( tfbs, file.pdf, df.ret, enrichment.type, plot.
 	}
 
 
-	library(gridBase);
+	require(gridBase);
 	plot(NA, NA, type="n",
 			xlab = options$xlab,
 			ylab = options$ylab,
@@ -1207,11 +1207,9 @@ tfbs.draw.enrichment <- function( tfbs, file.pdf, df.ret, enrichment.type, plot.
 	if( NROW(df.top)>0) draw_top_motif( df.top);
 	if( NROW(df.bottom)>0) draw_bottom_motif( df.bottom);
 
-    par(xpd=old.xpd);
-
-	drawlegend( 0, (max( options$ylim)-min( options$ylim ))*0.9+min( options$ylim ),
-			width=NROW(y)*0.2,
-			height=(max( options$ylim)-min( options$ylim ))*0.15, title="Enrichment Ratio", 0.4, 2.5, F, options$color.scheme );
+    par( xpd = old.xpd );
+	y.size <- max( options$ylim )-min( options$ylim );
+	drawlegend( 0, y.size*0.9+min( options$ylim ), width  = NROW(y)*0.2, height = y.size*0.15,  title="Enrichment Ratio", 0.4, 2.5, F, options$color.scheme );
 
 	popViewport();
 
@@ -1224,18 +1222,18 @@ tfbs.plotEnrichment <- function( tfbs, r.comp, file.pdf, enrichment.type = c ("b
 		options=list(
 				abline = NULL,
 				title  = "",
+				width  = 7,
+				height = 7,
 				xlab   = "Order",
 				ylab   = "-log10(p-value)",
 				y.max  = NULL,
-				top.motif.labels = 5,
+				top.motif.labels    = 5,
 				bottom.motif.labels = 5,
 				color.scheme = 2,
-				width = 7,
-				height = 7,
-				zoom.tick = 1,
-				zoom.label = 1,
-				zoom.motif.logo = 1,
-				zoom.legend.label=1,
+				zoom.tick    = 1,
+				zoom.label   = 1,
+				zoom.motif.logo  = 1,
+				zoom.legend.label= 1,
 				zoom.motif.label = 1 );
 
 		return(options);
@@ -1281,7 +1279,7 @@ tfbs.plotEnrichment <- function( tfbs, r.comp, file.pdf, enrichment.type = c ("b
 	options$xlim = c(0, NROW(df.ret) );
 	options$abline.h <- -log10(0.05/NROW(df.ret));
 
-	df.top <- c()
+	df.top <- c();
 	## exclude this condition: polar && only 'depleted'
 	if( !(plot.type== "polar"  && enrichment.type == "depleted") )
 	{
