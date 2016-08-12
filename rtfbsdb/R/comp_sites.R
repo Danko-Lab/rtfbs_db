@@ -542,7 +542,7 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit,
 	return( list(ret=r.df, bg.sample = bg.sample ) );
 }
 
-tfbs_enrichmentTest<-function( tfbs, file.twoBit,
+tfbs_enrichmentTest<-function( tfbs, file.genome,
 					positive.bed,
 					negative.bed = NA,
 					file.prefix = NA,
@@ -560,9 +560,6 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 					pv.adj = p.adjust.methods)
 {
 	stopifnot(class(tfbs) == "tfbs")
-
-	if( !file.exists (file.twoBit)  )
-		stop(paste("Twobit file is not accessible, File=", file.twoBit));
 
 	if( !check_bed( positive.bed ) )
 		stop("Wrong format in the parameter of 'positive.bed', at least three columns including chromosome, strat, stop.");
@@ -592,6 +589,17 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 		stop("No cluster information in the tfbs object");
 	if( use.cluster && NCOL(tfbs@cluster)!=3 )
 		stop("No selected motif for each cluster in the tfbs object");
+
+	file.twoBit = file.genome;
+	if( tolower( file_ext( file.genome ) ) != "2bit" )
+	{
+		file.twoBit = tempfile(fileext=".2bit")
+
+		# generate fasta file
+		err_code <- system(paste("faToTwoBit ", file.genome, " ", file.twoBit), wait = TRUE);
+		if( err_code != 0 || !file.exists (file.twoBit) )
+			stop("Failed to call faToTwoBit to convert FASTFA file.");
+	}
 
 	if( use.cluster )
 	{
@@ -714,7 +722,7 @@ tfbs_enrichmentTest<-function( tfbs, file.twoBit,
 		}
 	}
 
-	r.parm <- list( file.twoBit   = file.twoBit,
+	r.parm <- list( file.genome   = file.genome,
 				file.prefix       = file.prefix,
 				use.cluster       = use.cluster,
 				cluster.mat       = cluster.mat,

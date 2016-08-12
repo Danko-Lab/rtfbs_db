@@ -8,7 +8,7 @@ Comparative TS sites between positive and negative TRE loci for all motifs.
 }
 \usage{
 tfbs.enrichmentTest(tfbs, 
-      file.twoBit, 
+      file.genome, 
       positive.bed, 
       negative.bed=NA, 
       file.prefix=NA, 
@@ -27,7 +27,7 @@ tfbs.enrichmentTest(tfbs,
 }
 \arguments{
   \item{tfbs}{A tfbs object, see also \code{"\linkS4class{tfbs}"} }
-  \item{file.twoBit}{String, the file name of genome data( e.g. hg19.2bit, mm10.2bit) }
+  \item{file.genome}{String, the file name of genome data, 2bit or FastA format( e.g. hg19,fasta, hg19.2bit, mm10.2bit) }
   \item{positive.bed}{Data frame, bed-formatted TRE loci.}
   \item{negative.bed}{Data frame, bed-formatted background loci. If not specified, the genomic loci adjacent to positive one are randomly extracted as the negative bed. }
   \item{file.prefix}{String, the prefix for outputted BED file, no bed files output if NA }
@@ -175,6 +175,24 @@ tfbs.plotEnrichment(tfs, t3, file.pdf="plot-elf1-enrich-enriched.pdf",
       enrichment.type="enriched", 
       plot.title="QQ plot", 
       top.motif.labels=3, plot.type="nonpolar", color.scheme=2);
+
+
+#Use FastA file to call enrichment test
+file.fastfa = system.file("extdata","dna.fasta", package="rtfbsdb")
+
+if(0)
+{
+t4 <- tfbs.enrichmentTest( tfs, 
+      file.fastfa, 
+      pos.bed, 
+      neg.bed, 
+      gc.correction=TRUE,
+      gc.min.sample = 1000,
+      ncores = 1); #ncores=3
+
+t4;
+}
+
 
 }
 \keyword{tfbs object}

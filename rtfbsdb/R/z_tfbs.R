@@ -163,7 +163,7 @@ setMethod("tfbs.drawLogosForClusters", c(tfbs="tfbs"), tfbs_drawLogosForClusters
 ##
 setGeneric("tfbs.scanTFsite",
 	def = function( tfbs,
-					file.twoBit,
+					file.genome,
 					gen.bed = NULL,
 					return.type = c("matches", "maxscore", "posteriors", "maxposterior", "writedb"),
 					file.prefix = NA,
@@ -173,7 +173,9 @@ setGeneric("tfbs.scanTFsite",
 					threshold.type = c("score", "fdr"),
 					gc.groups = NA,
 					background.order = 2,
-					background.length = 100000 )
+					background.length = 100000,
+					exclude_offset = 250,
+					exclude_chromosome="_|chrM|chrY|chrX" )
 	{
 		stopifnot(class(tfbs) == "tfbs")
 		standardGeneric("tfbs.scanTFsite")
@@ -186,7 +188,7 @@ setMethod("tfbs.scanTFsite", c(tfbs="tfbs"), tfbs_scanTFsite )
 ##
 setGeneric("tfbs.enrichmentTest",
 	def = function( tfbs,
-					file.twoBit,
+					file.genome,
 					positive.bed,
 					negative.bed = NA,
 					file.prefix  = NA,

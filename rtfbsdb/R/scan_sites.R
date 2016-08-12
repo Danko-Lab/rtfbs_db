@@ -280,7 +280,7 @@ scanDb_rtfbs <- function(tfbs,
 
 # ncores=3 for 4 cores CPU.
 
-tfbs_scanTFsite<-function( tfbs, file.twoBit,
+tfbs_scanTFsite <- function( tfbs, file.genome,
 							gen.bed = NULL,
 							return.type="matches",
 							file.prefix = NA,
@@ -290,24 +290,42 @@ tfbs_scanTFsite<-function( tfbs, file.twoBit,
 							threshold.type = c("score", "fdr"),
 							gc.groups = NA,
 							background.order = 2,
-							background.length = 100000 )
+							background.length = 100000,
+							exclude_offset = 250,
+							exclude_chromosome="_|chrM|chrY|chrX" )
 {
 	stopifnot(class(tfbs) == "tfbs")
 	stopifnot(return.type %in% c("matches", "maxscore", "posteriors", "maxposterior", "writedb") );
 
-	if( !file.exists (file.twoBit)  )
-		stop(paste("Twobit file is not accessible, File=", file.twoBit));
+	if( !file.exists (file.genome)  )
+		stop(paste("Genome file is not accessible, File=", file.genome));
+
+	file.twoBit = file.genome;
+	if( tolower( file_ext( file.genome ) ) != "2bit" )
+	{
+		file.twoBit = tempfile(fileext=".2bit")
+
+		# generate fasta file
+		err_code <- system(paste("faToTwoBit ", file.genome, " ", file.twoBit), wait = TRUE);
+		if( err_code != 0 || !file.exists (file.twoBit) )
+			stop("Failed to call faToTwoBit to convert FASTFA file.");
+	}
 
 	if( missing(gen.bed) && (return.type %in% c("posteriors", "maxposterior", "maxscore")) )
 		stop("The option 'maxscore', 'posteriors' or 'maxposterior' need specified genomic loci.");
 
-	if( missing(gen.bed) )
+	if( missing(gen.bed) || is.null(gen.bed) )
 	{
 		chromInfo <- get_chromosome_size( file.twoBit );
 
-		offset_dist <- 250;
-		chromInfo <- chromInfo[grep("_|chrM|chrY|chrX", chromInfo[,1], invert=TRUE),];
-		gen.bed <- data.frame(chrom=chromInfo[,1], chromStart=rep(0)+offset_dist, chromEnd=(chromInfo[,2]-1-offset_dist));
+		if( !is.null( exclude_chromosome ) && !is.na(exclude_chromosome) )
+			chromInfo <- chromInfo[grep( exclude_chromosome , chromInfo[,1], invert=TRUE),];
+
+		#exclude_offset <- 250;
+		if( is.na( exclude_offset ) )
+			exclude_offset <- 0;
+
+		gen.bed <- data.frame(chrom=chromInfo[,1], chromStart=rep(0)+exclude_offset, chromEnd=(chromInfo[,2]-1-exclude_offset));
 	}
 	else
 		if( !check_bed(gen.bed) )
@@ -345,7 +363,7 @@ tfbs_scanTFsite<-function( tfbs, file.twoBit,
 					background.order = background.order,
 					background.length = background.length );
 
-	r.parm <- list(file.twoBit       = file.twoBit,
+	r.parm <- list(file.genome       = file.genome,
 					file.prefix      = file.prefix,
 					return.type      = return.type,
 					usemotifs        = usemotifs,

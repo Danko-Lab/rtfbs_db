@@ -9,7 +9,7 @@ does not provided genome data such as hg19.2bit, mm10.2bit.
 }
 \usage{
 tfbs.scanTFsite(tfbs, 
-      file.twoBit, 
+      file.genome, 
       gen.bed, 
       return.type=c("matches", "maxscore", "posteriors", "maxposterior", "writedb"), 
       file.prefix=NA, 
@@ -19,12 +19,14 @@ tfbs.scanTFsite(tfbs,
       threshold.type = c("score", "fdr"), 
       gc.groups = NA, 
       background.order = 2,
-      background.length = 100000)
+      background.length = 100000,
+      exclude_offset = 250,
+      exclude_chromosome="_|chrM|chrY|chrX")
 }
 
 \arguments{
   \item{tfbs}{A tfbs object (\code{"\linkS4class{tfbs}"}) returned by \code{\link{tfbs.createFromCisBP}}, \code{\link{tfbs}}, \code{\link{tfbs.dirs}}. }
-  \item{file.twoBit}{String, the file name of genome data( e.g. hg19.2bit or mm10.2bit) }
+  \item{file.genome}{String, the file name of genome data, 2bit or FastA format.( e.g. hg19.fasta, hg19.2bit or mm10.2bit) }
   \item{gen.bed}{Data frame, bed-formatted loci information with 6 columns}
   \item{return.type}{String, five available values explained in th details(default = "matches")}
   \item{file.prefix}{String, the prefix for outputted file, only used when the return.type is \emph{writedb}}
@@ -35,7 +37,10 @@ tfbs.scanTFsite(tfbs,
   \item{threshold.type}{String value, two options are available. only sites with scores above this threshold are returned, not be used if NA. (default = 'score')}
   \item{gc.groups}{Numeric value,indicating number of quantiles to group sequences into in \code{rtfbs} package (default = 1).}
   \item{background.order}{Numeric value,indicating the order of Markov model to build in \code{rtfbs} package (default = 2).}
-  \item{background.length}{Numeric value, indicating length of the sequence to simulate in \code{rtfbs} package (default = 100000)}
+  \item{background.length}{Numeric value, indicating length of the sequence to simulate in \code{rtfbs} package (default = 100000) }
+  \item{exclude_offset}{Numeric value, indicating length of both sides in the genome sequence which is excluded in the scanning process if \code{gen.bed} is not specified. (default for human species = 250) }
+  \item{exclude_chromosome}{String value, indicating chromosomes in the genome sequence which are removed in the scanning process if \code{gen.bed} is not specified. (default for human species = '_|chrM|chrY|chrX') }
+
 }
 \details{
 
@@ -169,6 +174,25 @@ t5 <- tfbs.scanTFsite( tfs,
 
 t5;
 
+file.fastfa = system.file("extdata","dna.fasta", package="rtfbsdb")
+t6 <- tfbs.scanTFsite( tfs, 
+      file.fastfa, 
+      NULL, 
+      file.prefix="test.db",
+      ncores = 1,
+      exclude_offset=0,
+      exclude_chromosome=NULL  );
+t6;
+
+
+t7 <- tfbs.scanTFsite( tfs, 
+      file.fastfa, 
+      gen.bed=NULL, 
+      return.type="maxscore",
+      ncores = 1,
+      exclude_offset=0,
+      exclude_chromosome=NULL  );
+t7;
 
 }
 
