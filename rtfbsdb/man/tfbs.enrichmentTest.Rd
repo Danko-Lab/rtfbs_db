@@ -152,8 +152,8 @@ tfbs.reportEnrichment(tfs, t2, file.pdf="test-tfbs-enrich-both.pdf",
 #plot QQ-like plot for the pvalues of all motifs
 tfbs.plotEnrichment(tfs, t2, file.pdf="plot-tfbs-enrich-both.pdf", 
       enrichment.type="both", 
-      plot.title="QQ plot", 
-      top.motif.labels=3, bottom.motif.labels=3, plot.type="polar", color.scheme=1);
+      options=list(plot.title="QQ plot", 
+      top.motif.labels=3, bottom.motif.labels=3, plot.type="polar", color.scheme=1));
 
 
 t3 <- tfbs.enrichmentTest( tfs, 
@@ -173,8 +173,8 @@ tfbs.reportEnrichment(tfs, t3, file.pdf="test-elf1-enrich-depleted.pdf",
 #plot QQ-like plot for the pvalues of all motifs
 tfbs.plotEnrichment(tfs, t3, file.pdf="plot-elf1-enrich-enriched.pdf", 
       enrichment.type="enriched", 
-      plot.title="QQ plot", 
-      top.motif.labels=3, plot.type="nonpolar", color.scheme=2);
+      options=list(plot.title="QQ plot", 
+      top.motif.labels=3, plot.type="nonpolar", color.scheme=2));
 
 
 #Use FastA file to call enrichment test
