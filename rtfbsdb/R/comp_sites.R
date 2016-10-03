@@ -1026,7 +1026,12 @@ tfbs.draw.enrichment <- function( tfbs, file.pdf, df.ret, enrichment.type, plot.
 
 	draw_top_motif<- function( df.motifs )
 	{
-		labels <- unlist(lapply( 1:NROW(df.motifs) , function(i) {paste(df.motifs[i,"motif.id"], df.motifs[i,"tf.name"], sep="/" );}));
+		labels <- unlist(lapply( 1:NROW(df.motifs) , function(i) {
+			if( is.na( df.motifs$label[i] ) )
+				paste(df.motifs[i,"motif.id"], df.motifs[i,"tf.name"], sep="/" )
+			else
+				df.motifs$label[i];
+		}));
 
 		old.y <- max( df.motifs[, "y"] )+10;
 		vps <- baseViewports();
@@ -1042,8 +1047,10 @@ tfbs.draw.enrichment <- function( tfbs, file.pdf, df.ret, enrichment.type, plot.
 			if(y.pos > old.y) y.pos <- old.y
 
 			r.grid.left <- x.pos - (options$xlim[2]-options$xlim[1])*0.6
-			r.grid.right <-  x.pos - 0.01*(options$xlim[2]-options$xlim[1]);
+			r.grid.right <-  x.pos - 0.02*(options$xlim[2]-options$xlim[1]);
 			r.grid <- c( r.grid.left, y.pos - motif.logo.height/2, r.grid.right, y.pos + motif.logo.height/2 );
+
+			points( x.pos, distortY( df.motifs[i, "y"] ), pch=19, col="black", cex = y.cex/2 );
 
 			if(r.grid[1] < options$xlim[1] ) r.grid[1] <- options$xlim[1];
 			if(r.grid[3] > options$xlim[2] ) r.grid[3] <- options$xlim[2];
@@ -1084,7 +1091,12 @@ tfbs.draw.enrichment <- function( tfbs, file.pdf, df.ret, enrichment.type, plot.
 
 	draw_bottom_motif <- function(df.motifs )
 	{
-		labels <- unlist(lapply( 1:NROW(df.motifs) , function(i) {paste(df.motifs[i,"motif.id"], df.motifs[i,"tf.name"], sep="/" );}));
+		labels <- unlist(lapply( 1:NROW(df.motifs) , function(i) {
+			if( is.na( df.motifs$label[i] ) )
+				paste(df.motifs[i,"motif.id"], df.motifs[i,"tf.name"], sep="/" )
+			else
+				df.motifs$label[i];
+		}));
 
 		old.y <- min( df.motifs[, "y"] )-10;
 		vps <- baseViewports();
@@ -1101,6 +1113,8 @@ tfbs.draw.enrichment <- function( tfbs, file.pdf, df.ret, enrichment.type, plot.
 			r.grid.left <- x.pos + 2/(options$xlim[2]-options$xlim[1]);
 			r.grid.right <-  x.pos + (options$xlim[2]-options$xlim[1])*0.6
 			r.grid <- c( r.grid.left , y.pos - motif.logo.height/2, r.grid.right, y.pos + motif.logo.height/2 );
+
+			points( x.pos, distortY( df.motifs[i, "y"] ), pch=19, col="black", cex = y.cex/2 );
 
 			if(r.grid[1] < options$xlim[1] ) r.grid[1] <- options$xlim[1];
 			if(r.grid[3] > options$xlim[2] ) r.grid[3] <- options$xlim[2];
@@ -1140,7 +1154,9 @@ tfbs.draw.enrichment <- function( tfbs, file.pdf, df.ret, enrichment.type, plot.
 
 	get_distortion<-function( df.ret, options )
 	{
-		logo.area.min.height <- motif.height * NROW(df.ret);
+		n.label <- NROW(df.ret) - length(which(df.ret$label==""));
+
+		logo.area.min.height <- motif.height * n.label;
 		logo.area.org.height <- max(df.ret$y)-min(df.ret$y) + 0.5*motif.height;
 
 		if( logo.area.min.height < logo.area.org.height )
@@ -1175,7 +1191,7 @@ tfbs.draw.enrichment <- function( tfbs, file.pdf, df.ret, enrichment.type, plot.
 			pch  = 19 );
 
 
-	motif.logo.height  <- strheight("A", cex=1.5) * options$zoom.motif.logo;
+	motif.logo.height  <- strheight("A", cex=1.5 * options$zoom.motif.label) * options$zoom.motif.logo;
 	motif.label.height <- strheight("A", cex=2/3 * options$zoom.motif.label)
 	motif.height <- motif.logo.height + motif.label.height + strheight("A", cex=1/3* options$zoom.motif.label);
 
@@ -1277,7 +1293,7 @@ tfbs.plotEnrichment <- function( tfbs, r.comp, file.pdf, enrichment.type = c ("b
 	if(plot.type=="polar")
 	{
 		idx.enrich  <- which( df.ret$fe.ratio >= 1 );
-		idx.deple  <- which( df.ret$fe.ratio < 1 );
+		idx.deple   <- which( df.ret$fe.ratio < 1 );
 		df.ret$y.log[idx.deple] <- - df.ret$y.log[idx.deple];
 		options$ylim <- c(-1,1) * options$y.max;
 	}
@@ -1291,24 +1307,41 @@ tfbs.plotEnrichment <- function( tfbs, r.comp, file.pdf, enrichment.type = c ("b
 	## exclude this condition: polar && only 'depleted'
 	if( !(plot.type== "polar"  && enrichment.type == "depleted") )
 	{
-		df.top <- df.ret;
 		df.dummy.bottom <- c();
-		if( is.null(options$top.motif.labels) || is.numeric(options$top.motif.labels))
+		if( is.numeric(options$top.motif.labels))
 		{
 			if( plot.type == "polar" )
 			{
 				df.top <- df.ret[ df.ret[, "fe.ratio"] >= 1.0,,drop=F]
 				df.dummy.bottom <- df.ret[ df.ret[, "fe.ratio"] < 1.0,,drop=F]
 			}
+			else
+				df.top <- df.ret;
 
-			if( options$top.motif.labels> NROW(df.top) ) options$top.motif.labels <- NROW(df.top);
+			if( options$top.motif.labels> NROW(df.top) )
+				options$top.motif.labels <- NROW(df.top);
+
 			if( options$top.motif.labels>0 )
 			{
 				n.revse <- NROW(df.top) - c(1:as.numeric(options$top.motif.labels)) + 1;
 				df.top <- df.top[n.revse,,drop=F]
 
-				if(NROW(df.top)>0) df.top <- cbind( x=n.revse+NROW(df.dummy.bottom), y=df.top$y.log, df.top);
+				if(NROW(df.top)>0)
+					df.top <- cbind( x=n.revse+NROW(df.dummy.bottom), y=df.top$y.log, label=NA, df.top);
 			}
+		}
+
+		if( is.character(options$top.motif.labels))
+		{
+			n.motif.labels <- NROW(df.ret);
+			if( NROW(options$top.motif.labels) < NROW(df.ret) )
+				n.motif.labels <- NROW(options$top.motif.labels);
+
+			n.revse <- NROW(df.ret) - c( 1:n.motif.labels ) + 1;
+			df.top <- df.ret[n.revse,,drop=F]
+
+			if(NROW(df.top)>0)
+				df.top <- cbind( x = n.revse + NROW(df.dummy.bottom), y=df.top$y.log, label=options$top.motif.labels, df.top);
 		}
 
 	}
@@ -1317,17 +1350,35 @@ tfbs.plotEnrichment <- function( tfbs, r.comp, file.pdf, enrichment.type = c ("b
 	## only include this condition: polar && not 'enriched'
 	if( plot.type== "polar" && enrichment.type != "enriched")
 	{
-		df.bottom <- df.ret[ df.ret[, "fe.ratio"] < 1.0,,drop=F]
-		if(is.null(options$bottom.motif.labels) || is.numeric(options$bottom.motif.labels) )
+		if( is.numeric(options$bottom.motif.labels) )
 		{
-			if ( options$bottom.motif.labels> NROW(df.bottom) ) options$bottom.motif.labels <- NROW(df.bottom);
+			df.bottom <- df.ret[ df.ret[, "fe.ratio"] < 1.0,,drop=F]
+			if ( options$bottom.motif.labels> NROW(df.bottom) )
+				options$bottom.motif.labels <- NROW(df.bottom);
 
 			if(options$bottom.motif.labels>0)
 			{
 				n.order <-  c(1:as.numeric( options$bottom.motif.labels )) ;
 				df.bottom <- df.bottom[n.order,,drop=F]
 
-				if(NROW(df.bottom)>0) df.bottom <- cbind( x=n.order, y=df.bottom$y.log, df.bottom);
+				if(NROW(df.bottom)>0)
+					df.bottom <- cbind( x=n.order, y=df.bottom$y.log, label=NA, df.bottom);
+			}
+		}
+
+		if( is.character(options$bottom.motif.labels) )
+		{
+			df.bottom <- df.ret[ df.ret[, "fe.ratio"] < 1.0,,drop=F]
+
+			n.motif.labels <- NROW(df.bottom);
+			if ( NROW(options$bottom.motif.labels) > NROW(df.bottom) )
+				n.motif.labels <- NROW(df.bottom);
+
+			if(n.motif.labels>0)
+			{
+				df.bottom <- df.bottom[c(1:n.motif.labels ),,drop=F]
+				if(NROW(df.bottom)>0)
+					df.bottom <- cbind( x=n.order, y=df.bottom$y.log, label=options$bottom.motif.labels, df.bottom);
 			}
 		}
 	}
