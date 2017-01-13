@@ -227,7 +227,7 @@ setMethod("tfbs.selectByGeneExp", c(tfbs="tfbs"),
 		usemotifs <- sapply(1:max(cluster), function(x) {
 			a <- which(cluster == x)
 			if(length(a) > 1) {
-				a.min <- which.min( tfbs@expressionlevel$prob[a] );
+				a.min <- which.min( tfbs@expressionlevel$p.pois[a] );
 			if(length(a.min)>0)
 				return( a[ a.min[1] ] )
 			else
