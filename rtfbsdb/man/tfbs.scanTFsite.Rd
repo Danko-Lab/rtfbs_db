@@ -44,6 +44,8 @@ tfbs.scanTFsite(tfbs,
 }
 \details{
 
+The threshold for 'score' is a log-e transformed odds ratio of a given sequence matching your motif compared with a third-order Markov model background. This score is initially returned from the Rphast package. \cr
+
 (1) Five options are availabe for the function of tfbs.scanTFsite as follows.\cr
 \itemize{
 \item{\code{matches}:}{ returns all matching TF sites for all motifs.}
