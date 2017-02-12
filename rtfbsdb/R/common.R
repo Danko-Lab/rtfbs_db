@@ -109,12 +109,11 @@ save_chromosome_size <- function( file.twoBit, file.tab)
 	write.table(get_chromosome_size(file.twoBit), file=file.tab, row.names=F, col.names=F, quote=F);
 }
 
-
 check_folder_writable<-function(file.prefix)
 {
-	if( dirname(file.prefix) != "." )
-		dir.create( dirname(file.prefix), showWarnings = TRUE, recursive = FALSE );
-
+	if( !file.exists(dirname(file.prefix) )
+		dir.create( dirname(file.prefix), showWarnings = TRUE, recursive = TRUE );
+	
 	file.temp <- tempfile( tmpdir = dirname(file.prefix), fileext = "")
 	r.try <- try( file.create(file.temp) )
 	if( class(r.try)=="try-error" || r.try==FALSE )

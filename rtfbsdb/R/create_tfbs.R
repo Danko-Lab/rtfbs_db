@@ -77,7 +77,8 @@ tfbs.dirs <- function(..., species="Homo_sapiens", args.read.motif = NULL, patte
 		return( NULL );
 
 	names(pwm.names) <- NULL # clear filenames
-
+	Motif_ID <- tools::file_path_sans_ext( basename(filenames[idx.pwm]) );
+	
 	# build object instance
 	new("tfbs", 
 		#usemotifs      = as.integer(1:length(filenames)),
@@ -86,6 +87,7 @@ tfbs.dirs <- function(..., species="Homo_sapiens", args.read.motif = NULL, patte
 		filename        = filenames[idx.pwm], 
 		mgisymbols      = pwm.names[idx.pwm], 
 		pwm             = pwms[idx.pwm],
+		tf_info         = data.frame(Motif_ID = Motif_ID, TF_Name = paste("TF_", Motif_ID, sep="") ),
 		distancematrix  = matrix(, nrow=0, ncol=0),
 		cluster         = matrix(, nrow=0, ncol=0),
 		expressionlevel = as.data.frame(NULL) );
@@ -195,9 +197,9 @@ tfbs_createFromCisBP <- function ( cisbp.db,
 	if(length(nidx.motif)>0)
 	{
 		TF_info <- tbm[ nidx.motif, , drop=F];
-		rownames(TF_info)<- c(1:NROW(TF_info));
+		if(NROW(TF_info)>0) rownames(TF_info)<- c(1:NROW(TF_info));
 		TF_missing <- tbm[ -nidx.motif, , drop=F];
-		rownames(TF_missing)<- c(1:NROW(TF_missing));
+		if(NROW(TF_missing)>0) rownames(TF_missing)<- c(1:NROW(TF_missing));
 	}
 	
 	if( err.empty + err.missing > 0 )
