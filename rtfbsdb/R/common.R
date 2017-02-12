@@ -111,7 +111,7 @@ save_chromosome_size <- function( file.twoBit, file.tab)
 
 check_folder_writable<-function(file.prefix)
 {
-	if( !file.exists(dirname(file.prefix) )
+	if( !file.exists(dirname(file.prefix) ) )
 		dir.create( dirname(file.prefix), showWarnings = TRUE, recursive = TRUE );
 	
 	file.temp <- tempfile( tmpdir = dirname(file.prefix), fileext = "")
