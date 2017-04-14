@@ -166,7 +166,7 @@ lambda_estimate_in_bam <- function( file.bam, file.twoBit, file.gencode.gtf, sam
 	 				 		 cbind( df.comp.win, V4=".", V5=".", V6="-") );
 	if(use.strand)
 		reads <- get_bam_reads( file.bam, df.bed = df.comp.strand, use.strand=use.strand )
-	else	
+	else
 		reads <- get_bam_reads( file.bam, df.bed = df.comp.win, use.strand=use.strand )
 
 	## NO BAM file or BAM file is not indexed
@@ -176,7 +176,7 @@ lambda_estimate_in_bam <- function( file.bam, file.twoBit, file.gencode.gtf, sam
 	if( quantile(reads, 0.99) > 0)
 		reads <- reads[ which( reads <= quantile(reads, 0.99) ) ];
 
-	# option 1: Mode 
+	# option 1: Mode
 	lambda1 <- Stats_mode(reads);
 	# option 2: Average
 	lambda2 <- mean(reads);
@@ -189,7 +189,7 @@ lambda_estimate_in_bam <- function( file.bam, file.twoBit, file.gencode.gtf, sam
 get_bam_reads<-function(file.bam, df.bed = NULL, file.twoBit = NULL, use.strand = FALSE )
 {
 	options("scipen"=100, "digits"=4)
-	
+
 	read_bam <- function(df.bed, use.strand)
 	{
 		file.df3 <- tempfile();
@@ -197,7 +197,7 @@ get_bam_reads<-function(file.bam, df.bed = NULL, file.twoBit = NULL, use.strand 
 		pipe.cmd <- paste( "sort-bed ", file.df3, " | bedtools multicov -bams", file.bam, " -bed - ");
 		if(use.strand)
 			pipe.cmd <- paste( pipe.cmd, "-s");
-			
+
 		ts <- try(read.table( pipe(pipe.cmd) ), silent=T);
 		unlink(file.df3);
 
@@ -241,7 +241,7 @@ get_bam_reads<-function(file.bam, df.bed = NULL, file.twoBit = NULL, use.strand 
 			reads.plus <- read_bam( data.frame(df.bed, ".", ".", "+"), TRUE);
 			reads.minus <- read_bam( data.frame(df.bed, ".", ".", "-"), TRUE);
 			return( sum(reads.plus + reads.minus) );
-		}	
+		}
 	}
 	else
 		return(NA);
@@ -393,13 +393,13 @@ cpu.RNA.seq <- function(DBIDs, i.from, i.to, gencode_transcript_ext, gencode_exo
 						"start"     = r.bed.rna [max.idx, 2],
 						"end"       = r.bed.rna [max.idx, 3],
 						"length"    = length,
-						"strand"    = if(use.strand) as.character(r.bed.rna [max.idx,6]) else ".", 
+						"strand"    = if(use.strand) as.character(r.bed.rna [max.idx,6]) else ".",
 						"reads"	    = reads,
 						"lambda"    = lambda0,
 						"RPKM"      = RPKM,
 						"lambda.RPKM"= lambda.RPKM,
 						"p.pois"    = p.pois );
-						
+
 				}
 			}
 		}
@@ -741,10 +741,16 @@ tfbs_selectExpressedMotifs <- function( tfbs,
 			tf.expresed <- which( tfs@expressionlevel$p.pois<=prob.sig | is.na(tfs@expressionlevel$p.pois) )
 		else
 			tf.expresed <- which( tfs@expressionlevel$p.pois<=prob.sig );
-			
+
 		if (!is.na(lowest.reads.RPKM) && length(tf.expresed)>0 )
-			tf.expresed <- tf.expresed[ tfs@expressionlevel[tf.expresed, 'RPKM'] >= lowest.reads.RPKM ];
-			
+		{
+			rpkm <- tfs@expressionlevel[tf.expresed, 'RPKM'];
+			if( include.DBID.Missing )
+				tf.expresed <- tf.expresed[ which(rpkm >= lowest.reads.RPKM | is.na(rpkm) ) ]
+			else
+				tf.expresed <- tf.expresed[ which(rpkm >= lowest.reads.RPKM) ]
+		}
+
 		if(length(tf.expresed)>0)
 		{
 			tfs@expressionlevel <- tfs@expressionlevel[ tf.expresed,,drop=F ];
