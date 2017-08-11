@@ -49,5 +49,5 @@ Requires
 How to cite?
 -----------
 
-* Wang, Z., Martins, A. L., & Danko, C. G. (2016). RTFBSDB: an integrated framework for transcription factor binding site analysis. Bioinformatics, 32(19), 3024-3026.
+* Wang, Z., Martins, A. L., & Danko, C. G. (2016). [RTFBSDB: an integrated framework for transcription factor binding site analysis.](https://doi.org/10.1093/bioinformatics/btw338) Bioinformatics, 32(19), 3024-3026.
 
