@@ -364,6 +364,8 @@ background.generate <- function( positive.bed )
 comparative_scanDb_rtfbs <- function( tfbs, file.twoBit,
 					positive.bed,
 					negative.bed,
+					positive.ms = NULL,
+					negative.ms = NULL,
 					file.prefix = NA,
 					cluster.mat = NA,
 					ncores = 1,
@@ -390,8 +392,8 @@ comparative_scanDb_rtfbs <- function( tfbs, file.twoBit,
 		stop(paste("Negative BED file contains only ", NROW(negative.bed), " entries.  Strongly suggest size is increased."))
 
 	# read sequences
-	positive.ms = read.seqfile.from.bed(positive.bed, file.twoBit)
-	negative.ms = read.seqfile.from.bed(negative.bed, file.twoBit)
+	if(is.null(positive.ms)) positive.ms = read.seqfile.from.bed(positive.bed, file.twoBit)
+	if(is.null(negative.ms)) negative.ms = read.seqfile.from.bed(negative.bed, file.twoBit)
 
 	gc.pos <- gcContent.ms(positive.ms);
 	gc.neg <- gcContent.ms(negative.ms);
@@ -618,10 +620,16 @@ tfbs_enrichmentTest<-function( tfbs, file.genome,
 		cat("*", NROW(negative.bed),  "GC negative loci are randomly generated.\n");
 	}
 
+	# read sequences
+	positive.ms = read.seqfile.from.bed(positive.bed, file.twoBit)
+	negative.ms = read.seqfile.from.bed(negative.bed, file.twoBit)
+
 	r.comp <- comparative_scanDb_rtfbs( tfbs,
 							file.twoBit,
 							positive.bed,
 							negative.bed,
+							positive.ms,
+							negative.ms,
 							file.prefix,
 							cluster.mat = cluster.mat,
 							ncores = ncores,
@@ -651,6 +659,8 @@ tfbs_enrichmentTest<-function( tfbs, file.genome,
 								file.twoBit,
 								positive.bed,
 								negative.bed,
+								positive.ms,
+								negative.ms,
 								file.prefix,
 								cluster.mat = cluster.mat,
 								ncores = ncores,
@@ -1248,7 +1258,7 @@ tfbs.plotEnrichment <- function( tfbs, r.comp, file.pdf, enrichment.type = c ("b
 				title  = "",
 				width  = 7,
 				height = 7,
-				xlab   = "Order",
+				xlab   = "Rank Order",
 				ylab   = "-log10(p-value)",
 				y.max  = NULL,
 				top.motif.labels    = 5,
