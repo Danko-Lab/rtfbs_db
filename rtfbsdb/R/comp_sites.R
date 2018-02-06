@@ -612,7 +612,8 @@ tfbs_enrichmentTest<-function( tfbs, file.genome,
 		cluster.mat <- tfbs@cluster[ tfbs@cluster[,3]==1, c(1,2), drop=F];
 	}
 	else
-		cluster.mat <- cbind( 1:tfbs@ntfs, 1);
+		## if dont use cluster to correct p-value, here each individual is a group
+		cluster.mat <- cbind( 1:tfbs@ntfs, 1:tfbs@ntfs);
 
 	if( missing(negative.bed) )
 	{
@@ -788,16 +789,30 @@ print.tfbs.enrichment<-function( x, ..., pv.threshold=0.05, pv.adj=NA )
 	show(r.comp.sig);
 }
 
-adjust.pvale<-function( r.pvalue, cluster.mat, pv.adj )
+adjust.pvale<-function( r.pvalue, cluster.mat, pv.adj.method )
 {
 	# If the cluster is used,...No cluster info ==>  cluster.mat[,2]=1
-	cluster.id <- unique( cluster.mat[,2] );
-	for(i in 1:length(cluster.id))
-	{
-		cluster.set <- which( cluster.mat[,2] == cluster.id[i] )
+	# cluster.id <- unique( cluster.mat[,2] );
+	# for(i in 1:length(cluster.id))
+	# {
+	#	cluster.set <- which( cluster.mat[,2] == cluster.id[i] )
+	#
+	#	# if the cluster index is called from the compare function, the p.adjust will be used to the cluster range, not all results.
+	#	r.pvalue[cluster.set] <- p.adjust( r.pvalue[cluster.set], method=pv.adj.method );
+	# }
 
-		# if the cluster index is called from the compare function, the p.adjust will be used to the cluster range, not all results.
-		r.pvalue[cluster.set] <- p.adjust( r.pvalue[cluster.set], method=pv.adj );
+	# If the cluster is used,...No cluster info ==>  cluster.mat[,2]=1
+	cluster.id <- unique( cluster.mat[,2] );
+
+	pv.mins <- unlist(lapply( 1:length(cluster.id), function(i) {
+		min(r.pvalue[which( cluster.mat[,2] == cluster.id[i])]);
+		}));
+
+	pv.news <- p.adjust( pv.mins, method=pv.adj.method );
+	for(i in cluster.id)
+	{
+		cluster.set <- which( cluster.mat[,2] == i )
+		r.pvalue[cluster.set] <- pmin( 1, r.pvalue[cluster.set] * pv.news[i]/pv.mins[i] );
 	}
 
 	return(r.pvalue);
