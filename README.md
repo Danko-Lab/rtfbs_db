@@ -57,6 +57,9 @@ https://github.com/Danko-Lab/rtfbs_db/blob/master/rtfbsdb-vignette.pdf
 * R manual:
 https://github.com/Danko-Lab/rtfbs_db/blob/master/rtfbsdb-manual.pdf 	
 
+* Paper:
+https://doi.org/10.1093/bioinformatics/btw338	
+
 How to cite?
 -----------
 
