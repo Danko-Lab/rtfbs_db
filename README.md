@@ -46,6 +46,17 @@ Requires
 
 * For more information about the installation, please check the [tutorial document](https://github.com/Danko-Lab/rtfbs_db/blob/master/rtfbsdb-tutorial.pptx) (Page 9 in 'rtfbsdb-tutorial.pptx').
 
+Documents
+----------
+* Totorial
+https://github.com/Danko-Lab/rtfbs_db/blob/master/rtfbsdb-tutorial.pptx
+
+* R Vignette
+https://github.com/Danko-Lab/rtfbs_db/blob/master/rtfbsdb-vignette.pdf
+
+* R Manual
+https://github.com/Danko-Lab/rtfbs_db/blob/master/rtfbsdb-manual.pdf 	
+
 How to cite?
 -----------
 
