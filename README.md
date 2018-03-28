@@ -48,13 +48,13 @@ Requires
 
 Documents
 ----------
-* Totorial
+* Totorial, including installation and usage. 
 https://github.com/Danko-Lab/rtfbs_db/blob/master/rtfbsdb-tutorial.pptx
 
-* R Vignette
+* R vignette:
 https://github.com/Danko-Lab/rtfbs_db/blob/master/rtfbsdb-vignette.pdf
 
-* R Manual
+* R manual:
 https://github.com/Danko-Lab/rtfbs_db/blob/master/rtfbsdb-manual.pdf 	
 
 How to cite?
