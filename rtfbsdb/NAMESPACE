@@ -33,8 +33,6 @@ export(tfbs.reportFinding)
 export(tfbs.reportEnrichment)
 export(tfbs.plotEnrichment)
 
-export(comparative_scanDb_rtfbs_gc_robust)
-
 S3method(print, tfbs.finding)
 S3method(summary, tfbs.finding)
 S3method(print, tfbs.enrichment)
