@@ -46,6 +46,20 @@ Requires
 
 * For more information about the installation, please check the [tutorial document](https://github.com/Danko-Lab/rtfbs_db/blob/master/rtfbsdb-tutorial.pptx) (Page 9 in 'rtfbsdb-tutorial.pptx').
 
+Documents
+----------
+* Totorial, including installation and usage. 
+https://github.com/Danko-Lab/rtfbs_db/blob/master/rtfbsdb-tutorial.pptx
+
+* R vignette:
+https://github.com/Danko-Lab/rtfbs_db/blob/master/rtfbsdb-vignette.pdf
+
+* R manual:
+https://github.com/Danko-Lab/rtfbs_db/blob/master/rtfbsdb-manual.pdf 	
+
+* Paper:
+https://doi.org/10.1093/bioinformatics/btw338	
+
 How to cite?
 -----------
 
