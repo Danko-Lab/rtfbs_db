@@ -1,9 +1,9 @@
 #' Creates a new tfbs object.  Reads files
 
-tfbs <- function(filenames=NULL, names=NULL, species="Homo_sapiens", tf_info=NULL, tf_missing=NULL, ...) 
+tfbs <- function(filenames=NULL, names=NULL, species="Homo_sapiens", tf_info=NULL, tf_missing=NULL, ...)
 {
 	stopifnot( length(names) == length(filenames) );
-	
+
 	pwms <- list();
 	idx.pwm <- c();
 	mgisymbols <- c();
@@ -12,7 +12,7 @@ tfbs <- function(filenames=NULL, names=NULL, species="Homo_sapiens", tf_info=NUL
 		for(i in 1:length(filenames)) {
 			pwms[[i]] <- read.motif(filenames[i], ...)
 		}
-	
+
 		idx.pwm <- which( unlist( lapply( pwms, function(x) !is.null(x) ) ) );
 		if( length(idx.pwm)==0 )
 			return( NULL );
@@ -23,21 +23,21 @@ tfbs <- function(filenames=NULL, names=NULL, species="Homo_sapiens", tf_info=NUL
 	}
 	else
 		filenames <- c();
-	
+
 	if( is.null(tf_info) )
-		tf_info  <- as.data.frame(NULL)
+		tf_info  <- data.frame(Motif_ID = mgisymbols, TF_Name = paste("TF_", mgisymbols, sep=""))
 	else
 		tf_info  <- tf_info[idx.pwm,,drop=F];
-	
+
 	if( is.null(tf_missing) )
 		tf_missing  <- as.data.frame(NULL)
 
-	new("tfbs", 
+	new("tfbs",
 		species        = species,
 		ntfs           = as.integer(length(filenames)),
 		pwm            = pwms,
-		filename       = as.character(filenames), 
-		mgisymbols     = as.character(mgisymbols), 
+		filename       = as.character(filenames),
+		mgisymbols     = as.character(mgisymbols),
 		tf_info        = tf_info,
 		tf_missing     = tf_missing,
 		distancematrix = matrix(, nrow=0, ncol=0),
@@ -48,7 +48,7 @@ tfbs <- function(filenames=NULL, names=NULL, species="Homo_sapiens", tf_info=NUL
 #' Create a new tfbs object from all the PWMs found in the supplied folders.
 #' Optionally recursively descends into subfolders.
 
-tfbs.dirs <- function(..., species="Homo_sapiens", args.read.motif = NULL, pattern = glob2rx("*.pwm"), recursive = FALSE) 
+tfbs.dirs <- function(..., species="Homo_sapiens", args.read.motif = NULL, pattern = glob2rx("*.pwm"), recursive = FALSE)
 {
 	pwms = list()
 	paths = list(...)
@@ -78,14 +78,14 @@ tfbs.dirs <- function(..., species="Homo_sapiens", args.read.motif = NULL, patte
 
 	names(pwm.names) <- NULL # clear filenames
 	Motif_ID <- tools::file_path_sans_ext( basename(filenames[idx.pwm]) );
-	
+
 	# build object instance
-	new("tfbs", 
+	new("tfbs",
 		#usemotifs      = as.integer(1:length(filenames)),
 		species         = species,
 		ntfs            = as.integer(length(idx.pwm)),
-		filename        = filenames[idx.pwm], 
-		mgisymbols      = pwm.names[idx.pwm], 
+		filename        = filenames[idx.pwm],
+		mgisymbols      = pwm.names[idx.pwm],
 		pwm             = pwms[idx.pwm],
 		tf_info         = data.frame(Motif_ID = Motif_ID, TF_Name = paste("TF_", Motif_ID, sep="") ),
 		distancematrix  = matrix(, nrow=0, ncol=0),
@@ -96,22 +96,22 @@ tfbs.dirs <- function(..., species="Homo_sapiens", args.read.motif = NULL, patte
 #' Find the subset by querying the motif table
 #'
 #' @param cisbp.db: cisbp.db object
-#' @param tf_name: string, the query value for tf_name 
-#' @param tf_status: string, the query value for tf_status 
-#' @param family_name: string, the query value for family_name  
-#' @param motif_type: string, the query value for motif_type  
-#' @param msource_id: string, the query value for msource_id  
+#' @param tf_name: string, the query value for tf_name
+#' @param tf_status: string, the query value for tf_status
+#' @param family_name: string, the query value for family_name
+#' @param motif_type: string, the query value for motif_type
+#' @param msource_id: string, the query value for msource_id
 #' @param tf.information.type: 1,2 or 3 indicate which motif file will be used.
 #'
 #' @return: NULL or tfbs object;
 
-tfbs_createFromCisBP <- function ( cisbp.db, 
-					motif_id    = NULL, 
-					tf_name     = NULL, 
+tfbs_createFromCisBP <- function ( cisbp.db,
+					motif_id    = NULL,
+					tf_name     = NULL,
 					tf_status   = NULL,
-					family_name = NULL, 
-					motif_type  = NULL, 
-					msource_id  = NULL, 
+					family_name = NULL,
+					motif_type  = NULL,
+					msource_id  = NULL,
 					tf.information.type = 1 )
 {
 	cisbp.db@file.tfinfo <- CisBP.active_motif_info( cisbp.db, tf.information.type );
@@ -138,7 +138,7 @@ tfbs_createFromCisBP <- function ( cisbp.db,
 	else
 	{
 		nidx <- c(1:NROW(tbm));
-		tbm_f_all <- "All"; 
+		tbm_f_all <- "All";
 	}
 
 	tbm <- tbm[nidx,, drop=F];
@@ -148,17 +148,17 @@ tfbs_createFromCisBP <- function ( cisbp.db,
 	pwm.files <- c();
 	nidx.motif <- c();
 	names <- c();
-	
+
 	err.missing <- 0;
 	err.empty <- 0;
-	
+
 	for (i in 1:NROW(tbm) )
 	{
 		motif_id <- as.character(tbm$Motif_ID[i]);
-		
+
 		if( as.character(motif_id)==".")
 		{
-			# cat("! No ID for this motif(.).\n"); 	
+			# cat("! No ID for this motif(.).\n");
 			err.missing <- err.missing + 1;
 			next;
 		}
@@ -173,13 +173,13 @@ tfbs_createFromCisBP <- function ( cisbp.db,
 		}
 
 		tb <- try( read.table(paste(tmp.dir, pwm.file, sep="/"), header=T, sep="\t", row.names=1), TRUE );
-		if(class(tb)=="try-error") 
+		if(class(tb)=="try-error")
 		{
 			# cat("! Can not find PWM file for motif ID=", motif_id, ".\n" );
 			err.missing <- err.missing + 1;
 			next;
 		}
-	
+
 		if(NROW(tb)==0)
 		{
 			# cat("! No A C G T values in the PWM file for motif ID=", motif_id, ".\n" );
@@ -201,7 +201,7 @@ tfbs_createFromCisBP <- function ( cisbp.db,
 		TF_missing <- tbm[ -nidx.motif, , drop=F];
 		if(NROW(TF_missing)>0) rownames(TF_missing)<- c(1:NROW(TF_missing));
 	}
-	
+
 	if( err.empty + err.missing > 0 )
 		cat("!", err.empty + err.missing, "PWM file(s) are failed to be loaded ( Missing PWMs :", err.missing, ", Empty PWMs :", err.empty, ").\n");
 
@@ -215,8 +215,8 @@ tfbs_createFromCisBP <- function ( cisbp.db,
 
 	tfs <- tfbs(
 		species    = cisbp.db@species,
-		filenames  = pwm.files, 
-		names      = names, 
+		filenames  = pwm.files,
+		names      = names,
 		tf_info    = TF_info,
 		tf_missing = TF_missing,
 		header=T, sep="\t" , row.names=1 );
