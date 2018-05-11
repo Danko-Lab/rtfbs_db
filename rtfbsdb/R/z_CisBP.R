@@ -1,16 +1,16 @@
-## Create a genral TFBS database class (tfbs.db) 
-## 
+## Create a genral TFBS database class (tfbs.db)
+##
 
-setClass("tfbs.db", 
+setClass("tfbs.db",
 	representation(
 		species = "character"
 	)
 )
 
 #' Create a CisBP database class (extending tfbs.db)
-#'  
+#'
 #' Download Link: http://cisbp.ccbr.utoronto.ca/bulk_archive.php
-#' paper: Determination and inference of eukaryotic transcription 
+#' paper: Determination and inference of eukaryotic transcription
 #'        factor sequence specificity, Cell, 2014
 #'
 #' Thress methods for CisBP.db
@@ -27,8 +27,8 @@ setClass("CisBP.db",
 	representation(
 		zip.url     = "character",  ## http url for data download
 		zip.file    = "character",  ## zip file including pwm files and TF_information.txt
-		zip.date    = "character",  ## download date    
-		file.tfinfo = "character"   ## "TF_Information.txt" 
+		zip.date    = "character",  ## download date
+		file.tfinfo = "character"   ## "TF_Information.txt"
 	), contains = "tfbs.db"
 )
 
@@ -41,20 +41,20 @@ setMethod("show", "CisBP.db", function(object){
 
 })
 
-#' download zip file and store it to temporary folder. 
+#' download zip file and store it to temporary folder.
 #'
-#' URL: http://cisbp.ccbr.utoronto.ca/bulk.php 
+#' URL: http://cisbp.ccbr.utoronto.ca/bulk.php
 #' @param species: the values are available on the web page
 #' @param URL: the URL of bulk dowbnloads.
 #'
 #' @return: CisBP.db object;
 
-CisBP.download <- function( species="Homo_sapiens", url="http://cisbp.ccbr.utoronto.ca/bulk_archive.php" ) 
+CisBP.download <- function( species="Homo_sapiens", url="http://cisbp.ccbr.utoronto.ca/bulk_archive.php" )
 {
 	if(! (requireNamespace("RCurl") && requireNamespace ("stringr") ) )
 		stop("Package RCurl and stringr are necessary to download files.");
 
-	#test the HTTP header 
+	#test the HTTP header
 	#if(is.null(url)) url <- "http://127.0.0.1:8888/";
 	if( is.null(url) ) url <- "http://cisbp.ccbr.utoronto.ca/bulk_archive.php";
 
@@ -69,7 +69,7 @@ CisBP.download <- function( species="Homo_sapiens", url="http://cisbp.ccbr.utoro
 	{
 		if(x!="Download+Species+Archive%21")
 			return( RCurl::curlEscape(x) )
-		else	
+		else
 			return(x);
 	}
 
@@ -80,20 +80,20 @@ CisBP.download <- function( species="Homo_sapiens", url="http://cisbp.ccbr.utoro
 	cat("  Posting the form data to the web page and get the link of zip file ...\n");
 
 	# HTTP post menthod is called to send the form parameters(selSpec, ...)
-	t <- RCurl::postForm( url, curl=h.curl, 
+	t <- RCurl::postForm( url, curl=h.curl,
 		selSpec   = species,
 		"Spec%5B%5D"  = "Logos",
 		"Spec%5B%5D"  = "TF_Information",
 		"Spec%5B%5D"  = "PWMs",
 		submit    = "Download+Species+Archive%21",
-		style     = "POST", 
+		style     = "POST",
 		.contentEncodeFun =f.encode);
 
 
 	# parser the return page and get the link of zip file
 	zip.path <- stringr::str_extract(as.character(t), "tmp/[^ \f\n\r\t\v]+.zip\">Download")
 	zip.path <- substring( zip.path, 1, nchar(zip.path)-10 );
-	
+
 	zip.url <- paste("http://cisbp.ccbr.utoronto.ca/", zip.path, sep="");
 	cat("* Zip file =", zip.url, "\n");
 
@@ -116,12 +116,12 @@ CisBP.download <- function( species="Homo_sapiens", url="http://cisbp.ccbr.utoro
 
 	cat("* TF_Information =", r.file, "\n");
 
-	new("CisBP.db", 
-		species = species, 
+	new("CisBP.db",
+		species = species,
 		file.tfinfo = paste(tmp.dir, "TF_Information.txt", sep="/"),
 		zip.file= zip.file,
 		zip.date= format( Sys.time(), "%m/%d/%Y"),
-		zip.url= zip.url);  
+		zip.url= zip.url);
 }
 
 #' Construct tfbs.DB object from zipped CisBP file.
@@ -131,7 +131,7 @@ CisBP.download <- function( species="Homo_sapiens", url="http://cisbp.ccbr.utoro
 #'
 #' @return: CisBP.db object;
 
-CisBP.zipload <- function( zip.file, species="Homo_sapiens" ) 
+CisBP.zipload <- function( zip.file, species )
 {
 	tmp.dir <- tempdir();
 	r.file <- unzip( zip.file, c("TF_Information.txt"), exdir=tmp.dir );
@@ -143,24 +143,24 @@ CisBP.zipload <- function( zip.file, species="Homo_sapiens" )
 
 	#unlink(r.file);
 
-	new("CisBP.db", 
-		species  = species, 
+	new("CisBP.db",
+		species  = species,
 		file.tfinfo = paste(tmp.dir, "TF_Information.txt", sep="/"),
 		zip.file = zip.file,
 		zip.date = format( file.info( zip.file )$mtime, "%m/%d/%Y"),
-		zip.url  = ""); 
+		zip.url  = "");
 }
 
 #' find matched zip file and return the create date.
-#' 
+#'
 #'
 zipfile.match <- function( species )
 {
 	file.wildcard <- paste( species, "_ver_*.zip", sep="");
-	
+
 	path <- system.file("extdata", package="rtfbsdb");
 	files <- list.files( path, glob2rx( file.wildcard ) );
-	
+
 	if( length(files)!=1 )
 		return( NULL )
 	else
@@ -168,7 +168,7 @@ zipfile.match <- function( species )
 		zip.file <- system.file("extdata", files[1], package="rtfbsdb");
 		r <- file.info( zip.file );
 
-		zip.base <- basename(zip.file);	
+		zip.base <- basename(zip.file);
 		zip.ver <- regexpr("ver_", zip.base, fixed=T)[1];
 		zip.date <- substring(zip.base, zip.ver + 4, zip.ver + 13 )
 
@@ -186,18 +186,18 @@ zipfile.match <- function( species )
 
 CisBP.extdata<-function( species )
 {
-	zip.file <- "";	
-	if ( species=="Homo_sapiens" ||  species=="Human" ||  species=="human") 
+	zip.file <- "";
+	if ( species=="Homo_sapiens" ||  species=="Human" ||  species=="human")
 	{
 		zip.file <- zipfile.match( "Homo_sapiens" );
 		species <- "Homo_sapiens";
 	}
-	else if ( species=="Mus_musculus" || species=="Mouse" || species=="mouse") 
+	else if ( species=="Mus_musculus" || species=="Mouse" || species=="mouse")
 	{
 		zip.file <- zipfile.match( "Mus_musculus" );
 		species <- "Mus_musculus";
 	}
-	else if ( species=="Drosophila_melanogaster" || species=="dm3" ) 
+	else if ( species=="Drosophila_melanogaster" || species=="dm3" )
 	{
 		zip.file <- zipfile.match( "Drosophila_melanogaster" );
 		species <- "Drosophila_melanogaster";
@@ -221,22 +221,22 @@ CisBP.extdata<-function( species )
 	# dont delete this file, the following functions will use it!
 	# unlink(r.file);
 
-	new("CisBP.db", 
-		species = species, 
+	new("CisBP.db",
+		species = species,
 		file.tfinfo = paste(tmp.dir, "TF_Information.txt", sep="/"),
 		zip.file= zip.file$name,
 		zip.date= zip.file$date,
-		zip.url= "extdata");  
+		zip.url= "extdata");
 }
 
-#' Select the motif table for CisBP.create and CisBP.group function. 
+#' Select the motif table for CisBP.create and CisBP.group function.
 #'
 #' Three TF information files in zip file
 #'
 #' 1: TF_Information.txt : (direct motifs) or (no direct but inferred motifs with 90%)
 #' 2: TF_Information_all_motifs.txt: (direct motifs) and (inferred motifs above the threshold)
 #' 3: F_Information_all_motifs_plus.txt: All motifs
-#' 
+#'
 #' @param cisbp.db: CisBP.db object
 #' @param tf.information.type: 1,2 or 3 indicate the index of above files.
 #'
@@ -274,17 +274,17 @@ CisBP.active_motif_info<-function( cisbp.db, tf.information.type=1 )
 #'
 #' @return: data.frame;
 
-setGeneric("CisBP.group", 
-	def=function(cisbp.db, 
-				group.by = c("tf_name", "tf_species", "tf_status", "family_name", "motif_type", "msource_id"), 
+setGeneric("CisBP.group",
+	def=function(cisbp.db,
+				group.by = c("tf_name", "tf_species", "tf_status", "family_name", "motif_type", "msource_id"),
 				tf.information.type = NA) {
 		standardGeneric("CisBP.group")
 	})
 
 setMethod("CisBP.group", signature(cisbp.db="CisBP.db"),
-	function(cisbp.db, group.by=c("tf_name", "tf_species", "tf_status", "family_name", "motif_type", "msource_id"), 
+	function(cisbp.db, group.by=c("tf_name", "tf_species", "tf_status", "family_name", "motif_type", "msource_id"),
 			tf.information.type=1 ) {
-	
+
 	group_by <- match.arg(group.by);
 
 	file.tfinfo <- cisbp.db@file.tfinfo;
@@ -294,10 +294,10 @@ setMethod("CisBP.group", signature(cisbp.db="CisBP.db"),
 	tb.motifs <- read.csv( file.tfinfo, header=T, sep="\t");
 
 	col.idx <- which(toupper(group_by) == toupper(colnames(tb.motifs)) )
-	gr <- aggregate( tb.motifs["TF_ID"], by=as.data.frame(tb.motifs[,col.idx]), FUN=length)    
+	gr <- aggregate( tb.motifs["TF_ID"], by=as.data.frame(tb.motifs[,col.idx]), FUN=length)
 	colnames(gr) <- c( group_by, "count");
 
-	gr;	    
+	gr;
 })
 
 #' Get the TF_information file with the existing status for each motif
@@ -307,7 +307,7 @@ setMethod("CisBP.group", signature(cisbp.db="CisBP.db"),
 #'
 #' @return: data.frame;
 
-setGeneric("CisBP.getTFinformation", 
+setGeneric("CisBP.getTFinformation",
 	def=function(cisbp.db, tf.information.type = NA ) {
 		standardGeneric("CisBP.getTFinformation")
 	})
@@ -330,7 +330,7 @@ setMethod("CisBP.getTFinformation", signature(cisbp.db="CisBP.db"),
 		for (i in 1:NROW(tbm))
 		{
 			motif_id <- as.character(tbm$Motif_ID[i]);
-		
+
 			if( as.character(motif_id)==".")
 			{
 				motif.existing <- c(motif.existing, FALSE);
@@ -346,7 +346,7 @@ setMethod("CisBP.getTFinformation", signature(cisbp.db="CisBP.db"),
 			}
 
 			tb.motif <- try( read.table(paste(tmp.dir, pwm.file, sep="/"), header=T, sep="\t", row.names=1), TRUE );
-			if(class(tb.motif)=="try-error") 
+			if(class(tb.motif)=="try-error")
 			{
 				motif.existing <- c(motif.existing, FALSE);
 				next;
@@ -360,10 +360,10 @@ setMethod("CisBP.getTFinformation", signature(cisbp.db="CisBP.db"),
 
 			motif.existing <- c(motif.existing, TRUE);
 		}
-	
-	
+
+
 		cat("  Total motif:", NROW(tbm), ", Missing or empty PWMs:", length(which(!motif.existing)), ".\n");
-	
+
 		return( cbind(tbm, Motif_Existing=motif.existing) );
 	})
 
@@ -379,8 +379,8 @@ setMethod("CisBP.getTFinformation", signature(cisbp.db="CisBP.db"),
 #'
 #' @return: tfbs object
 
-setGeneric("tfbs.createFromCisBP", 
-		def=function(cisbp.db, motif_id = NULL, tf_name = NULL, tf_status = NULL, family_name = NULL, 
+setGeneric("tfbs.createFromCisBP",
+		def=function(cisbp.db, motif_id = NULL, tf_name = NULL, tf_status = NULL, family_name = NULL,
 					motif_type = NULL, msource_id =NULL, tf.information.type = 1){
 			stopifnot(class(cisbp.db) == "CisBP.db")
 			standardGeneric("tfbs.createFromCisBP")

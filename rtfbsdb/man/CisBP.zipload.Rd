@@ -7,7 +7,7 @@ Load the zipped CisBP file.
 Build a CisBP object from the zipped CisBP file.
 }
 \usage{
-CisBP.zipload(zip.file, species = "Homo_sapiens")
+CisBP.zipload(zip.file, species)
 }
 \arguments{
   \item{zip.file}{ String, indicating the zipped file data }
