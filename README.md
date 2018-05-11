@@ -44,7 +44,17 @@ Requires
 
 * 2bit files for your genome of interest.  Find links to these here: http://hgdownload.cse.ucsc.edu/downloads.html
 
+Installation
+--------
+
 * For more information about the installation, please check the [tutorial document](https://github.com/Danko-Lab/rtfbs_db/blob/master/rtfbsdb-tutorial.pptx) (Page 9 in 'rtfbsdb-tutorial.pptx').
+
+* If the package has been installed in R, please use the following codes to update the package. 
+
+```````
+library("devtools");
+install_github("Danko-Lab/rtfbs_db/rtfbsdb")
+```````
 
 Documents
 ----------
