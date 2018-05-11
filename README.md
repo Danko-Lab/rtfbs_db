@@ -58,7 +58,7 @@ install_github("Danko-Lab/rtfbs_db/rtfbsdb")
 
 Documents
 ----------
-* Totorial, including installation and usage. 
+* Tutorial, including installation and usage. 
 https://github.com/Danko-Lab/rtfbs_db/blob/master/rtfbsdb-tutorial.pptx
 
 * R vignette:
