@@ -150,12 +150,12 @@ setMethod("tfbs.drawLogo", c(tfbs="tfbs"), tfbs_drawLogo );
 
 ## Draws all logos for each cluster.
 setGeneric("tfbs.drawLogosForClusters",
-	def = function(tfbs, file.pdf = NULL, nrow.per.page = 6 ) {
+	def = function(tfbs, file.pdf = NULL, nrow.per.page = 6, vertical=TRUE ) {
 		stopifnot(class(tfbs) == "tfbs")
 		standardGeneric("tfbs.drawLogosForClusters")
 	})
 
-setMethod("tfbs.drawLogosForClusters", c(tfbs="tfbs"), tfbs_drawLogosForClusters )
+setMethod("tfbs.drawLogosForClusters", c(tfbs="tfbs"), tfbs_drawLogosForClusters)
 
 
 ## find TF sites in the BED range from sequence data file(hg19/hg19.2bit);

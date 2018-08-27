@@ -124,7 +124,7 @@ tfbs_drawLogo <- function(tfbs, file.pdf=NULL, index=NULL, tf_id=NULL, motif_id=
 #'
 #' @file.pdf
 
-tfbs_drawLogosForClusters <- function(tfbs,  file.pdf=NULL, nrow.per.page=6 )
+tfbs_drawLogosForClusters <- function(tfbs,  file.pdf=NULL, nrow.per.page=6, vertical=TRUE )
 {
 	if( NROW( tfbs@cluster )  == 0)
 		stop("No cluster information in the tfbs object.")
@@ -211,7 +211,11 @@ tfbs_drawLogosForClusters <- function(tfbs,  file.pdf=NULL, nrow.per.page=6 )
 				pushViewport(vp1);
 
 				#seqLogo(makePWM(exp(t(tfbs@pwm[[motifs_in_cluster[j]]]))), xaxis = FALSE, yaxis = FALSE);
-				idx.motif <- 2*r-1 + (p-1)* motif.perpage;
+				if(!vertical)
+					idx.motif <- 2*r-1 + (p-1)* motif.perpage
+				else
+					idx.motif <- r + (p-1)* motif.perpage;
+
 				if ( idx.motif <= nmotifs )
 				{
 					draw_tf_name(tfbs, motifs_in_cluster[ idx.motif ], motif.perpage);
@@ -224,7 +228,10 @@ tfbs_drawLogosForClusters <- function(tfbs,  file.pdf=NULL, nrow.per.page=6 )
 				vp1 <- viewport(x=0.5, y = 1 - r/nrow.page, width=0.5, height=1/nrow.page, just=c("left","bottom"));
 				pushViewport(vp1);
 				#seqLogo(makePWM(exp(t(tfbs@pwm[[motifs_in_cluster[j]]]))), xaxis = FALSE, yaxis = FALSE);
-				idx.motif <- 2*r + (p-1)* motif.perpage;
+				if(!vertical)
+					idx.motif <- 2*r + (p-1)* motif.perpage
+				else
+					idx.motif <- r + nrow.per.page + (p-1)* motif.perpage;
 				if ( idx.motif <= nmotifs )
 				{
 					draw_tf_name(tfbs, motifs_in_cluster[ idx.motif ], motif.perpage);
