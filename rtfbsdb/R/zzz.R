@@ -12,7 +12,7 @@
 
 .onAttach<- function(libname, pkgName)
 {
-	exit_code <- system("awk --version",  ignore.stderr=T, ignore.stdout=T, wait = T );
+	exit_code <- system("awk -Wversion >/dev/null 2>&1 || awk --version", ignore.stderr=T, ignore.stdout=T, wait = T );
 	err_cmds<- c();
 	if( exit_code != 0 )
 	{
