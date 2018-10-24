@@ -583,7 +583,7 @@ tfbs_enrichmentTest<-function( tfbs, file.genome,
 	if( missing( gc.min.sample ) ) gc.min.sample<- 500;
 	if( missing( ncores) ) ncores <- 1;
 	if( missing( gc.groups) ) gc.groups <- 1;
-	if( missing( gc.correction) ) gc.correction <- FALSE;
+	if( missing( gc.correction) ) gc.correction <- TRUE;
 	if( missing( background.order ) ) background.order <- 2;
 	if( missing( background.length ) ) background.length <- 100000;
 	if( missing( use.cluster) ) use.cluster <- FALSE;
