@@ -32,6 +32,7 @@ exportMethods(tfbs.enrichmentTest)
 export(tfbs.reportFinding)
 export(tfbs.reportEnrichment)
 export(tfbs.plotEnrichment)
+export(write.starchbed)
 
 S3method(print, tfbs.finding)
 S3method(summary, tfbs.finding)

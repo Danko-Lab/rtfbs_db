@@ -187,7 +187,75 @@ scanDb_rtfbs <- function(tfbs,
 	## Swiched rtfbs to returning posteriors.
 	return.posteriors <- ( return.type %in% c("posteriors", "maxposterior", "maxscore" ) );
 
-	binding_all <- mclapply(usemotifs, function(i, ...) {
+get_binding_site <- function( bgModel1,
+							seq.ms,
+							PWM,
+							return.posteriors,
+							score.threshold = 6,
+							fdr.threshold = NA,
+							gc.groups = NA,
+							background.order = 2,
+							background.length = 100000)
+{
+	if ( is.na(score.threshold) &&  is.na(fdr.threshold)) score.threshold <- 6;
+	if (!is.na(score.threshold) && !is.na(fdr.threshold)) score.threshold <- NA;
+
+	if( is.na( gc.groups) )
+	{
+		if(is.na(fdr.threshold))
+			binding <- score.ms( seq.ms, PWM, bgModel1, return_posteriors=return.posteriors, threshold=score.threshold )
+		else
+		{
+			seq.score <- score.ms( seq.ms, PWM, bgModel1, return_posteriors=return.posteriors, threshold=0 );
+			simu.ms   <- simulate.ms( bgModel1, background.length );
+			simu.score<- score.ms( simu.ms, PWM, bgModel1, threshold=0 );
+			fdrMap    <- calc.fdr( seq.ms, seq.score, simu.ms, simu.score );
+			binding   <- output.sites( seq.score, fdrScoreMap  = fdrMap, fdrThreshold = fdr.threshold);
+		}
+	}
+	else
+	{
+		msGroups <- groupByGC.ms( seq.ms, gc.groups);
+
+		bgModels <- lapply(1:length(msGroups),
+						function(i) { build.mm(msGroups[[i]], background.order) } );
+
+		seq.score <- lapply(1:length(msGroups),
+						function(i) { score.ms(msGroups[[i]],
+												PWM,
+												bgModels[[i]],
+												return_posteriors=return.posteriors,
+												threshold=ifelse(!is.na(fdr.threshold), 0, score.threshold));});
+
+		if(is.na(fdr.threshold))
+		{
+			binding <- do.call("rbind", seq.score);
+		}
+		else
+		{
+			simu.ms <- lapply( 1:length(msGroups),
+							function(i){ simulate.ms(bgModels[[i]], background.length)});
+			simu.score <- lapply( 1:length(msGroups),
+							function(i){ score.ms(simu.ms[[i]], PWM, bgModels[[i]])});
+			fdrMap  <- lapply( 1:length(msGroups),
+							function(i) { calc.fdr(msGroups[[i]], seq.score[[i]], simu.ms[[i]], simu.score[[i]])});
+			binding <- lapply( 1:length(msGroups),
+							function(i) { output.sites(seq.score[[i]], fdrScoreMap  = fdrMap[[i]], fdrThreshold = fdr.threshold);} );
+
+			binding <- do.call("rbind", binding);
+		}
+
+	}
+
+	return( binding );
+}
+
+	scan_each_motif <- function (i )
+	{
+		require(rtfbsdb);
+		require(rtfbs);
+
+		options("scipen"=100, "digits"=4)
 		binding<- NULL;
 
 		## Read the pwm and sequence file.
@@ -250,18 +318,44 @@ scanDb_rtfbs <- function(tfbs,
 		}
 
 		return(binding);
-	}, mc.cores= ncores)
+	}
 
+    if(ncores>1)
+    {
+   	    require(snowfall);
+        sfInit(parallel = TRUE, cpus = ncores, type = "SOCK" )
+        sfExport("tfbs", "seq.ms", "bgModel", "return.posteriors",
+			"file.twoBit",
+			"return.type",
+			"file.prefix",
+			"fdr.threshold",
+			"score.threshold",
+			"gc.groups",
+			"background.order",
+			"background.length",
+			"get_binding_site");
+
+        fun <- as.function(scan_each_motif);
+        environment(fun)<-globalenv();
+
+        binding_all <- sfLapply( usemotifs, fun);
+	    sfStop();
+    }
+    else
+        binding_all <- lapply( usemotifs, scan_each_motif);
+    
 	if(return.type == "writedb")
 	{
 		cat_files <- paste(unlist(binding_all), collapse=" ");
-		binding_all <- paste(file.prefix,".db.starch", sep="");
+		final_starch <- paste(file.prefix,".db.starch", sep="");
 
-		err_code <- system(paste("starchcat ", cat_files, " > ", binding_all, sep=""));
-		if( err_code != 0 )
-			warning("Failed to call the starchcat command to generate starch file.\n");
+		#err_code <- system(paste("starchcat ", cat_files, " > ", final_starch, sep=""));
+		#system(paste("rm ",file.prefix,"*.bed.tmp.starch",sep=""))
+		#if( err_code != 0 )
+		#	warning("Failed to call the starchcat command to generate starch file.\n");
 
-		system(paste("rm ",file.prefix,"*.bed.tmp.starch",sep=""))
+		err_code <- smallres_starchcat( unlist(binding_all), final_starch, ncores);
+		binding_all <- final_starch;
 	}
 
 	if(return.type %in% c( "maxposterior", "maxscore") )
@@ -276,6 +370,36 @@ scanDb_rtfbs <- function(tfbs,
 	}
 
 	return(binding_all)
+}
+
+
+smallres_starchcat<-function( starch.files, final.starch, ncores)
+{
+    reduce4<-function(mfiles4)
+    {
+		L <- mclapply( 1:ceiling(NROW(mfiles4)/4), function(i)
+			{
+			    tempf <- tempfile(fileext=".starch");
+			    temp0 <- starch.files[ (i-1)*4+c(1:4) ];
+			    temp0 <- temp0[!is.na(temp0)];
+				err_code <- system(paste("starchcat ", paste(temp0, collapse=" "), " > ", tempf));		
+				if( err_code != 0 )
+					warning("Failed to call the starchcat command to generate starch file.\n");
+		         
+				unlink(temp0);
+		        return(tempf);
+			}, mc.cores=ncores);
+		return(unlist(L));	
+	}
+	
+	while( NROW(starch.files)>1 )
+	{
+		starch.files <- reduce4(starch.files);
+	}
+
+	err_code <- system(paste("cp", starch.files, final.starch));
+	unlink(starch.files);
+	return(0);
 }
 
 # ncores=3 for 4 cores CPU.
